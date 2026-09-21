@@ -1,0 +1,75 @@
+.cx-official-account {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cx-official-account-badge {
+  --cx-account-text: #747b85;
+  --cx-account-border: #e0e4e9;
+  --cx-account-surface: #f5f6f8;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 30px;
+  width: fit-content;
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--cx-account-border);
+  border-radius: 7px;
+  color: var(--cx-account-text);
+  background: var(--cx-account-surface);
+  font-size: 12px;
+  font-weight: 550;
+  line-height: 1.4;
+}
+
+.cx-official-account-badge > svg { flex: 0 0 14px; }
+.cx-official-account-badge > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cx-official-account-badge--signed-out { --cx-account-text: #8d7552; --cx-account-border: #e8dfd1; --cx-account-surface: #f8f5ef; }
+.cx-official-account-badge--signed-in { --cx-account-text: #416aaa; --cx-account-border: #dce6f6; --cx-account-surface: #f3f7ff; }
+
+:root[data-theme="dark"] .cx-official-account-badge { --cx-account-text: #b1b6bf; --cx-account-border: #484c55; --cx-account-surface: #373a42; }
+:root[data-theme="dark"] .cx-official-account-badge--signed-out { --cx-account-text: #cab591; --cx-account-border: #5a5142; --cx-account-surface: #3b3730; }
+:root[data-theme="dark"] .cx-official-account-badge--signed-in { --cx-account-text: #a4c4f5; --cx-account-border: #465c7d; --cx-account-surface: #304059; }
+
+.cx-official-plan {
+  --cx-plan-text: #596579;
+  --cx-plan-line: #dce2eb;
+  --cx-plan-background: #f3f5f8;
+  min-width: 0;
+  max-width: 125px;
+  min-height: 25px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border: 1px solid var(--cx-plan-line);
+  border-radius: 6px;
+  color: var(--cx-plan-text);
+  background: var(--cx-plan-background);
+  font-size: 10px;
+  font-weight: 720;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.cx-official-plan > svg { flex: 0 0 12px; }
+.cx-official-plan > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.cx-official-plan--pro20 { --cx-plan-text: #815009; --cx-plan-line: #d6ad56; --cx-plan-background: linear-gradient(125deg, #fff9e5, #f6d891 55%, #fff1c9); box-shadow: 0 1px 7px rgb(175 125 31 / 16%), inset 0 1px 0 rgb(255 255 255 / 80%); }
+.cx-official-plan--pro5 { --cx-plan-text: #6d36b5; --cx-plan-line: #c5a5ef; --cx-plan-background: linear-gradient(125deg, #faf4ff, #e9d9fc); }
+.cx-official-plan--plus { --cx-plan-text: #275cc0; --cx-plan-line: #bacef3; --cx-plan-background: #eaf2ff; }
+.cx-official-plan--team { --cx-plan-text: #157168; --cx-plan-line: #a1d5c9; --cx-plan-background: #e4f5ef; }
+.cx-official-plan--enterprise { --cx-plan-text: #e9f1ff; --cx-plan-line: #718fbf; --cx-plan-background: linear-gradient(125deg, #25466e, #536991); box-shadow: inset 0 1px 0 rgb(255 255 255 / 20%); }
+.cx-official-plan--edu { --cx-plan-text: #3e6489; --cx-plan-line: #b4cde3; --cx-plan-background: #eaf3fa; }
+:root[data-theme="dark"] .cx-official-plan { --cx-plan-text: #bac4d3; --cx-plan-line: #4b5361; --cx-plan-background: #333b46; }
+:root[data-theme="dark"] .cx-official-plan--pro20 { --cx-plan-text: #ffe3a3; --cx-plan-line: #a9813d; --cx-plan-background: linear-gradient(125deg, #493721, #67502a 55%, #443522); box-shadow: 0 1px 8px rgb(213 159 57 / 14%), inset 0 1px 0 rgb(255 228 166 / 12%); }
+:root[data-theme="dark"] .cx-official-plan--pro5 { --cx-plan-text: #e1c4ff; --cx-plan-line: #8f64b9; --cx-plan-background: linear-gradient(125deg, #46305f, #593872); }
+:root[data-theme="dark"] .cx-official-plan--plus { --cx-plan-text: #b5d2ff; --cx-plan-line: #506f9f; --cx-plan-background: #2c4366; }
+:root[data-theme="dark"] .cx-official-plan--team { --cx-plan-text: #a4e4d6; --cx-plan-line: #497f76; --cx-plan-background: #284b46; }
+:root[data-theme="dark"] .cx-official-plan--enterprise { --cx-plan-text: #edf4ff; --cx-plan-line: #86a2cf; --cx-plan-background: linear-gradient(125deg, #2c405f, #4e6081); }
+:root[data-theme="dark"] .cx-official-plan--edu { --cx-plan-text: #b7d8ee; --cx-plan-line: #577c98; --cx-plan-background: #304a5d; }

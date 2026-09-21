@@ -1,0 +1,59 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "AstraX",
+  "version": "0.3.20",
+  "identifier": "com.astrax.codexmanager",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeDevCommand": "pnpm run dev:renderer",
+    "beforeBuildCommand": "pnpm run build:renderer"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "AstraX",
+        "width": 1400,
+        "height": 750,
+        "minWidth": 1320,
+        "minHeight": 720,
+        "center": true,
+        "resizable": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "trafficLightPosition": {
+          "x": 16,
+          "y": 14
+        }
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": false,
+    "resources": {
+      "../../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "targets": "all"
+  },
+  "plugins": {
+    "updater": {
+      "endpoints": [],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZCQTBEQkRFNTZCQjBBNUUKUldSZUNydFczdHVnYXkzSTM0N0F4UG5oV3BiVVJ0OEZwazdOd3hMRGRMNGJZaThoOEVneG9qb0cK",
+      "windows": {
+        "installMode": "passive"
+      }
+    }
+  }
+}

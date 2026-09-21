@@ -1,0 +1,127 @@
+.cx-config-health,
+.cx-settings-check-actions,
+.cx-config-health-toast {
+  --cx-health-surface: #fff;
+  --cx-health-text: #303640;
+  --cx-health-muted: #6b7280;
+  --cx-health-border: #e3e6eb;
+  --cx-health-blue: #2563eb;
+  --cx-health-blue-soft: #eef4ff;
+  --cx-health-warning: #976216;
+  --cx-health-warning-soft: #fff8e9;
+  --cx-health-warning-border: #efdab2;
+  --cx-health-success: #17845d;
+  --cx-health-success-soft: #edf8f2;
+}
+
+.cx-config-health,
+.cx-config-health-toast { color: var(--cx-health-text); background: var(--cx-health-surface); }
+.cx-settings-check-actions { display: flex; align-items: center; gap: 12px; }
+
+.cx-config-health {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--cx-health-border);
+  border-radius: 8px;
+  box-shadow: 0 3px 12px rgb(27 35 48 / 3.5%);
+}
+
+.cx-config-health-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cx-config-health-icon {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--cx-health-blue) 16%, var(--cx-health-border));
+  border-radius: 8px;
+  color: var(--cx-health-blue);
+  background: var(--cx-health-blue-soft);
+}
+
+.cx-config-health-heading-copy { flex: 1; min-width: 0; }
+.cx-config-health h3 { margin: 0; font-size: 14px; font-weight: 680; line-height: 1.4; }
+.cx-config-health-heading-copy p,
+.cx-config-health-note,
+.cx-config-health-error { margin: 5px 0 0; color: var(--cx-health-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.cx-config-health-status { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; padding: 5px 9px; border-radius: 6px; color: var(--cx-health-muted); background: var(--cx-health-blue-soft); font-size: 12px; font-weight: 600; }
+.cx-config-health-status--warning { color: var(--cx-health-warning); background: var(--cx-health-warning-soft); }
+.cx-config-health-status--success { color: var(--cx-health-success); background: var(--cx-health-success-soft); }
+.cx-config-health-error { margin-top: 14px; color: var(--cx-health-warning); }
+.cx-config-health-details { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--cx-health-border); }
+.cx-config-health-issues { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.cx-config-health-issues > li { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.cx-config-health-issues > li > svg { flex-shrink: 0; margin-top: 3px; color: var(--cx-health-warning); }
+.cx-config-health-issues strong { font-size: 13px; font-weight: 650; line-height: 1.5; overflow-wrap: anywhere; }
+.cx-config-health-issues p { margin: 3px 0 0; color: var(--cx-health-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.cx-config-health-plan { margin-top: 13px; padding: 11px 13px; border-radius: 7px; background: var(--cx-health-blue-soft); font-size: 12px; line-height: 1.7; }
+.cx-config-health-plan strong { font-weight: 600; }
+.cx-config-health-plan ul { display: grid; gap: 3px; margin: 5px 0 0; padding-left: 18px; overflow-wrap: anywhere; }
+.cx-config-health-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+.cx-config-health-footer > p { flex: 1 1 220px; margin: 0; }
+.cx-config-health-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.cx-config-health-toast {
+  position: fixed;
+  top: 18px;
+  inset-inline: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 100px);
+  overflow: auto;
+  margin-inline: auto;
+  padding: 16px;
+  border: 1px solid var(--cx-health-warning-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(25 32 44 / 15%), 0 2px 7px rgb(25 32 44 / 8%);
+  pointer-events: auto;
+  animation: cx-config-health-enter 180ms ease-out both;
+}
+
+.cx-app-shell--mac .cx-config-health-toast { top: 52px; }
+.cx-config-health-toast-icon { display: grid; flex: 0 0 34px; width: 34px; height: 34px; place-items: center; border-radius: 9px; color: var(--cx-health-warning); background: var(--cx-health-warning-soft); }
+.cx-config-health-toast-content { min-width: 0; flex: 1; }
+.cx-config-health-toast-content strong { display: block; color: inherit; font-size: 14px; font-weight: 650; line-height: 1.5; }
+.cx-config-health-toast-content p { margin: 5px 0 0; color: var(--cx-health-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.cx-config-health-toast-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.cx-config-health-toast-content p.cx-config-health-toast-plan { margin-top: 9px; padding: 8px 10px; border-radius: 6px; color: var(--cx-health-text); background: var(--cx-health-blue-soft); }
+.cx-config-health-toast-content p.cx-config-health-toast-hint { margin-top: 10px; font-size: 11px; }
+.cx-config-health-toast-close { display: grid; flex: 0 0 25px; width: 25px; height: 25px; place-items: center; padding: 0; border: 0; border-radius: 5px; color: var(--cx-health-muted); background: transparent; }
+.cx-config-health-toast-close:hover:not(:disabled) { color: var(--cx-health-text); background: var(--cx-health-blue-soft); }
+.cx-config-health-toast-close:focus-visible { outline: 2px solid var(--cx-health-blue); outline-offset: 2px; }
+.cx-config-health-spinner { animation: cx-config-health-spin 900ms linear infinite; }
+
+:root[data-theme="dark"] .cx-config-health,
+:root[data-theme="dark"] .cx-settings-check-actions,
+:root[data-theme="dark"] .cx-config-health-toast {
+  --cx-health-surface: #30343c;
+  --cx-health-text: #e5e7eb;
+  --cx-health-muted: #acb2be;
+  --cx-health-border: #454b56;
+  --cx-health-blue: #91b8fa;
+  --cx-health-blue-soft: #2b3d59;
+  --cx-health-warning: #ebc083;
+  --cx-health-warning-soft: #443c30;
+  --cx-health-warning-border: #6b573a;
+  --cx-health-success: #80d4af;
+  --cx-health-success-soft: #273f38;
+}
+
+@media (max-width: 700px) {
+  .cx-config-health-heading { flex-wrap: wrap; gap: 10px; }
+  .cx-config-health-heading > .cx-config-health-status { margin-left: 48px; }
+  .cx-config-health-heading-copy { flex-basis: calc(100% - 48px); }
+  .cx-config-health-actions { width: 100%; }
+}
+
+@keyframes cx-config-health-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cx-config-health-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .cx-config-health-toast, .cx-config-health-spinner { animation: none; } }

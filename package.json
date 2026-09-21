@@ -1,0 +1,14 @@
+{
+  "name": "astra-workspace",
+  "private": true,
+  "version": "0.3.20",
+  "scripts": {
+    "dev": "pnpm --dir apps/desktop tauri dev",
+    "build": "pnpm --dir apps/desktop tauri build",
+    "desktop:dev": "pnpm --dir apps/desktop tauri dev",
+    "desktop:build": "pnpm --dir apps/desktop tauri build",
+    "typecheck": "pnpm --dir apps/desktop typecheck"
+  },
+  "author": "AstraX",
+  "description": "AstraX — Codex manager (fork of Codex-X, MIT)"
+}
