@@ -30,12 +30,52 @@
 </p>
 
 <p align="center">
+  <a href="#-screenshots"><strong>Screenshots</strong></a> ·
   <a href="#-features"><strong>Features</strong></a> ·
   <a href="#-quick-start"><strong>Quick Start</strong></a> ·
-  <a href="#-development"><strong>Development</strong></a> ·
   <a href="#-configuration-paths"><strong>Config Paths</strong></a> ·
   <a href="#-tech-stack"><strong>Tech Stack</strong></a>
 </p>
+
+---
+
+## Screenshots
+
+<details open>
+<summary><b>Overview</b> — home dashboard, provider status, and quick actions</summary>
+<p align="center">
+  <img src="docs/screenshots/app/preview.png" alt="AstraX overview dashboard" width="920" />
+</p>
+</details>
+
+<details open>
+<summary><b>Prompt center</b> — templates, sync, import, enable / disable</summary>
+<p align="center">
+  <img src="docs/screenshots/app/new-ui/prompts.png" alt="AstraX prompt management" width="920" />
+</p>
+</details>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <b>Categories</b><br />
+      <sub>Organize prompts by workflow</sub><br />
+      <img src="docs/screenshots/app/new-ui/prompt-categories.png" alt="AstraX prompt categories" width="420" />
+    </td>
+    <td align="center" width="50%">
+      <b>Custom prompts</b><br />
+      <sub>Add or import Markdown templates</sub><br />
+      <img src="docs/screenshots/app/new-ui/prompt-form.png" alt="AstraX add custom prompt" width="420" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <b>Skills &amp; MCP</b><br />
+      <sub>Enable, disable, and import capability extensions</sub><br />
+      <img src="docs/screenshots/app/new-ui/skills-mcp.png" alt="AstraX Skills and MCP management" width="860" />
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -179,8 +219,9 @@ AstraX/
 
 - [ ] In-app update channel for AstraX releases  
 - [ ] More provider presets and first-run onboarding  
-- [ ] Screenshot gallery for README previews  
+- [x] Screenshot gallery for README previews  
 - [ ] Optional light theme polish to match the dark brand  
+- [ ] Fresh AstraX-branded screenshot set (English UI)  
 
 Contributions welcome — open an issue or PR on [alexbieber/AstraX](https://github.com/alexbieber/AstraX).
 
