@@ -343,7 +343,7 @@ fn rollback_after_failure<T>(
     if let Some(live) = live {
         if let Err(rollback_error) = live.rollback() {
             live_rollback_succeeded = false;
-            failures.push(format!("live 配置: {rollback_error}"));
+            failures.push(format!("live config: {rollback_error}"));
         }
     }
     // Keep the newly captured official snapshot as a recovery point when live
@@ -351,7 +351,7 @@ fn rollback_after_failure<T>(
     if live_rollback_succeeded {
         if let Some(snapshot) = snapshot {
             if let Err(rollback_error) = snapshot.rollback() {
-                failures.push(format!("官方快照: {rollback_error}"));
+                failures.push(format!("official snapshot: {rollback_error}"));
             }
         }
     }
@@ -359,7 +359,7 @@ fn rollback_after_failure<T>(
         Err(error)
     } else {
         Err(CodexxError::Config(format!(
-            "{error}；回滚失败：{}",
+            "{error}; rollback failed: {}",
             failures.join("；")
         )))
     }
@@ -375,7 +375,7 @@ fn rollback_persisted_provider<T>(
         (Err(error), Some(rollback)) => match rollback_provider_store_inner(rollback) {
             Ok(()) => Err(error),
             Err(rollback_error) => Err(CodexxError::Database(format!(
-                "{error}；供应商配置回滚失败: {rollback_error}"
+                "{error}; provider config rollback failed: {rollback_error}"
             ))),
         },
     }
@@ -440,7 +440,7 @@ where
                         return match rollback {
                             Ok(()) => Err(error),
                             Err(rollback_error) => Err(CodexxError::Config(format!(
-                                "写入 Codex live 配置失败：{error}；auth.json 回滚也失败：{rollback_error}"
+                                "Failed to write Codex live config: {error}; auth.json rollback also failed: {rollback_error}"
                             ))),
                         };
                     }
@@ -463,7 +463,7 @@ where
                         return match rollback {
                             Ok(()) => Err(error),
                             Err(rollback_error) => Err(CodexxError::Config(format!(
-                                "写入 Codex live 配置失败：{error}；config.toml 回滚也失败：{rollback_error}"
+                                "Failed to write Codex live config: {error}; config.toml rollback also failed: {rollback_error}"
                             ))),
                         };
                     }
@@ -486,7 +486,7 @@ where
                         return match rollback {
                             Ok(()) => Err(error),
                             Err(rollback_error) => Err(CodexxError::Config(format!(
-                                "写入 Codex live 配置失败：{error}；auth.json 回滚也失败：{rollback_error}"
+                                "Failed to write Codex live config: {error}; auth.json rollback also failed: {rollback_error}"
                             ))),
                         };
                     }
@@ -507,7 +507,7 @@ where
                         return match rollback {
                             Ok(()) => Err(error),
                             Err(rollback_error) => Err(CodexxError::Config(format!(
-                                "写入 Codex live 配置失败：{error}；config.toml 回滚也失败：{rollback_error}"
+                                "Failed to write Codex live config: {error}; config.toml rollback also failed: {rollback_error}"
                             ))),
                         };
                     }
@@ -798,7 +798,7 @@ pub(crate) fn build_provider_toml_draft_with_origin_inner(
 
     normalize_saved_provider(provider)?
         .toml_config
-        .ok_or_else(|| CodexxError::Config("无法生成供应商 TOML".to_string()))
+        .ok_or_else(|| CodexxError::Config("Unable to generate provider TOML".to_string()))
 }
 
 pub(super) fn apply_official_config_locked(
@@ -863,7 +863,7 @@ pub(super) fn apply_official_config_with_snapshot_locked(
 
 fn applied_config_text(live: &AppliedLiveFiles) -> Result<String> {
     String::from_utf8(live.new_config.clone())
-        .map_err(|error| CodexxError::Config(format!("config.toml 不是有效 UTF-8: {error}")))
+        .map_err(|error| CodexxError::Config(format!("config.toml is not valid UTF-8: {error}")))
 }
 
 fn finish_live_action(
@@ -922,9 +922,9 @@ where
             LiveAuthAction::Remove
         });
     let message = if candidate_auth.is_some() {
-        "已切换到 OpenAI Official".to_string()
+        "Switched to OpenAI Official".to_string()
     } else {
-        "已切换到 OpenAI Official，请在 Codex 中完成登录".to_string()
+        "Switched to OpenAI Official; please complete login in Codex".to_string()
     };
     let (backup_id, live) = apply_official_config_locked(
         &codex_dir,
@@ -984,7 +984,7 @@ pub(crate) fn save_official_config_inner(
         let parsed: Value = serde_json::from_str(&auth_json).map_err(|e| json_err(&auth, e))?;
         if !parsed.is_object() || !auth_value_has_material(&parsed) {
             return Err(CodexxError::Config(
-                "官方 auth.json 必须是包含有效认证信息的 JSON object".to_string(),
+                "Official auth.json must be a JSON object with valid credentials".to_string(),
             ));
         }
         parsed
@@ -993,7 +993,7 @@ pub(crate) fn save_official_config_inner(
             .as_ref()
             .and_then(|candidate| candidate.auth.clone())
             .ok_or_else(|| {
-                CodexxError::Config("没有可保存的官方认证，请先完成官方登录".to_string())
+                CodexxError::Config("No official credentials to save; complete official login first".to_string())
             })?
     };
     let requested_config = config_text
@@ -1037,7 +1037,7 @@ pub(crate) fn save_official_config_inner(
         };
         return finish_live_action(
             &codex_dir,
-            "已保存并更新当前 OpenAI Official 配置".to_string(),
+            "Saved and updated the current OpenAI Official profile".to_string(),
             backup_id,
             &live,
             Some(&snapshot),
@@ -1056,7 +1056,7 @@ pub(crate) fn save_official_config_inner(
     match build_state_after_migration(codex_dir.clone()) {
         Ok(state) => Ok(ActionResult {
             ok: true,
-            message: "已保存 OpenAI Official 配置".to_string(),
+            message: "Saved OpenAI Official profile".to_string(),
             backup_id,
             state,
         }),
@@ -1072,12 +1072,12 @@ pub(crate) fn restore_official_provider_inner(config_dir: Option<String>) -> Res
     migrate_legacy_prompt_config_locked(&codex_dir)?;
     let candidate = official_config_candidate(&codex_dir, true)?.ok_or_else(|| {
         CodexxError::Config(
-            "未找到可信的官方认证快照或官方模式历史备份，请新建官方配置后重新登录".to_string(),
+            "No trusted official auth snapshot or official-mode history backup found; create a new official profile and sign in again".to_string(),
         )
     })?;
     let model = candidate.model.clone();
     let config_text = candidate.config_text.clone();
-    let message = "已还原 OpenAI Official 配置".to_string();
+    let message = "Restored OpenAI Official profile".to_string();
     let snapshot = update_official_snapshot(&codex_dir, || {
         if let Some(auth) = candidate.auth.as_ref() {
             save_official_config_snapshot(&codex_dir, config_text, model, auth)
@@ -1142,7 +1142,7 @@ where
     };
     finish_live_action(
         &codex_dir,
-        "已新建 OpenAI Official 配置，请在 Codex 中重新登录".to_string(),
+        "Created a new OpenAI Official profile; please sign in again in Codex".to_string(),
         backup_id,
         &live,
         Some(&snapshot),
@@ -1189,9 +1189,9 @@ fn merge_provider_toml_into_live_with_policy(
 ) -> Result<(DocumentMut, Option<String>)> {
     let source = parse_toml_document(cfg, provider_text)?;
     let model = string_value(&source, "model")
-        .ok_or_else(|| CodexxError::Config("config.toml 必须包含 model".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("config.toml must include model".to_string()))?;
     let source_provider_id = string_value(&source, "model_provider")
-        .ok_or_else(|| CodexxError::Config("config.toml 必须包含 model_provider".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("config.toml must include model_provider".to_string()))?;
     let mut source_provider = source
         .get("model_providers")
         .and_then(|item| item.as_table())
@@ -1200,7 +1200,7 @@ fn merge_provider_toml_into_live_with_policy(
         .cloned()
         .ok_or_else(|| {
             CodexxError::Config(format!(
-                "config.toml 缺少 [model_providers.{source_provider_id}]"
+                "config.toml is missing [model_providers.{source_provider_id}]"
             ))
         })?;
     let source_name = source_provider
@@ -1213,7 +1213,7 @@ fn merge_provider_toml_into_live_with_policy(
         .is_none_or(|value| value.trim().is_empty())
     {
         return Err(CodexxError::Config(
-            "供应商配置必须包含非空 base_url".to_string(),
+            "Provider config must include a non-empty base_url".to_string(),
         ));
     }
     if is_placeholder_provider(
@@ -1224,7 +1224,7 @@ fn merge_provider_toml_into_live_with_policy(
             .unwrap_or_default(),
     ) {
         return Err(CodexxError::Config(
-            "供应商名称和 base_url 不能使用示例占位值，请填写实际配置".to_string(),
+            "Provider name and base_url cannot use placeholder examples; enter real values".to_string(),
         ));
     }
 
@@ -1240,7 +1240,7 @@ fn merge_provider_toml_into_live_with_policy(
         .unwrap_or(false);
     if requires_openai_auth && api_key.is_none() {
         return Err(CodexxError::Config(
-            "该供应商需要 API Key，未切换且未修改 auth.json".to_string(),
+            "This provider requires an API key; switch skipped and auth.json was not modified".to_string(),
         ));
     }
     configure_live_provider_auth(
@@ -1344,8 +1344,8 @@ where
             .and_then(|item| item.as_str())
             .map(str::trim)
             .filter(|name| !name.is_empty())
-            .unwrap_or("供应商");
-        let message = format!("已切换到 {provider_name}");
+            .unwrap_or("Provider");
+        let message = format!("Switched to {provider_name}");
         let auth_action = provider_auth_action(api_key.as_deref());
         let replacement = doc.to_string().trim_end().to_string() + "\n";
         Ok((backup_id, replacement, message, auth_action))
@@ -1406,7 +1406,7 @@ where
         .as_deref()
         .is_some_and(|provider_id| provider_id.trim().is_empty())
     {
-        return Err(CodexxError::Config("供应商 ID 不能为空".to_string()));
+        return Err(CodexxError::Config("Provider ID cannot be empty".to_string()));
     }
     // CC Switch uses a stable live key for all third-party providers. The
     // logical saved id remains in Astra storage and is matched by backend.
@@ -1414,17 +1414,17 @@ where
     let base_url = input.base_url.trim().trim_end_matches('/');
     let model = input.model.trim();
     if provider_name.is_empty() {
-        return Err(CodexxError::Config("供应商名称不能为空".to_string()));
+        return Err(CodexxError::Config("Provider name cannot be empty".to_string()));
     }
     if base_url.is_empty() {
-        return Err(CodexxError::Config("base_url 不能为空".to_string()));
+        return Err(CodexxError::Config("base_url cannot be empty".to_string()));
     }
     if model.is_empty() {
-        return Err(CodexxError::Config("model 不能为空".to_string()));
+        return Err(CodexxError::Config("model cannot be empty".to_string()));
     }
     if is_placeholder_provider(provider_name, base_url) {
         return Err(CodexxError::Config(
-            "供应商名称和 base_url 不能使用示例占位值，请填写实际配置".to_string(),
+            "Provider name and base_url cannot use placeholder examples; enter real values".to_string(),
         ));
     }
 
@@ -1457,7 +1457,7 @@ where
             .filter(|s| !s.is_empty());
         if requires_openai_auth && api_key.is_none() {
             return Err(CodexxError::Config(
-                "该供应商需要 API Key，未切换且未修改 auth.json".to_string(),
+                "This provider requires an API key; switch skipped and auth.json was not modified".to_string(),
             ));
         }
         configure_live_provider_auth(provider_table, api_key.as_deref(), requires_openai_auth);
@@ -1474,7 +1474,7 @@ where
     };
     finish_live_action(
         codex_dir,
-        format!("已切换到 {provider_name}"),
+        format!("Switched to {provider_name}"),
         backup_id,
         &live,
         snapshot.as_ref(),
@@ -1522,7 +1522,7 @@ where
     let provider = normalize_saved_provider_for_save(&conn, provider)?;
     let saved_before = list_saved_providers_on_connection(&conn)?;
     let live = detected_live_custom_provider(&codex_dir)?.ok_or_else(|| {
-        CodexxError::Config("当前不是可编辑的第三方供应商，未修改保存记录".to_string())
+        CodexxError::Config("Current provider is not an editable third-party provider; save record unchanged".to_string())
     })?;
     let matches = matching_saved_provider_ids_for_live_on_connection(
         &conn,
@@ -1536,13 +1536,13 @@ where
             .any(|candidate| candidate.id == provider.id)
         {
             return Err(CodexxError::Config(format!(
-                "供应商 ID {} 已被另一条配置使用，请更换名称后再保存",
+                "Provider ID {} is already used by another config; rename and save again",
                 provider.id
             )));
         }
     } else if !matches.iter().any(|active_id| active_id == &provider.id) {
         return Err(CodexxError::Config(format!(
-            "当前 live 配置不匹配供应商 {}，不能作为活动配置保存",
+            "Current live config does not match provider {}; cannot save as active config",
             provider.id
         )));
     }
@@ -1550,13 +1550,13 @@ where
     let (saved, rollback) = save_provider_with_rollback_inner(provider)?;
     match apply(&saved, &codex_dir, active_config) {
         Ok(mut result) => {
-            result.message = "供应商配置已保存并热更新".to_string();
+            result.message = "Provider config saved and hot-reloaded".to_string();
             Ok(result)
         }
         Err(error) => match rollback_provider_store_inner(rollback) {
             Ok(()) => Err(error),
             Err(rollback_error) => Err(CodexxError::Database(format!(
-                "热更新供应商失败: {error}；数据库回滚也失败: {rollback_error}"
+                "Hot-reload provider failed: {error}; database rollback also failed: {rollback_error}"
             ))),
         },
     }
@@ -1616,14 +1616,14 @@ fn provider_activation_document(saved: &SavedProvider, codex_dir: &Path) -> Resu
     // removes app-owned catalogs while retaining an explicitly supplied user file.
     current["model"] = value(saved.model.clone());
     let provider_id = string_value(&target, "model_provider")
-        .ok_or_else(|| CodexxError::Config("供应商配置缺少 model_provider".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("Provider config is missing model_provider".to_string()))?;
     current["model_provider"] = value(provider_id.clone());
     let table = target
         .get("model_providers")
         .and_then(Item::as_table)
         .and_then(|providers| providers.get(&provider_id))
         .cloned()
-        .ok_or_else(|| CodexxError::Config("供应商配置缺少模型接口设置".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("Provider config is missing model API settings".to_string()))?;
     ensure_table(current.as_table_mut(), "model_providers")?.insert(&provider_id, table);
     strip_provider_bearer_tokens(&mut current);
     Ok(current)
@@ -1688,7 +1688,7 @@ fn apply_saved_provider_with_policy_locked(
 ) -> Result<ActionResult> {
     if !saved.model_mappings.is_empty() && saved.wire_api != "responses" {
         return Err(CodexxError::Config(
-            "模型映射需要供应商提供 Responses 兼容接口，请检查 Wire API 设置".into(),
+            "Model mapping requires a Responses-compatible provider API; check Wire API settings".into(),
         ));
     }
     let config_text = if apply_common_config {
@@ -1728,7 +1728,7 @@ pub(crate) fn activate_saved_provider_inner(
     let _lock = acquire_live_config_lock(&codex_dir)?;
     migrate_legacy_prompt_config_locked(&codex_dir)?;
     let saved = super::store::provider_by_id_on_connection(&open_store()?, provider_id.trim())?
-        .ok_or_else(|| CodexxError::Config("供应商已不存在，请刷新列表后重试".into()))?;
+        .ok_or_else(|| CodexxError::Config("Provider no longer exists; refresh the list and try again".into()))?;
     let active_config = read_file_snapshot(&config_path(&codex_dir))?;
     let rollback = persist_detected_live_custom_provider(&codex_dir)?;
     let result = apply_saved_provider_locked(&saved, &codex_dir, active_config);
@@ -1738,7 +1738,7 @@ pub(crate) fn activate_saved_provider_inner(
 pub(crate) fn delete_saved_provider_inner(id: &str, config_dir: Option<String>) -> Result<()> {
     let id = id.trim();
     if id.is_empty() {
-        return Err(CodexxError::Config("供应商 ID 不能为空".to_string()));
+        return Err(CodexxError::Config("Provider ID cannot be empty".to_string()));
     }
     let codex_dir = resolve_codex_dir(config_dir)?;
     let conn = open_store()?;
@@ -1750,7 +1750,7 @@ pub(crate) fn delete_saved_provider_inner(id: &str, config_dir: Option<String>) 
         let active_id = reconcile_active_provider_on_connection(&conn, &codex_dir, &active_ids)?;
         if live.id == id || active_id.as_deref() == Some(id) {
             return Err(CodexxError::Config(
-                "不能直接删除当前启用的供应商，请先切换到官方配置或其他供应商".to_string(),
+                "Cannot delete the currently active provider; switch to official or another provider first".to_string(),
             ));
         }
     }
@@ -2064,7 +2064,7 @@ base_url = "https://proxy.example.com/v1"
         )
         .expect_err("stale auth must fail after config write");
 
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(
             fs::read_to_string(config_path(&codex_dir)).expect("read rolled back config"),
             old_config
@@ -2105,7 +2105,7 @@ base_url = "https://proxy.example.com/v1"
         )
         .expect_err("stale config must fail after auth write");
 
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(
             fs::read_to_string(config_path(&codex_dir)).expect("read external config"),
             external_config
@@ -2134,7 +2134,7 @@ base_url = "https://proxy.example.com/v1"
             requires_openai_auth: Some(false),
         })
         .expect_err("placeholder provider must be rejected");
-        assert!(error.to_string().contains("示例占位值"));
+        assert!(error.to_string().contains("Example placeholder"));
         assert!(!config_path(&codex_dir).exists());
         fs::remove_dir_all(codex_dir).expect("remove placeholder test directory");
     }
@@ -3112,7 +3112,7 @@ env_http_headers = { aUtHoRiZaTiOn = "STALE_AUTH", "X-Project" = "PROJECT_ENV" }
         assert_eq!(auth_after, json!({"OPENAI_API_KEY": "sk-after"}));
         let delete_error = delete_saved_provider_inner(&id, Some(codex_dir.display().to_string()))
             .expect_err("active provider deletion must be blocked");
-        assert!(delete_error.to_string().contains("不能直接删除当前启用"));
+        assert!(delete_error.to_string().contains("Cannot delete the currently active"));
 
         delete_provider_inner(&id).expect("delete test provider");
         fs::remove_dir_all(codex_dir).expect("remove active provider test directory");
@@ -3205,7 +3205,7 @@ env_http_headers = { aUtHoRiZaTiOn = "STALE_AUTH", "X-Project" = "PROJECT_ENV" }
         let delete_error =
             delete_saved_provider_inner(&first_id, Some(codex_dir.display().to_string()))
                 .expect_err("the explicitly selected provider must be protected");
-        assert!(delete_error.to_string().contains("不能直接删除当前启用"));
+        assert!(delete_error.to_string().contains("Cannot delete the currently active"));
         assert_eq!(saved_provider(&first_id).provider_name, "Shared Provider");
 
         delete_provider_inner(&first_id).expect("delete active duplicate during cleanup");
@@ -3316,7 +3316,7 @@ env_http_headers = { aUtHoRiZaTiOn = "STALE_AUTH", "X-Project" = "PROJECT_ENV" }
         )
         .expect_err("stale auth write must roll config back");
 
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(
             fs::read(config_path(&codex_dir)).expect("read rolled back live config"),
             config_before
@@ -3376,7 +3376,7 @@ env_http_headers = { aUtHoRiZaTiOn = "STALE_AUTH", "X-Project" = "PROJECT_ENV" }
         let error = acquire_live_config_lock(&codex_dir)
             .err()
             .expect("second live lock must fail");
-        assert!(error.to_string().contains("另一个 Astra"));
+        assert!(error.to_string().contains("Another Astra instance"));
         drop(first);
         acquire_live_config_lock(&codex_dir).expect("lock is released on drop");
 
@@ -3410,7 +3410,7 @@ env_http_headers = { aUtHoRiZaTiOn = "STALE_AUTH", "X-Project" = "PROJECT_ENV" }
         )
         .expect_err("stale config write must be rejected");
 
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(
             fs::read_to_string(&cfg).expect("read externally changed config"),
             external
@@ -3458,7 +3458,7 @@ experimental_bearer_token = "sk-external"
         )
         .expect_err("live provider change must reject stale active edit");
 
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(
             fs::read_to_string(config_path(&codex_dir)).expect("read external live config"),
             external
@@ -3531,7 +3531,7 @@ experimental_bearer_token = "sk-external"
                     crate::ActiveProviderSelectionUpdate::Set(format!("provisional-{tag}")),
                 );
                 assert_eq!(selected.state.active_saved_provider_id, adopted_id);
-                assert!(!selected.message.contains("当前供应商状态记录失败"));
+                assert!(!selected.message.contains("Failed to record current provider status"));
             }
             switch_official_provider_inner(config_dir.clone()).expect("switch to official");
             let retained = list_saved_providers_inner()
@@ -3625,7 +3625,7 @@ experimental_bearer_token = "sk-external"
             selected.state.active_saved_provider_id.as_deref(),
             Some(retained.id.as_str())
         );
-        assert!(!selected.message.contains("当前供应商状态记录失败"));
+        assert!(!selected.message.contains("Failed to record current provider status"));
         switch_official_provider_inner(Some(codex_dir.display().to_string())).unwrap();
         assert_eq!(saved_provider(&existing.id), existing);
         delete_provider_inner(&existing.id).unwrap();
@@ -3655,7 +3655,7 @@ experimental_bearer_token = "sk-external"
         })
         .expect_err("reject target credentials after the pre-switch adoption");
 
-        assert!(error.to_string().contains("需要 API Key"));
+        assert!(error.to_string().contains("API key required"));
         assert!(list_saved_providers_inner()
             .unwrap()
             .iter()

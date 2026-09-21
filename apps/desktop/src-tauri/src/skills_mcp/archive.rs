@@ -61,7 +61,7 @@ fn invalid(message: impl Into<String>) -> CodexxError {
     CodexxError::Config(message.into())
 }
 fn zip_error(error: impl std::fmt::Display) -> CodexxError {
-    invalid(format!("无法读取或写入 ZIP：{error}"))
+    invalid(format!("Unable to read or write ZIP: {error}"))
 }
 fn unique_name(prefix: &str) -> String {
     format!(
@@ -90,14 +90,14 @@ impl Drop for TempDir {
 // safely move between machines. Links and special files are never extracted.
 fn safe_relative(name: &str) -> Result<PathBuf> {
     if name.is_empty() || name.contains('\\') || name.contains(':') || name.contains('\0') {
-        return Err(invalid("ZIP 中含有不安全的文件路径"));
+        return Err(invalid("ZIP contains unsafe file paths"));
     }
     let path = Path::new(name);
     if path
         .components()
         .any(|part| !matches!(part, Component::Normal(_)))
     {
-        return Err(invalid("ZIP 中含有不安全的文件路径"));
+        return Err(invalid("ZIP contains unsafe file paths"));
     }
     for part in name.trim_end_matches('/').split('/') {
         let stem = part.split('.').next().unwrap_or("").to_ascii_uppercase();
@@ -108,7 +108,7 @@ fn safe_relative(name: &str) -> Result<PathBuf> {
                 && (stem.starts_with("COM") || stem.starts_with("LPT"))
                 && stem.as_bytes()[3].is_ascii_digit())
         {
-            return Err(invalid("ZIP 中含有无法跨平台安全使用的文件路径"));
+            return Err(invalid("ZIP contains file paths that are not safe across platforms"));
         }
     }
     Ok(path.to_path_buf())
@@ -116,7 +116,7 @@ fn safe_relative(name: &str) -> Result<PathBuf> {
 fn safe_directory(name: &str) -> Result<()> {
     let path = safe_relative(name)?;
     if path.components().count() != 1 || name.starts_with('.') {
-        return Err(invalid("归档中的 Skill 目录名无效"));
+        return Err(invalid("Invalid Skill directory name in archive"));
     }
     Ok(())
 }
@@ -130,16 +130,16 @@ fn extract<R: Read + Seek>(reader: R, destination: &Path) -> Result<()> {
         let relative = safe_relative(name)?;
         let mode = entry.unix_mode().unwrap_or(0) & 0o170000;
         if mode != 0 && mode != 0o100000 && mode != 0o040000 {
-            return Err(invalid("ZIP 不支持符号链接或特殊文件"));
+            return Err(invalid("ZIP does not support symlinks or special files"));
         }
         if !seen.insert(name.to_ascii_lowercase()) {
-            return Err(invalid("ZIP 中含有重复文件路径"));
+            return Err(invalid("ZIP contains duplicate file paths"));
         }
         let output = destination.join(relative);
         if entry.is_dir() {
             ensure_directory(&output)?;
         } else {
-            ensure_directory(output.parent().ok_or_else(|| invalid("ZIP 路径无效"))?)?;
+            ensure_directory(output.parent().ok_or_else(|| invalid("Invalid ZIP path"))?)?;
             let mut file = OpenOptions::new()
                 .write(true)
                 .create_new(true)
@@ -162,13 +162,13 @@ fn extract<R: Read + Seek>(reader: R, destination: &Path) -> Result<()> {
 fn collect_entries(root: &Path, current: &Path, output: &mut Vec<PathBuf>) -> Result<()> {
     let metadata = fs::symlink_metadata(current).map_err(|error| io_err(current, error))?;
     if metadata.file_type().is_symlink() {
-        return Err(invalid("Skill 包含符号链接，请先替换为实际文件再导出"));
+        return Err(invalid("Skill contains symlinks; replace them with real files before exporting"));
     }
     if metadata.is_file() {
         output.push(
             current
                 .strip_prefix(root)
-                .map_err(|_| invalid("Skill 文件路径无效"))?
+                .map_err(|_| invalid("Invalid Skill file path"))?
                 .to_path_buf(),
         );
     } else if metadata.is_dir() {
@@ -176,7 +176,7 @@ fn collect_entries(root: &Path, current: &Path, output: &mut Vec<PathBuf>) -> Re
             output.push(
                 current
                     .strip_prefix(root)
-                    .map_err(|_| invalid("Skill 目录路径无效"))?
+                    .map_err(|_| invalid("Invalid Skill directory path"))?
                     .to_path_buf(),
             );
         }
@@ -188,7 +188,7 @@ fn collect_entries(root: &Path, current: &Path, output: &mut Vec<PathBuf>) -> Re
             )?;
         }
     } else {
-        return Err(invalid("Skill 包含不支持的特殊文件"));
+        return Err(invalid("Skill contains unsupported special files"));
     }
     Ok(())
 }
@@ -244,7 +244,7 @@ fn write_archive(path: &Path, manifest: &Manifest, sources: &[PathBuf]) -> Resul
         .compression_method(zip::CompressionMethod::Deflated)
         .large_file(true);
     writer.start_file(MANIFEST, options).map_err(zip_error)?;
-    serde_json::to_writer_pretty(&mut writer, manifest).map_err(|_| invalid("无法写入归档清单"))?;
+    serde_json::to_writer_pretty(&mut writer, manifest).map_err(|_| invalid("Unable to write archive manifest"))?;
     for (entry, source) in manifest.skills.iter().zip(sources) {
         let mut files = Vec::new();
         collect_entries(source, source, &mut files)?;
@@ -294,7 +294,7 @@ fn destination_snapshot(path: &Path) -> Result<Option<Vec<u8>>> {
         Err(error) => return Err(io_err(path, error)),
     };
     if metadata.file_type().is_symlink() || !metadata.is_file() {
-        return Err(invalid("请选择普通 ZIP 文件路径，不能覆盖符号链接或目录"));
+        return Err(invalid("Choose a regular ZIP file path; cannot overwrite a symlink or directory"));
     }
     let mut file = File::open(path).map_err(|error| io_err(path, error))?;
     let mut digest = Sha256::new();
@@ -320,14 +320,14 @@ fn write_archive_atomic<BeforeReplace: FnOnce() -> Result<()>>(
     let initial = destination_snapshot(output)?;
     let parent = output
         .parent()
-        .ok_or_else(|| invalid("请选择有效的保存目录"))?;
+        .ok_or_else(|| invalid("Please choose a valid save directory"))?;
     let temporary = parent.join(unique_name("codex-x-export"));
     let result = (|| {
         write_archive(&temporary, manifest, sources)?;
         before_replace()?;
         if destination_snapshot(output)? != initial {
             return Err(invalid(
-                "保存位置的文件已被其他程序修改，请重新选择位置再导出",
+                "Save location was modified by another program; choose a location again and export",
             ));
         }
         fs::rename(&temporary, output).map_err(|error| io_err(output, error))
@@ -344,18 +344,18 @@ fn validate_export_destination(output: &Path, codex_dir: &Path) -> Result<PathBu
         .and_then(|extension| extension.to_str())
         .is_some_and(|extension| extension.eq_ignore_ascii_case("zip"))
     {
-        return Err(invalid("请将导出文件保存为 .zip 格式"));
+        return Err(invalid("Please save the export as a .zip file"));
     }
     let parent = output
         .parent()
         .filter(|parent| parent.is_dir())
-        .ok_or_else(|| invalid("请选择有效的保存目录"))?;
+        .ok_or_else(|| invalid("Please choose a valid save directory"))?;
     let canonical_parent = fs::canonicalize(parent).map_err(|error| io_err(parent, error))?;
     for protected in [codex_dir.to_path_buf(), app_home()?] {
         let canonical = fs::canonicalize(&protected).unwrap_or(protected);
         if canonical_parent.starts_with(canonical) {
             return Err(invalid(
-                "请将 ZIP 保存到下载、桌面等目录，不要放入 Codex 配置或应用数据目录",
+                "Save the ZIP to Downloads, Desktop, or similar — not inside Codex config or app data directories",
             ));
         }
     }
@@ -369,7 +369,7 @@ pub(crate) fn export_skills_mcp_archive_inner(
     destination: String,
 ) -> Result<SkillsMcpExportResult> {
     if !matches!(kind.as_str(), "skills" | "mcp") {
-        return Err(invalid("请选择导出 Skills 或 MCP"));
+        return Err(invalid("Please choose Skills or MCP to export"));
     }
     let state = build_skills_mcp_state_inner(config_dir)?;
     let mut manifest = Manifest {
@@ -402,14 +402,14 @@ pub(crate) fn export_skills_mcp_archive_inner(
         }
     }
     if manifest.skills.is_empty() && manifest.mcp_servers.is_empty() {
-        return Err(invalid("当前没有可导出的内容"));
+        return Err(invalid("Nothing to export right now"));
     }
     let output = PathBuf::from(destination);
     let canonical_parent = validate_export_destination(&output, Path::new(&state.codex_dir))?;
     for source in &sources {
         let canonical_source = fs::canonicalize(source).map_err(|error| io_err(source, error))?;
         if canonical_parent.starts_with(canonical_source) {
-            return Err(invalid("请将 ZIP 保存在 Skill 目录之外"));
+            return Err(invalid("Please save the ZIP outside the Skill directory"));
         }
     }
     write_archive_atomic(&output, &manifest, &sources, || Ok(()))?;
@@ -459,9 +459,9 @@ fn manifest_from_extracted(path: &Path, file_name: &str) -> Result<Manifest> {
         let file = File::open(&manifest_path).map_err(|error| io_err(&manifest_path, error))?;
         // This limits only metadata, not ZIP contents or Skill file sizes.
         let manifest: Manifest = serde_json::from_reader(file.take(8 * 1024 * 1024))
-            .map_err(|_| invalid("Astra 归档清单无效或过大"))?;
+            .map_err(|_| invalid("Astra archive manifest is invalid or too large"))?;
         if manifest.format != FORMAT || manifest.version != 1 {
-            return Err(invalid("暂不支持此归档版本，请更新 Astra"));
+            return Err(invalid("This archive version is not supported yet; please update Astra"));
         }
         return Ok(manifest);
     }
@@ -484,7 +484,7 @@ fn manifest_from_extracted(path: &Path, file_name: &str) -> Result<Manifest> {
         let (name, _) = read_skill_metadata(&root, fallback);
         let relative = root
             .strip_prefix(path)
-            .map_err(|_| invalid("Skill 路径无效"))?
+            .map_err(|_| invalid("Invalid Skill path"))?
             .to_string_lossy()
             .replace('\\', "/");
         manifest.skills.push(SkillEntry {
@@ -511,9 +511,9 @@ pub(super) fn install_archive_reader<R: Read + Seek>(
         imported_skills,
         imported_mcp,
         message: format!(
-            "已导入 {imported_skills} 个 Skills、{imported_mcp} 个 MCP{}",
+            "Imported {imported_skills} Skills and {imported_mcp} MCP{}",
             if skipped > 0 {
-                format!("，跳过 {skipped} 个已存在的项目")
+                format!(", skipped {skipped} existing items")
             } else {
                 String::new()
             }
@@ -528,7 +528,7 @@ fn import_manifest(
     manifest: Manifest,
 ) -> Result<(usize, usize, usize)> {
     if manifest.skills.is_empty() && manifest.mcp_servers.is_empty() {
-        return Err(invalid("ZIP 中没有可导入的 Skills 或 MCP"));
+        return Err(invalid("ZIP has no importable Skills or MCP"));
     }
     let codex_dir = resolve_codex_dir(config_dir.clone())?;
     ensure_directory(&codex_dir)?;
@@ -555,7 +555,7 @@ fn import_manifest(
     for skill in manifest.skills {
         safe_directory(&skill.directory)?;
         if !skill_ids.insert(sanitize_dir_name(&skill.directory, "skill")) {
-            return Err(invalid("归档中存在同名 Skill"));
+            return Err(invalid("Archive contains a Skill with a duplicate name"));
         }
         let relative = if skill.path.is_empty() {
             PathBuf::new()
@@ -564,7 +564,7 @@ fn import_manifest(
         };
         let source = root.join(relative);
         if !source.join("SKILL.md").is_file() {
-            return Err(invalid(format!("Skill {} 缺少 SKILL.md", skill.directory)));
+            return Err(invalid(format!("Skill {} is missing SKILL.md", skill.directory)));
         }
         if let Some(existing) = existing_skills.get(skill.directory.as_str()) {
             if directory_digest(&source)? == directory_digest(Path::new(&existing.path))? {
@@ -572,7 +572,7 @@ fn import_manifest(
                 continue;
             }
             return Err(invalid(format!(
-                "Skill「{}」已存在且内容不同。请先重命名或移除已有项目，导入不会覆盖它。",
+                "Skill "{}" already exists with different content. Rename or remove it first; import will not overwrite it.",
                 skill.directory
             )));
         }
@@ -584,7 +584,7 @@ fn import_manifest(
         let destination = parent.join(&skill.directory);
         if destination.exists() {
             return Err(invalid(format!(
-                "Skill 目录「{}」已存在，未覆盖",
+                "Skill directory "{}" already exists; not overwritten",
                 skill.directory
             )));
         }
@@ -595,7 +595,7 @@ fn import_manifest(
             || !mcp_ids.insert(mcp.id.clone())
             || !is_valid_mcp_config(&mcp.config)
         {
-            return Err(invalid("归档中存在无效或重复的 MCP 配置"));
+            return Err(invalid("Archive contains invalid or duplicate MCP configs"));
         }
         if let Some(existing) = existing_mcp.get(mcp.id.as_str()) {
             if mcp_configs_equal(&existing.config_json, &mcp.config) {
@@ -603,7 +603,7 @@ fn import_manifest(
                 continue;
             }
             return Err(invalid(format!(
-                "MCP「{}」已存在且配置不同。请先重命名或移除已有项目，导入不会覆盖它。",
+                "MCP "{}" already exists with a different config. Rename or remove it first; import will not overwrite it.",
                 mcp.name
             )));
         }
@@ -613,7 +613,7 @@ fn import_manifest(
             .and_then(|item| item.as_table())
             .is_some_and(|table| table.contains_key(&mcp.id))
         {
-            return Err(invalid(format!("MCP「{}」已存在，未覆盖", mcp.name)));
+            return Err(invalid(format!("MCP "{}" already exists; not overwritten", mcp.name)));
         }
         mcp_plan.push(mcp);
     }
@@ -625,7 +625,7 @@ fn import_manifest(
     let save_note = |kind: &str, id: &str, note: &Option<String>| -> Result<()> {
         if let Some(note) = note.as_deref().filter(|note| !note.trim().is_empty()) {
             if note.chars().count() > super::SKILLS_MCP_NOTE_MAX_CHARS {
-                return Err(invalid("归档中的备注过长"));
+                return Err(invalid("Notes in the archive are too long"));
             }
             transaction.execute("INSERT INTO skills_mcp_notes (codex_dir,item_kind,item_id,note,updated_at) VALUES (?1,?2,?3,?4,?5) ON CONFLICT(codex_dir,item_kind,item_id) DO NOTHING", params![scope, kind, id, note, now_rfc3339()]).map_err(|error| CodexxError::Database(error.to_string()))?;
         }
@@ -652,11 +652,11 @@ fn import_manifest(
             let staging = TempDir::new(
                 destination
                     .parent()
-                    .ok_or_else(|| invalid("Skill 目标目录无效"))?,
+                    .ok_or_else(|| invalid("Invalid Skill destination directory"))?,
             )?;
             copy_dir_recursive(source, &staging.0)?;
             if destination.exists() {
-                return Err(invalid("导入期间出现同名 Skill，已停止且未覆盖"));
+                return Err(invalid("A Skill with the same name appeared during import; stopped without overwriting"));
             }
             fs::rename(&staging.0, destination).map_err(|error| io_err(destination, error))?;
             created.push(destination.clone());

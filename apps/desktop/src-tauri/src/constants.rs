@@ -14,9 +14,9 @@ pub(crate) const INSTRUCTION_56_SOL_FILENAME: &str = "gpt-5.6-sol-unrestricted.m
 pub(crate) const INSTRUCTION_56_SOL_CONTENT: &str =
     include_str!("../../../../examples/gpt-5.6-sol-unrestricted.md");
 
-pub(crate) const INSTRUCTION_SEAGULL_FILENAME: &str = "海鸥3.0破甲.md";
+pub(crate) const INSTRUCTION_SEAGULL_FILENAME: &str = "seagull-3.0.md";
 pub(crate) const INSTRUCTION_SEAGULL_CONTENT: &str =
-    include_str!("../../../../examples/海鸥3.0破甲.md");
+    include_str!("../../../../examples/seagull-3.0.md");
 
 pub(crate) const AGENTS_FILENAME: &str = "AGENTS.md";
 pub(crate) const AGENTS_MANAGED_BEGIN: &str = "<!-- ASTRA:INSTRUCTIONS:BEGIN -->";

@@ -46,7 +46,7 @@ fn backup_target_path(codex_dir: &Path, backup_dir: &Path, source: &Path) -> Res
     let target = backup_dir.join(backup_relative_path(codex_dir, source));
     if target == source {
         return Err(CodexxError::Config(format!(
-            "拒绝将备份写回源文件: {}",
+            "Refusing to write backup back to source file: {}",
             source.display()
         )));
     }
@@ -82,7 +82,7 @@ pub(crate) fn backup_sqlite_to_backup(
 
     if !source.exists() {
         return Err(CodexxError::Database(format!(
-            "SQLite 快照源不存在: {}",
+            "SQLite snapshot source does not exist: {}",
             source.display()
         )));
     }
@@ -95,27 +95,27 @@ pub(crate) fn backup_sqlite_to_backup(
         OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
     )
     .map_err(|e| {
-        CodexxError::Database(format!("打开 SQLite 备份源失败 {}: {e}", source.display()))
+        CodexxError::Database(format!("Failed to open SQLite backup source {}: {e}", source.display()))
     })?;
     from.busy_timeout(Duration::from_secs(5))
         .map_err(|e| CodexxError::Database(e.to_string()))?;
     let mut to = Connection::open(&target).map_err(|e| {
-        CodexxError::Database(format!("创建 SQLite 备份失败 {}: {e}", target.display()))
+        CodexxError::Database(format!("Failed to create SQLite backup {}: {e}", target.display()))
     })?;
     let deadline = Instant::now() + Duration::from_secs(15);
     {
         let backup = Backup::new(&from, &mut to)
-            .map_err(|e| CodexxError::Database(format!("初始化 SQLite 快照失败: {e}")))?;
+            .map_err(|e| CodexxError::Database(format!("Failed to initialize SQLite snapshot: {e}")))?;
         loop {
             if Instant::now() >= deadline {
                 return Err(CodexxError::Database(format!(
-                    "SQLite 快照超时: {}",
+                    "SQLite snapshot timed out: {}",
                     source.display()
                 )));
             }
             match backup
                 .step(128)
-                .map_err(|e| CodexxError::Database(format!("写入 SQLite 快照失败: {e}")))?
+                .map_err(|e| CodexxError::Database(format!("Failed to write SQLite snapshot: {e}")))?
             {
                 StepResult::Done => break,
                 StepResult::More => {}
@@ -128,16 +128,16 @@ pub(crate) fn backup_sqlite_to_backup(
     }
     let quick_check: String = to
         .query_row("PRAGMA quick_check", [], |row| row.get(0))
-        .map_err(|e| CodexxError::Database(format!("校验 SQLite 备份失败: {e}")))?;
+        .map_err(|e| CodexxError::Database(format!("Failed to verify SQLite backup: {e}")))?;
     if quick_check != "ok" {
         return Err(CodexxError::Database(format!(
-            "SQLite 备份校验失败 {}: {quick_check}",
+            "SQLite backup verification failed {}: {quick_check}",
             target.display()
         )));
     }
     if !target.is_file() {
         return Err(CodexxError::Database(format!(
-            "SQLite 快照未生成: {}",
+            "SQLite snapshot was not created: {}",
             target.display()
         )));
     }

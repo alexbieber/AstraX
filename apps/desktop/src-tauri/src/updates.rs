@@ -54,10 +54,10 @@ fn parse_release_tag(value: &str) -> Result<ParsedRelease> {
     let tag = value.trim();
     let version_text = tag.strip_prefix('v').unwrap_or(tag);
     if tag.is_empty() || version_text.is_empty() {
-        return Err(CodexxError::Config("版本号为空".to_string()));
+        return Err(CodexxError::Config("Version is empty".to_string()));
     }
     let version = Version::parse(version_text)
-        .map_err(|_| CodexxError::Config("返回的版本号无效".to_string()))?;
+        .map_err(|_| CodexxError::Config("Returned version is invalid".to_string()))?;
     Ok(ParsedRelease {
         tag: tag.to_string(),
         version,
@@ -66,19 +66,19 @@ fn parse_release_tag(value: &str) -> Result<ParsedRelease> {
 
 fn parse_shields_release(body: &str) -> Result<ParsedRelease> {
     let release: ShieldsRelease = serde_json::from_str(body)
-        .map_err(|_| CodexxError::Config("CDN 版本信息无效".to_string()))?;
+        .map_err(|_| CodexxError::Config("Invalid CDN version info".to_string()))?;
     let tag = release
         .value
         .or(release.message)
-        .ok_or_else(|| CodexxError::Config("CDN 未返回版本号".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("CDN did not return a version".to_string()))?;
     parse_release_tag(&tag)
 }
 
 fn parse_github_release(body: &str) -> Result<ParsedRelease> {
     let release: GithubRelease = serde_json::from_str(body)
-        .map_err(|_| CodexxError::Config("GitHub 版本信息无效".to_string()))?;
+        .map_err(|_| CodexxError::Config("Invalid GitHub version info".to_string()))?;
     if release.draft || release.prerelease {
-        return Err(CodexxError::Config("GitHub 未返回正式版本".to_string()));
+        return Err(CodexxError::Config("GitHub did not return a release version".to_string()));
     }
     parse_release_tag(&release.tag_name)
 }
@@ -87,13 +87,13 @@ fn parse_release_response(source: &RemoteSource<'_>, body: &str) -> Result<Parse
     match source.key {
         SHIELDS_KEY => parse_shields_release(body),
         GITHUB_KEY => parse_github_release(body),
-        _ => Err(CodexxError::Config("未知版本来源".to_string())),
+        _ => Err(CodexxError::Config("Unknown version source".to_string())),
     }
 }
 
 fn update_info(current_version: &str, release: ParsedRelease) -> Result<AppUpdateInfo> {
     let current = Version::parse(current_version)
-        .map_err(|_| CodexxError::Config("当前软件版本无效".to_string()))?;
+        .map_err(|_| CodexxError::Config("Current app version is invalid".to_string()))?;
     let html_url = format!("{RELEASES_URL}/tag/{}", release.tag);
     Ok(AppUpdateInfo {
         latest_version: release.tag,
@@ -120,7 +120,7 @@ fn check_app_update_inner() -> Result<AppUpdateInfo> {
 pub(crate) async fn check_app_update() -> Result<AppUpdateInfo> {
     tauri::async_runtime::spawn_blocking(check_app_update_inner)
         .await
-        .map_err(|error| CodexxError::Config(format!("检查软件更新失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to check for software updates: {error}")))?
 }
 
 #[cfg(test)]

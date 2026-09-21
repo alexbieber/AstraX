@@ -5,7 +5,6 @@ import {
   BarChart3,
   Download,
   ExternalLink,
-  Globe2,
   Loader2,
   Power,
   RefreshCw,
@@ -83,10 +82,6 @@ export function TomlConfigPage({
 export type SettingsCopy = {
   eyebrow: ReactNode;
   title: ReactNode;
-  languageTitle: ReactNode;
-  languageDescription: ReactNode;
-  chineseLabel: ReactNode;
-  englishLabel: ReactNode;
   productTitle: ReactNode;
   productDescription: ReactNode;
   productValue: ReactNode;
@@ -109,7 +104,6 @@ export type SettingsPageProps = {
   configDir: string;
   active?: boolean;
   copy: SettingsCopy;
-  onLanguageChange: (lang: UtilityLanguage) => void;
   onRecheck: () => void;
   onRestartCodex: () => Promise<boolean>;
   recheckBusy?: boolean;
@@ -162,7 +156,6 @@ export function SettingsPage({
   configDir,
   active = true,
   copy,
-  onLanguageChange,
   onRecheck,
   onRestartCodex,
   recheckBusy = false,
@@ -189,7 +182,7 @@ export function SettingsPage({
   return (
     <section className="cx-utility cx-page cx-page--settings">
       <PageHeader eyebrow={copy.eyebrow} title={copy.title} />
-      <div className="cx-settings-tabs" role="tablist" aria-label={lang === "zh" ? "设置页面" : "Settings pages"}>
+      <div className="cx-settings-tabs" role="tablist" aria-label={"Settings pages"}>
         {(["general", "usage", "failover"] as const).map((value, index, tabs) => {
           const Icon = value === "general" ? SlidersHorizontal : value === "usage" ? BarChart3 : Shuffle;
           const select = () => { setTab(value); if (value === "usage") setUsageOpened(true); if (value === "failover") setFailoverOpened(true); };
@@ -199,39 +192,13 @@ export function SettingsPage({
             const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
             tabRefs.current[next]?.click();
             tabRefs.current[next]?.focus();
-          }}><Icon size={14} aria-hidden="true" />{value === "general" ? (lang === "zh" ? "通用设置" : "General") : value === "usage" ? (lang === "zh" ? "用量统计" : "Usage statistics") : (lang === "zh" ? "路由与故障转移" : "Routing & failover")}</button>;
+          }}><Icon size={14} aria-hidden="true" />{value === "general" ? "General" : value === "usage" ? "Usage statistics" : "Routing & failover"}</button>;
         })}
       </div>
       <SettingsUsageActiveContext.Provider value={active && tab === "usage"}>
       <SettingsFailoverActiveContext.Provider value={active && tab === "failover"}>
         <PageTransition pageKey={`settings:${tab}`}>
           <div className="cx-settings-panel cx-page-settings-list" role="tabpanel" id={`${tabId}-general-panel`} aria-labelledby={`${tabId}-general-tab`} hidden={tab !== "general"}>
-            <SettingRow
-              icon={Globe2}
-              title={copy.languageTitle}
-              description={copy.languageDescription}
-              action={(
-                <div className="cx-page-segmented" role="group" aria-label={String(copy.languageTitle)}>
-                  <button
-                    type="button"
-                    className={lang === "zh" ? "cx-page-segmented-button cx-page-segmented-button--active" : "cx-page-segmented-button"}
-                    onClick={() => onLanguageChange("zh")}
-                    aria-pressed={lang === "zh"}
-                  >
-                    {copy.chineseLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className={lang === "en" ? "cx-page-segmented-button cx-page-segmented-button--active" : "cx-page-segmented-button"}
-                    onClick={() => onLanguageChange("en")}
-                    aria-pressed={lang === "en"}
-                  >
-                    {copy.englishLabel}
-                  </button>
-                </div>
-              )}
-            />
-
             <SettingRow
               icon={Sparkles}
               title={copy.productTitle}

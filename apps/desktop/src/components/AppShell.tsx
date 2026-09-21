@@ -40,14 +40,14 @@ type NavItem = {
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
-  { id: "dashboard", icon: LayoutDashboard, label: { zh: "概览", en: "Overview" } },
-  { id: "provider", icon: Zap, label: { zh: "供应商", en: "Providers" } },
-  { id: "sessions", icon: History, label: { zh: "会话管理", en: "Sessions" } },
-  { id: "skillsMcp", icon: Blocks, label: { zh: "技能和MCP", en: "Skills & MCP" } },
-  { id: "instruction", icon: Sparkles, label: { zh: "指令提示词", en: "Prompts" } },
+  { id: "dashboard", icon: LayoutDashboard, label: { zh: "Overview", en: "Overview" } },
+  { id: "provider", icon: Zap, label: { zh: "Providers", en: "Providers" } },
+  { id: "sessions", icon: History, label: { zh: "Sessions", en: "Sessions" } },
+  { id: "skillsMcp", icon: Blocks, label: { zh: "Skills & MCP", en: "Skills & MCP" } },
+  { id: "instruction", icon: Sparkles, label: { zh: "Prompts", en: "Prompts" } },
   { id: "toml", icon: FileCode2, label: { zh: "TOML", en: "TOML" } },
-  { id: "settings", icon: Settings, label: { zh: "设置", en: "Settings" } },
-  { id: "about", icon: Info, label: { zh: "关于", en: "About" } },
+  { id: "settings", icon: Settings, label: { zh: "Settings", en: "Settings" } },
+  { id: "about", icon: Info, label: { zh: "About", en: "About" } },
 ] as const;
 
 export type AppShellProps = {
@@ -92,15 +92,15 @@ export function AppShell({
   ].filter(Boolean).join(" ");
   const contentClasses = ["cx-app-content", contentClassName].filter(Boolean).join(" ");
 
-  const navigationLabel = lang === "zh" ? "主导航" : "Main navigation";
-  const codexVersionLabel = codexVersion || (lang === "zh" ? "未检测到" : "Not detected");
-  const themeLabel = lang === "zh" ? "外观模式" : "Appearance";
+  const navigationLabel = "Main navigation";
+  const codexVersionLabel = codexVersion || "Not detected";
+  const themeLabel = "Appearance";
   const themeValue = theme === "dark"
-    ? (lang === "zh" ? "深色" : "Dark")
-    : (lang === "zh" ? "浅色" : "Light");
+    ? "Dark"
+    : "Light";
   const toggleThemeLabel = theme === "dark"
-    ? (lang === "zh" ? "切换为浅色模式" : "Switch to light mode")
-    : (lang === "zh" ? "切换为深色模式" : "Switch to dark mode");
+    ? "Switch to light mode"
+    : "Switch to dark mode";
   const ThemeIcon = theme === "dark" ? Moon : Sun;
   const updateActionState = updatePhase === "downloading"
     || updatePhase === "installing"
@@ -111,12 +111,12 @@ export function AppShell({
       ? "available"
       : null;
   const updateActionLabel = updateActionState === "downloading"
-    ? (lang === "zh" ? "查看更新下载进度" : "View update download progress")
+    ? "View update download progress"
     : updateActionState === "installing"
-      ? (lang === "zh" ? "查看更新安装进度" : "View update installation progress")
+      ? "View update installation progress"
       : updateActionState === "ready"
-        ? (lang === "zh" ? "打开更新窗口并重新启动" : "Open update window and restart")
-        : (lang === "zh" ? "查看并下载更新" : "View and download update");
+        ? "Open update window and restart"
+        : "View and download update";
   const UpdateActionIcon = updateActionState === "downloading" || updateActionState === "installing"
     ? LoaderCircle
     : updateActionState === "ready"
@@ -137,7 +137,7 @@ export function AppShell({
               <h1>AstraX</h1>
               {appVersion && <span className="cx-app-version">v{appVersion.replace(/^v/i, "")}</span>}
             </div>
-            <p>{lang === "zh" ? "思考 · 切换 · 构建" : "Think · Switch · Build"}</p>
+            <p>{"Think · Switch · Build"}</p>
           </div>
           {updateActionState && onOpenUpdate && (
             <IconButton

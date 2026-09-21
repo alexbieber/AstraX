@@ -51,20 +51,20 @@ fn read_bounded(path: &Path, limit: usize, missing_allowed: bool) -> Result<Vec<
         Err(err) if missing_allowed && err.kind() == std::io::ErrorKind::NotFound => {
             return Ok(Vec::new())
         }
-        Err(_) => return Err(error("无法读取当前官方登录配置，请检查文件后重试")),
+        Err(_) => return Err(error("Unable to read current official login config; check the file and try again")),
     };
     if !file
         .metadata()
         .is_ok_and(|metadata| metadata.is_file() && metadata.len() <= limit as u64)
     {
-        return Err(error("当前官方登录配置无法读取，请检查文件大小和格式"));
+        return Err(error("Current official login config cannot be read; check file size and format"));
     }
     let mut bytes = Vec::new();
     file.take(limit as u64 + 1)
         .read_to_end(&mut bytes)
-        .map_err(|_| error("读取当前官方登录配置失败，请重试"))?;
+        .map_err(|_| error("Failed to read current official login config; please try again"))?;
     if bytes.len() > limit {
-        return Err(error("当前官方登录配置过大，请检查文件"));
+        return Err(error("Current official login config is too large; please check the file"));
     }
     Ok(bytes)
 }
@@ -72,12 +72,12 @@ fn read_bounded(path: &Path, limit: usize, missing_allowed: bool) -> Result<Vec<
 fn logical_document(dir: &Path) -> Result<(Vec<u8>, DocumentMut)> {
     let bytes = read_bounded(&crate::config_path(dir), MAX_CONFIG_BYTES, true)?;
     let text = std::str::from_utf8(&bytes)
-        .map_err(|_| error("当前 Codex 配置格式不正确，请先修复配置"))?;
+        .map_err(|_| error("Current Codex config format is invalid; please fix the config first"))?;
     let doc = text
         .parse::<DocumentMut>()
-        .map_err(|_| error("当前 Codex 配置格式不正确，请先修复配置"))?;
+        .map_err(|_| error("Current Codex config format is invalid; please fix the config first"))?;
     let doc = super::direct_document(dir, &doc)
-        .map_err(|_| error("无法确认当前官方路由，请检查本地路由状态"))?;
+        .map_err(|_| error("Unable to confirm current official routing; check local routing status"))?;
     Ok((bytes, doc))
 }
 
@@ -95,20 +95,20 @@ fn checked_account(value: Option<&str>) -> Result<Option<String>> {
         return Ok(None);
     };
     if value.len() > 512 || !value.bytes().all(|byte| byte.is_ascii_graphic()) {
-        return Err(error("当前官方账号信息无效，请重新登录 Codex"));
+        return Err(error("Current official account info is invalid; please sign in to Codex again"));
     }
     Ok(Some(value.to_owned()))
 }
 
 fn parse_live_auth(bytes: &[u8]) -> Result<LiveAuth> {
     let auth: Value = serde_json::from_slice(bytes)
-        .map_err(|_| error("官方账号尚未登录或认证无效，请在 Codex 中重新登录"))?;
+        .map_err(|_| error("Official account is not signed in or auth is invalid; please sign in again in Codex"))?;
     if !auth.is_object()
         || ["base_url", "baseUrl", "api_base", "endpoint"]
             .iter()
             .any(|key| auth.get(key).is_some())
     {
-        return Err(error("当前官方认证格式无效，请在 Codex 中重新登录"));
+        return Err(error("Current official auth format is invalid; please sign in again in Codex"));
     }
     let mode = auth.get("auth_mode").and_then(Value::as_str);
     let api_key = checked_secret(auth.get("OPENAI_API_KEY"));
@@ -118,7 +118,7 @@ fn parse_live_auth(bytes: &[u8]) -> Result<LiveAuth> {
     });
     if let Some(token) = api_key {
         if mode.is_some_and(|value| !value.eq_ignore_ascii_case("apikey")) || has_tokens {
-            return Err(error("官方登录与 API Key 认证混用，请在 Codex 中重新登录"));
+            return Err(error("Official login is mixed with API key auth; please sign in again in Codex"));
         }
         return Ok(LiveAuth {
             token,
@@ -129,17 +129,17 @@ fn parse_live_auth(bytes: &[u8]) -> Result<LiveAuth> {
     if auth.get("OPENAI_API_KEY").is_some_and(|value| {
         !value.is_null() && value.as_str().is_none_or(|text| !text.trim().is_empty())
     }) {
-        return Err(error("当前 OpenAI API Key 无效，请重新设置"));
+        return Err(error("Current OpenAI API key is invalid; please set it again"));
     }
     if mode.is_some_and(|value| {
         !value.eq_ignore_ascii_case("chatgpt") && !value.eq_ignore_ascii_case("chatgptAuthTokens")
     }) {
         return Err(error(
-            "此登录方式暂不支持本地路由，请使用 ChatGPT 登录或 OpenAI API Key",
+            "This login method does not support local routing yet; use ChatGPT login or an OpenAI API key",
         ));
     }
     let token = checked_secret(auth.pointer("/tokens/access_token"))
-        .ok_or_else(|| error("官方账号尚未登录，请在 Codex 中完成 ChatGPT 登录"))?;
+        .ok_or_else(|| error("Official account is not signed in; complete ChatGPT login in Codex"))?;
     let account_id = checked_account(auth.pointer("/tokens/account_id").and_then(Value::as_str))?;
     Ok(LiveAuth {
         token,
@@ -152,10 +152,10 @@ fn ensure_selected(spec: &OfficialRouteSpec) -> Result<(Vec<u8>, DocumentMut)> {
     let (bytes, doc) = logical_document(&spec.codex_dir)?;
     if !document_is_official(&doc)
         || selected_profile_id(&spec.codex_dir)
-            .map_err(|_| error("无法确认当前官方账号，请刷新后重试"))?
+            .map_err(|_| error("Unable to confirm the current official account; refresh and try again"))?
             != spec.profile_id
     {
-        return Err(error("当前官方账号已切换，请重启 Codex 或新建会话后重试"));
+        return Err(error("Official account has switched; restart Codex or open a new session and try again"));
     }
     Ok((bytes, doc))
 }
@@ -202,17 +202,17 @@ pub(crate) fn verify_request(
 ) -> Result<OfficialRequestAuth> {
     let (config_before, _) = ensure_selected(spec)?;
     if authorization.len() > MAX_TOKEN_BYTES + 32 || authorization.chars().any(char::is_control) {
-        return Err(error("官方请求认证无效，请在 Codex 中重新登录"));
+        return Err(error("Official request auth is invalid; please sign in again in Codex"));
     }
     let parts: Vec<_> = authorization.split_whitespace().collect();
     if parts.len() != 2 || !parts[0].eq_ignore_ascii_case("Bearer") {
-        return Err(error("缺少官方请求认证，请在 Codex 中完成登录"));
+        return Err(error("Official request auth is missing; please complete login in Codex"));
     }
     let auth_before = read_bounded(&crate::auth_path(&spec.codex_dir), MAX_AUTH_BYTES, true)?;
     let auth = parse_live_auth(&auth_before)?;
     if parts[1] != auth.token || checked_account(account_id)? != auth.account_id {
         return Err(error(
-            "此会话没有加载当前官方账号，请重启 Codex 或新建会话后重试",
+            "This session did not load the current official account; restart Codex or open a new session",
         ));
     }
     // Avoid trusting a token across a simultaneous account switch/logout/refresh.
@@ -221,7 +221,7 @@ pub(crate) fn verify_request(
     let (config_after, _) = ensure_selected(spec)?;
     let auth_after = read_bounded(&crate::auth_path(&spec.codex_dir), MAX_AUTH_BYTES, true)?;
     if config_before != config_after || auth_before != auth_after {
-        return Err(error("官方登录正在更新，请稍后重试"));
+        return Err(error("Official login is updating; please try again later"));
     }
     Ok(OfficialRequestAuth {
         authorization: format!("Bearer {}", auth.token),
@@ -293,7 +293,7 @@ pub(crate) fn native_models(spec: &OfficialRouteSpec) -> Result<Value> {
     };
     let mut digest = Sha256::new();
     digest.update(b"codex-x-provider-model-catalog-v2\0");
-    digest.update(serde_json::to_vec(&value).map_err(|_| error("本地模型目录格式无效"))?);
+    digest.update(serde_json::to_vec(&value).map_err(|_| error("Local model catalog format is invalid"))?);
     if value
         .pointer("/_codex_x_model_catalog/source")
         .and_then(Value::as_str)

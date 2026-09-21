@@ -106,13 +106,13 @@ fn same_path_identity(left: &Path, right: &Path) -> Result<bool> {
 pub(crate) fn validate_backup_codex_dir(meta: &BackupMeta, codex_dir: &Path) -> Result<()> {
     let recorded = meta.codex_dir.trim();
     if recorded.is_empty() {
-        return Err(CodexxError::Config("备份元数据缺少 CODEX_HOME".to_string()));
+        return Err(CodexxError::Config("Backup metadata is missing CODEX_HOME".to_string()));
     }
     if same_path_identity(Path::new(recorded), codex_dir)? {
         return Ok(());
     }
     Err(CodexxError::Config(format!(
-        "备份属于其他 CODEX_HOME，拒绝恢复：备份为 {}，当前为 {}",
+        "Backup belongs to a different CODEX_HOME; refusing restore: backup is {}, current is {}",
         Path::new(recorded).display(),
         codex_dir.display()
     )))

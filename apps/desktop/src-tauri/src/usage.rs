@@ -664,7 +664,7 @@ fn read_log_record(reader: &mut impl BufRead) -> std::io::Result<ParsedLine> {
             let record = serde_json::from_reader(bytes.as_slice().chain(&mut tail)).map(Some);
             if let Err(error) = &record {
                 if let Some(kind) = error.io_error_kind() {
-                    return Err(std::io::Error::new(kind, "会话文件在读取期间发生错误"));
+                    return Err(std::io::Error::new(kind, "An error occurred while reading the session file"));
                 }
             }
             // A bad record must not consume the next JSONL line, nor prevent it
@@ -700,7 +700,7 @@ fn parse_file(
 ) -> Result<CachedFile> {
     let metadata = fs::symlink_metadata(path).map_err(|error| io_error(path, error))?;
     if !metadata.is_file() || metadata.file_type().is_symlink() {
-        return Err(CodexxError::Config("用量统计只读取普通会话文件".into()));
+        return Err(CodexxError::Config("Usage stats only read regular session files".into()));
     }
     let mut file = File::open(path).map_err(|error| io_error(path, error))?;
     let stamp = FileStamp::new(&file.metadata().map_err(|error| io_error(path, error))?);
@@ -711,7 +711,7 @@ fn parse_file(
             .is_symlink()
     {
         return Err(CodexxError::Config(
-            "会话文件在扫描期间发生变化，请刷新重试".into(),
+            "Session file changed during scan; refresh and try again".into(),
         ));
     }
     let mut offset = 0;
@@ -782,7 +782,7 @@ fn collect_files(dir: &Path, depth: usize, files: &mut Vec<PathBuf>, coverage: &
             coverage.skipped_files += 1;
             coverage
                 .warnings
-                .push("部分会话目录无法读取，统计可能不完整。".into());
+                .push("Some session directories could not be read; stats may be incomplete.".into());
             return;
         }
     };
@@ -790,7 +790,7 @@ fn collect_files(dir: &Path, depth: usize, files: &mut Vec<PathBuf>, coverage: &
         coverage.skipped_files += 1;
         coverage
             .warnings
-            .push("已跳过符号链接，统计仅包含配置目录中的普通会话文件。".into());
+            .push("Symlinks were skipped; stats only include regular session files in the config directory.".into());
         return;
     }
     if !metadata.is_dir() {
@@ -802,7 +802,7 @@ fn collect_files(dir: &Path, depth: usize, files: &mut Vec<PathBuf>, coverage: &
             coverage.skipped_files += 1;
             coverage
                 .warnings
-                .push("部分会话目录无法读取，统计可能不完整。".into());
+                .push("Some session directories could not be read; stats may be incomplete.".into());
             return;
         }
     };
@@ -815,7 +815,7 @@ fn collect_files(dir: &Path, depth: usize, files: &mut Vec<PathBuf>, coverage: &
             coverage.truncated = true;
             coverage
                 .warnings
-                .push("会话文件数量超过单次扫描上限，当前统计不完整。".into());
+                .push("Session file count exceeded the per-scan limit; current stats are incomplete.".into());
             break;
         }
         let path = entry.path();
@@ -827,7 +827,7 @@ fn collect_files(dir: &Path, depth: usize, files: &mut Vec<PathBuf>, coverage: &
             coverage.skipped_files += 1;
             coverage
                 .warnings
-                .push("已跳过符号链接，统计仅包含配置目录中的普通会话文件。".into());
+                .push("Symlinks were skipped; stats only include regular session files in the config directory.".into());
         } else if kind.is_dir() {
             if depth < MAX_DEPTH {
                 collect_files(&path, depth + 1, files, coverage);
@@ -835,7 +835,7 @@ fn collect_files(dir: &Path, depth: usize, files: &mut Vec<PathBuf>, coverage: &
                 coverage.truncated = true;
                 coverage
                     .warnings
-                    .push("已跳过层级过深的会话目录，统计可能不完整。".into());
+                    .push("Deeply nested session directories were skipped; stats may be incomplete.".into());
             }
         } else if kind.is_file()
             && path
@@ -961,27 +961,27 @@ fn combine_files(
         session.events.sort_by_key(|event| event.timestamp);
     }
     for (count, message) in [
-        (issues.malformed_lines, "行日志无法解析"),
-        (issues.invalid_usage, "条用量记录缺少有效的输入或输出计数"),
-        (issues.invalid_timestamps, "条用量记录缺少有效时间"),
-        (without_identity, "个会话文件缺少会话标识，已跳过"),
-        (pending_lines, "个会话文件末尾仍在写入，未计入未完成记录"),
+        (issues.malformed_lines, "log lines could not be parsed"),
+        (issues.invalid_usage, "usage records are missing valid input or output counts"),
+        (issues.invalid_timestamps, "usage records are missing a valid timestamp"),
+        (without_identity, "session files are missing a session id and were skipped"),
+        (pending_lines, "session files are still being written at the end and incomplete records were excluded"),
     ] {
         if count > 0 {
             coverage
                 .warnings
-                .push(format!("{count} {message}；统计可能不完整。"));
+                .push(format!("{count} {message}; stats may be incomplete."));
         }
     }
     if issues.incomplete_breakdown > 0 {
         coverage.warnings.push(format!(
-            "{} 条记录未提供完整的缓存或推理明细；这两项仅统计日志明确记录的数量。",
+            "{} records lack full cache or reasoning details; those fields only count amounts explicitly logged.",
             issues.incomplete_breakdown
         ));
     }
     if coverage.truncated {
         coverage.warnings.push(
-            "已达到本次扫描限制，当前显示已读取的部分用量。再次刷新或打开统计页面可继续扫描。"
+            "Scan limit reached for this pass; showing partially read usage. Refresh again or open the stats page to continue."
                 .into(),
         );
     }
@@ -1242,7 +1242,7 @@ where
         "all" => None,
         _ => {
             return Err(CodexxError::Config(
-                "用量时间范围必须为 today、7d、30d 或 all".into(),
+                "Usage time range must be today, 7d, 30d, or all".into(),
             ))
         }
     };
@@ -1333,7 +1333,7 @@ where
             Some(UsageSession {
                 title: session
                     .and_then(|session| session.project_title.clone())
-                    .unwrap_or_else(|| "未命名会话".into()),
+                    .unwrap_or_else(|| "Untitled session".into()),
                 model: if conversation.models.len() > 1 {
                     "multiple".into()
                 } else {
@@ -1350,29 +1350,29 @@ where
         })
         .collect::<Vec<_>>();
     if missing_usage > 0 {
-        coverage.warnings.push(format!("{missing_usage} 个会话没有可用的 token_count 记录；历史版本或供应商未记录的用量无法补算。"));
+        coverage.warnings.push(format!("{missing_usage} sessions have no usable token_count records; usage missing from older versions or providers cannot be reconstructed."));
     }
     if unresolved_parent > 0 {
         coverage.warnings.push(format!(
-            "{unresolved_parent} 个分叉会话的父会话信息不完整，暂未计入，以免重复统计继承的历史。"
+            "{unresolved_parent} forked sessions have incomplete parent info and were excluded to avoid double-counting inherited history."
         ));
     }
     if !unowned_subagents.is_empty() {
-        coverage.warnings.push(format!("{} 个子代理无法确定所属主会话；其可核实的 Token 已计入总量，但不单独计为会话或列入最近会话。", unowned_subagents.len()));
+        coverage.warnings.push(format!("{} subagents could not be mapped to a main session; their verified tokens are in the total but are not counted as separate sessions or listed in recent sessions.", unowned_subagents.len()));
     }
     if regressions > 0 {
-        coverage.warnings.push(format!("{regressions} 条累计用量发生回退且缺少单次明细，已按历史最高值保守去重，统计可能偏低。"));
+        coverage.warnings.push(format!("{regressions} cumulative usage values decreased without per-request details; conservatively deduped to the historical high. Stats may be low."));
     }
     if missing_request_details > 0 {
-        coverage.warnings.push(format!("{missing_request_details} 条累计快照包含未找到单次明细的用量；仅计入日志明确记录的单次数量，未推测其日期或模型。"));
+        coverage.warnings.push(format!("{missing_request_details} cumulative snapshots include usage without matching per-request details; only explicitly logged per-request amounts were counted, without guessing date or model."));
     }
     if recovered_baselines > 0 {
-        coverage.warnings.push(format!("{recovered_baselines} 处早期记录只有单次用量，已扣除已计入部分后衔接累计快照；早期累计基线无法核实。"));
+        coverage.warnings.push(format!("{recovered_baselines} early records had only per-request usage; after subtracting already counted amounts they were joined to cumulative snapshots. Early cumulative baselines could not be verified."));
     }
     if unknown_model {
         coverage
             .warnings
-            .push("部分用量未记录模型名称，已归入“未知模型”。".into());
+            .push("Some usage records omit the model name and were filed under "Unknown model".".into());
     }
     coverage.matched_sessions = total.totals.session_count;
     coverage.warnings.sort();
@@ -1529,7 +1529,7 @@ fn refresh_cache_with_budget(
                 retained_cached_results |= verifying && cache.files.contains_key(&path);
                 coverage
                     .warnings
-                    .push("部分会话文件无法读取，统计可能不完整。".into());
+                    .push("Some session files could not be read; stats may be incomplete.".into());
             }
         }
     }
@@ -1537,7 +1537,7 @@ fn refresh_cache_with_budget(
     coverage.truncated |= !cache.force_remaining.is_empty();
     if retained_cached_results {
         coverage.warnings.push(
-            "部分文件尚未完成复核，已保留其上次成功读取的缓存用量；再次刷新将继续本轮扫描。".into(),
+            "Some files were not fully revalidated; kept the last successfully cached usage. Refresh again to continue this scan.".into(),
         );
     }
     coverage
@@ -1554,7 +1554,7 @@ pub(crate) fn get_usage_statistics_inner(
     let cache = {
         let mut caches = caches()
             .lock()
-            .map_err(|_| CodexxError::Config("用量缓存不可用".into()))?;
+            .map_err(|_| CodexxError::Config("Usage cache unavailable".into()))?;
         // Bound retained scopes when users repeatedly switch config directories.
         if caches.len() >= 4 && !caches.contains_key(&scope) {
             caches.clear();
@@ -1563,7 +1563,7 @@ pub(crate) fn get_usage_statistics_inner(
     };
     let mut cache = cache
         .lock()
-        .map_err(|_| CodexxError::Config("用量缓存不可用".into()))?;
+        .map_err(|_| CodexxError::Config("Usage cache unavailable".into()))?;
     let coverage = refresh_cache(&mut cache, &codex_dir, force_refresh.unwrap_or(false));
     aggregate(
         &cache,
@@ -1764,7 +1764,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("未找到单次明细")));
+            .any(|warning| warning.contains("Per-request details not found")));
     }
 
     #[test]
@@ -2078,13 +2078,13 @@ mod tests {
         let db = rusqlite::Connection::open(fixture.dir.join("state_5.sqlite")).unwrap();
         db.execute_batch("CREATE TABLE threads (id TEXT PRIMARY KEY, title TEXT, thread_source TEXT);
             CREATE TABLE thread_spawn_edges (parent_thread_id TEXT, child_thread_id TEXT);
-            INSERT INTO threads VALUES ('main', '优化主对话', 'user'), ('child', '内部实现任务', NULL);
+            INSERT INTO threads VALUES ('main', 'Optimize main chat', 'user'), ('child', 'Internal implementation task', NULL);
             INSERT INTO thread_spawn_edges VALUES ('main', 'child');").unwrap();
         let stats = fixture.stats("all", None);
         assert_eq!(stats.totals.total_tokens, 55);
         assert_eq!(stats.totals.session_count, 1);
         assert_eq!(stats.sessions[0].id, "main");
-        assert_eq!(stats.sessions[0].title, "优化主对话");
+        assert_eq!(stats.sessions[0].title, "Optimize main chat");
         db.execute(
             "UPDATE threads SET thread_source = 'user' WHERE id = 'child'",
             [],
@@ -2117,14 +2117,14 @@ mod tests {
         let db = rusqlite::Connection::open(fixture.dir.join("state_5.sqlite")).unwrap();
         db.execute_batch(
             "CREATE TABLE threads (id TEXT PRIMARY KEY, title TEXT);
-            INSERT INTO threads VALUES ('main', '主对话标题'), ('child', '内部子任务');",
+            INSERT INTO threads VALUES ('main', 'Main chat title'), ('child', 'Internal subtask');",
         )
         .unwrap();
         let stats = fixture.stats("all", None);
         assert_eq!(stats.totals.total_tokens, 165);
         assert_eq!(stats.totals.session_count, 1);
         assert_eq!(stats.sessions.len(), 1);
-        assert_eq!(stats.sessions[0].title, "主对话标题");
+        assert_eq!(stats.sessions[0].title, "Main chat title");
         db.execute_batch(
             "ALTER TABLE threads ADD COLUMN thread_source TEXT;
             ALTER TABLE threads ADD COLUMN source TEXT;",
@@ -2266,7 +2266,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("4 个子代理")));
+            .any(|warning| warning.contains("4 subagents")));
     }
 
     #[test]
@@ -2296,7 +2296,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("无法确定所属主会话")));
+            .any(|warning| warning.contains("Could not determine main session")));
     }
 
     #[test]
@@ -2391,7 +2391,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("早期累计基线无法核实")));
+            .any(|warning| warning.contains("Early cumulative baseline could not be verified")));
     }
 
     #[test]
@@ -2413,7 +2413,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("回退")));
+            .any(|warning| warning.contains("Regression")));
     }
 
     #[test]
@@ -2502,7 +2502,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("仍在写入")));
+            .any(|warning| warning.contains("Still being written")));
         file.write_all(&next.as_bytes()[midpoint..]).unwrap();
         let complete = fixture.stats("all", None);
         assert_eq!(complete.totals.total_tokens, 220);
@@ -2557,22 +2557,22 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("2 行日志无法解析")));
+            .any(|warning| warning.contains("2 log lines could not be parsed")));
         assert!(stats
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("无法解析")));
+            .any(|warning| warning.contains("Could not parse")));
         assert!(stats
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("缓存或推理")));
+            .any(|warning| warning.contains("Cache or reasoning")));
         assert!(stats
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("有效的输入或输出")));
+            .any(|warning| warning.contains("Valid input or output")));
     }
 
     #[test]
@@ -2647,7 +2647,7 @@ mod tests {
         let stats = fixture.stats("all", None);
         assert_eq!(stats.totals.total_tokens, 110);
         assert_eq!(stats.coverage.warnings.len(), 1);
-        assert!(stats.coverage.warnings[0].contains("1 行日志无法解析"));
+        assert!(stats.coverage.warnings[0].contains("1 log line could not be parsed"));
     }
 
     #[test]
@@ -2671,7 +2671,7 @@ mod tests {
         let pending = fixture.stats("all", None);
         assert_eq!(pending.totals.total_tokens, 110);
         assert_eq!(pending.coverage.warnings.len(), 1);
-        assert!(pending.coverage.warnings[0].contains("仍在写入"));
+        assert!(pending.coverage.warnings[0].contains("Still being written"));
         let event = total("2026-09-08T01:00:02Z", 200, 20).to_string();
         // A complete final record is valid even before its newline is written.
         write!(file, "\",{}", &event[1..]).unwrap();
@@ -2685,7 +2685,7 @@ mod tests {
 
     #[test]
     fn streaming_line_boundaries_accept_escaped_content_and_large_blank_lines() {
-        let huge = "\\\"中文\n".repeat(300_000);
+        let huge = "\\\"Chinese\n".repeat(300_000);
         let mut event = total("2026-09-08T01:00:01Z", 100, 10);
         event["unknown"] = json!(huge);
         let text = format!("{}\n{event}\n", " ".repeat(2 * 1024 * 1024 + 10));
@@ -2747,7 +2747,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("有效时间")));
+            .any(|warning| warning.contains("Valid timestamp")));
     }
 
     #[test]
@@ -2792,7 +2792,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("没有可用")));
+            .any(|warning| warning.contains("None available")));
     }
 
     #[test]
@@ -2828,18 +2828,18 @@ mod tests {
         let db = rusqlite::Connection::open(fixture.dir.join("state_5.sqlite")).unwrap();
         db.execute_batch(
             "CREATE TABLE threads (id TEXT PRIMARY KEY, title TEXT, cwd TEXT);
-            INSERT INTO threads VALUES ('named', '优化设置标签动画', '/fixture/projects/Codex-X');",
+            INSERT INTO threads VALUES ('named', 'Polish settings tab animation', '/fixture/projects/Codex-X');",
         )
         .unwrap();
         let first = fixture.stats("all", None);
-        assert_eq!(first.sessions[0].title, "优化设置标签动画");
+        assert_eq!(first.sessions[0].title, "Polish settings tab animation");
         db.execute(
             "UPDATE threads SET title = ?1 WHERE id = 'named'",
-            ["完善用量统计展示"],
+            ["Improve usage stats display"],
         )
         .unwrap();
         let renamed = fixture.stats("all", None);
-        assert_eq!(renamed.sessions[0].title, "完善用量统计展示");
+        assert_eq!(renamed.sessions[0].title, "Improve usage stats display");
         assert_eq!(renamed.totals.total_tokens, first.totals.total_tokens);
         db.execute("DELETE FROM threads", []).unwrap();
         assert_eq!(fixture.stats("all", None).sessions[0].title, "Codex-X");
@@ -2868,7 +2868,7 @@ mod tests {
         );
         let stats = fixture.stats("all", None);
         assert_eq!(stats.sessions[0].title, "Codex-X");
-        assert_eq!(stats.sessions[1].title, "未命名会话");
+        assert_eq!(stats.sessions[1].title, "Untitled session");
         assert_eq!(stats.totals.total_tokens, 220);
     }
 
@@ -2939,7 +2939,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("缓存用量")));
+            .any(|warning| warning.contains("Cached usage")));
         let mut rounds = 0;
         while !fixture.cache.force_remaining.is_empty() && rounds < 20 {
             let current = fixture.stats_with_budget(true, 1);
@@ -3058,7 +3058,7 @@ mod tests {
             .coverage
             .warnings
             .iter()
-            .any(|warning| warning.contains("符号链接")));
+            .any(|warning| warning.contains("Symlink")));
     }
 
     #[test]

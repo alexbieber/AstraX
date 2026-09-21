@@ -17,7 +17,7 @@ export type ProviderPresetChoice = {
 function PresetMark({ brand }: { brand: ProviderPresetBrand }) {
   const logo = brand === "openai" ? "/openai.svg" : `/provider-logos/${brand}.svg`;
   return <span className={`cx-preset-mark cx-preset-mark--${brand}`} aria-hidden="true">
-    {brand === "custom" ? <SlidersHorizontal size={19} strokeWidth={1.8} /> : brand === "doubao" ? "豆" : <span className="cx-preset-brand-logo" style={{ WebkitMaskImage: `url("${logo}")`, maskImage: `url("${logo}")` }} />}
+    {brand === "custom" ? <SlidersHorizontal size={19} strokeWidth={1.8} /> : brand === "doubao" ? "D" : <span className="cx-preset-brand-logo" style={{ WebkitMaskImage: `url("${logo}")`, maskImage: `url("${logo}")` }} />}
   </span>;
 }
 
@@ -30,13 +30,13 @@ export function ProviderPresetPicker({ lang, presets, selectedId, disabled = fal
   children?: ReactNode;
 }) {
   const id = useId();
-  const title = lang === "zh" ? "预设供应商" : "Provider presets";
+  const title = "Provider presets";
 
   return <section className="cx-preset-picker" aria-label={title}>
     <fieldset className="cx-preset-fieldset" disabled={disabled} aria-label={title}>
       <div className="cx-preset-grid">
         {presets.map((preset) => {
-          const name = lang === "en" ? preset.nameEn ?? preset.name : preset.name;
+          const name = preset.nameEn ?? preset.name;
           return <label className="cx-preset-option" key={preset.id}>
             <input className="cx-preset-radio" type="radio" name={`${id}-provider-preset`} value={preset.id} checked={preset.id === selectedId} onChange={() => onSelect(preset.id)} aria-label={name} />
             <span className="cx-preset-card">

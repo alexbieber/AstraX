@@ -25,13 +25,13 @@ pub(crate) fn ccswitch_db_candidates() -> Result<Vec<PathBuf>> {
     }
 
     let home = home_dir()?;
-    // cc-switch 当前主要使用这个位置，macOS/Windows/Linux 都适用。
+    // cc-switch primarily uses this location on macOS/Windows/Linux.
     push_existing_candidate(
         &mut candidates,
         Some(home.join(".cc-switch").join("cc-switch.db")),
     );
 
-    // 兼容 Tauri/AppData 风格位置，防止未来或不同发行版变更数据目录。
+    // Also check Tauri/AppData-style locations in case distributions change the data directory.
     if let Some(data_dir) = dirs::data_dir() {
         push_existing_candidate(
             &mut candidates,
@@ -135,5 +135,5 @@ pub(crate) fn default_ccswitch_db_path() -> Result<PathBuf> {
         .find(|path| path.exists())
         .cloned()
         .or_else(|| candidates.into_iter().next())
-        .ok_or_else(|| CodexxError::Config("无法生成 cc-switch 数据库候选路径".to_string()))
+        .ok_or_else(|| CodexxError::Config("Unable to build cc-switch database candidate paths".to_string()))
 }

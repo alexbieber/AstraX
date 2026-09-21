@@ -27,7 +27,7 @@ pub(crate) fn remember_active_provider_on_connection(
 ) -> Result<()> {
     let provider_id = provider_id.trim();
     if provider_id.is_empty() {
-        return Err(CodexxError::Config("当前供应商 ID 不能为空".to_string()));
+        return Err(CodexxError::Config("Current provider ID cannot be empty".to_string()));
     }
     let exists = conn
         .query_row(
@@ -38,7 +38,7 @@ pub(crate) fn remember_active_provider_on_connection(
         .map_err(|error| CodexxError::Database(error.to_string()))?;
     if !exists {
         return Err(CodexxError::Config(format!(
-            "无法记录当前供应商，未找到 ID {provider_id}"
+            "Unable to record current provider; ID {provider_id} was not found"
         )));
     }
     conn.execute(

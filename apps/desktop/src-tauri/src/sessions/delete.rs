@@ -51,17 +51,17 @@ fn normalized_session_ids(values: Vec<String>) -> Result<Vec<String>> {
                 .chars()
                 .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_'));
         if !valid {
-            return Err(CodexxError::Config(format!("会话 ID 无效: {id}")));
+            return Err(CodexxError::Config(format!("Invalid session ID: {id}")));
         }
         if seen.insert(id.to_string()) {
             ids.push(id.to_string());
         }
     }
     if ids.is_empty() {
-        return Err(CodexxError::Config("请选择至少一个会话".to_string()));
+        return Err(CodexxError::Config("Please select at least one session".to_string()));
     }
     if ids.len() > 1000 {
-        return Err(CodexxError::Config("单次最多删除 1000 个会话".to_string()));
+        return Err(CodexxError::Config("You can delete at most 1000 sessions at a time".to_string()));
     }
     Ok(ids)
 }
@@ -77,7 +77,7 @@ fn relationship_database_sources(
             OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
         )
         .map_err(|error| {
-            CodexxError::Database(format!("读取会话关系失败 {}: {error}", path.display()))
+            CodexxError::Database(format!("Failed to read session relationships {}: {error}", path.display()))
         })?;
         if !table_column_set(&conn, "threads")?.contains("id") {
             continue;
@@ -103,7 +103,7 @@ fn collect_thread_spawn_edges(path: &Path) -> Result<Vec<(String, String)>> {
         path,
         OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
     )
-    .map_err(|e| CodexxError::Database(format!("读取会话关系失败 {}: {e}", path.display())))?;
+    .map_err(|e| CodexxError::Database(format!("Failed to read session relationships {}: {e}", path.display())))?;
     if !sqlite_has_table(&conn, "thread_spawn_edges")? {
         return Ok(Vec::new());
     }
@@ -216,7 +216,7 @@ pub(crate) fn active_session_ids_present(
 ) -> Result<HashSet<String>> {
     if active_database_paths.is_empty() {
         return Err(CodexxError::Database(
-            "验证删除结果失败，未找到删除前确认的活动会话库".to_string(),
+            "Failed to verify deletion; active session database confirmed before delete was not found".to_string(),
         ));
     }
     let mut present = HashSet::new();
@@ -227,19 +227,19 @@ pub(crate) fn active_session_ids_present(
         )
         .map_err(|error| {
             CodexxError::Database(format!(
-                "验证删除结果失败，无法读取 {}: {error}",
+                "Failed to verify deletion; unable to read {}: {error}",
                 path.display()
             ))
         })?;
         if !sqlite_has_table(&conn, "threads")? {
             return Err(CodexxError::Database(format!(
-                "验证删除结果失败，活动会话库缺少 threads 表: {}",
+                "Failed to verify deletion; active session database is missing threads table: {}",
                 path.display()
             )));
         }
         if !table_column_set(&conn, "threads")?.contains("id") {
             return Err(CodexxError::Database(format!(
-                "验证删除结果失败，活动会话库 threads 表缺少 id 字段: {}",
+                "Failed to verify deletion; active session database threads table is missing id column: {}",
                 path.display()
             )));
         }
@@ -279,20 +279,20 @@ fn active_session_storage_snapshot(
         )
         .map_err(|error| {
             CodexxError::Database(format!(
-                "准备删除会话时无法读取活动会话库 {}: {error}",
+                "Unable to read active session database while preparing delete {}: {error}",
                 path.display()
             ))
         })?;
         if !sqlite_has_table(&conn, "threads")? {
             return Err(CodexxError::Database(format!(
-                "活动会话库缺少 threads 表: {}",
+                "Active session database is missing threads table: {}",
                 path.display()
             )));
         }
         let cols = table_column_set(&conn, "threads")?;
         if !cols.contains("id") {
             return Err(CodexxError::Database(format!(
-                "活动会话库 threads 表缺少 id 字段: {}",
+                "Active session database threads table is missing id column: {}",
                 path.display()
             )));
         }
@@ -404,14 +404,14 @@ fn canonical_rollout_path(codex_dir: &Path, value: &str, id: &str) -> Result<Opt
     }
     if !rollout_filename_matches_id(&path, id) {
         return Err(CodexxError::Config(format!(
-            "会话文件名与 ID 不匹配，已拒绝删除: {}",
+            "Session filename does not match ID; delete refused: {}",
             path.display()
         )));
     }
     let canonical = path.canonicalize().map_err(|e| io_err(&path, e))?;
     if !is_canonical_rollout_storage_path(codex_dir, &canonical) {
         return Err(CodexxError::Config(format!(
-            "会话文件超出 Codex 会话目录，已拒绝删除: {}",
+            "Session file is outside the Codex sessions directory; delete refused: {}",
             path.display()
         )));
     }
@@ -430,7 +430,7 @@ fn selected_rollout_paths(
             OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
         )
         .map_err(|e| {
-            CodexxError::Database(format!("读取 SQLite 失败 {}: {e}", db_path.display()))
+            CodexxError::Database(format!("Failed to read SQLite {}: {e}", db_path.display()))
         })?;
         if !sqlite_has_table(&conn, "threads")? {
             continue;
@@ -471,7 +471,7 @@ fn selected_rollout_paths(
             let canonical = path.canonicalize().map_err(|e| io_err(&path, e))?;
             if !is_canonical_rollout_storage_path(codex_dir, &canonical) {
                 return Err(CodexxError::Config(format!(
-                    "会话文件超出 Codex 会话目录，已拒绝删除: {}",
+                    "Session file is outside the Codex sessions directory; delete refused: {}",
                     path.display()
                 )));
             }
@@ -546,7 +546,7 @@ fn remove_session_history_entries(
         .map_err(|e| io_err(&path, e))?;
     file.try_lock().map_err(|error| {
         CodexxError::Config(format!(
-            "历史记录正在被其他 Codex 进程使用，请关闭相关 Codex 窗口或 CLI 后重试: {error}"
+            "History is in use by another Codex process; close related Codex windows or CLI and retry: {error}"
         ))
     })?;
     let result = (|| -> Result<usize> {
@@ -644,7 +644,7 @@ fn purge_session_database_references(
                 OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX,
             )
             .map_err(|e| {
-                CodexxError::Database(format!("打开 SQLite 失败 {}: {e}", path.display()))
+                CodexxError::Database(format!("Failed to open SQLite {}: {e}", path.display()))
             })?;
             conn.busy_timeout(Duration::from_secs(5))
                 .map_err(|e| CodexxError::Database(e.to_string()))?;
@@ -663,7 +663,7 @@ fn purge_session_database_references(
             let tx = conn
                 .transaction_with_behavior(TransactionBehavior::Immediate)
                 .map_err(|e| {
-                    CodexxError::Database(format!("锁定 SQLite 失败 {}: {e}", path.display()))
+                    CodexxError::Database(format!("Failed to lock SQLite {}: {e}", path.display()))
                 })?;
             let mut db_threads = 0usize;
             let mut db_related = 0usize;
@@ -721,7 +721,7 @@ fn purge_session_database_references(
                 deleted_related += db_related;
             }
             Err(error) => {
-                errors.push(format!("SQLite 清理失败 {}: {error}", path.display()));
+                errors.push(format!("SQLite cleanup failed {}: {error}", path.display()));
             }
         }
     }
@@ -822,7 +822,7 @@ pub(crate) fn delete_codex_sessions_inner(
         .collect::<HashSet<_>>();
     if discovery.thread_paths.is_empty() {
         return Err(CodexxError::Database(
-            "无法确认当前活动会话库，已取消永久删除".to_string(),
+            "Unable to confirm the active session database; permanent delete cancelled".to_string(),
         ));
     }
     let verification_ids = expected_ids.clone();
@@ -898,7 +898,7 @@ pub(crate) fn delete_codex_sessions_inner(
     let status = match session_sync_status_with_discovery(&codex_dir, target_provider, &discovery) {
         Ok(status) => status,
         Err(error) => {
-            let message = format!("删除后刷新会话状态失败: {error}");
+            let message = format!("Failed to refresh session state after delete: {error}");
             counts.errors.push(message.clone());
             let mut fallback = status_before;
             let deleted_active_ids = counts
@@ -942,18 +942,18 @@ pub(crate) fn delete_codex_sessions_inner(
     let mut failure_parts = Vec::new();
     if let Some((_, message)) = failed_roots.first() {
         failure_parts.push(format!(
-            "{} 个会话未能删除；首个错误: {message}",
+            "{} sessions could not be deleted; first error: {message}",
             failed_sessions
         ));
     }
     if let Some(message) = counts.errors.first() {
         let prefix = if counts.deleted_ids.is_empty() {
-            "本地清理未完成"
+            "Local cleanup incomplete"
         } else {
-            "会话删除已执行，但本地残留清理未完成"
+            "Session delete ran, but local leftover cleanup did not finish"
         };
         failure_parts.push(format!(
-            "{prefix}（{} 项）；首个错误: {message}",
+            "{prefix} ({} items); first error: {message}",
             counts.errors.len()
         ));
     }

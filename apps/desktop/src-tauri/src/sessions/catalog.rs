@@ -473,7 +473,7 @@ fn update_catalog_metadata(conn: &Connection, inserted: usize) -> Result<()> {
     }
     if !columns.contains("id") {
         return Err(CodexxError::Database(
-            "local_thread_catalog_metadata 缺少 id 字段".to_string(),
+            "local_thread_catalog_metadata is missing the id field".to_string(),
         ));
     }
     conn.execute(
@@ -523,7 +523,7 @@ fn update_catalog_sync_state(
     let columns = table_column_set(conn, "local_thread_catalog_sync_state")?;
     if !columns.contains("host_id") {
         return Err(CodexxError::Database(
-            "local_thread_catalog_sync_state 缺少 host_id 字段".to_string(),
+            "local_thread_catalog_sync_state is missing the host_id field".to_string(),
         ));
     }
     let snapshot_expr = |column: &str| {

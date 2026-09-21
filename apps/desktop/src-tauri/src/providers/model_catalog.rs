@@ -40,11 +40,11 @@ pub(crate) struct ProviderModelMapping {
 fn validate_name(name: &str, label: &str) -> Result<String> {
     let name = name.trim();
     if name.is_empty() {
-        return Err(CodexxError::Config(format!("{label}不能为空")));
+        return Err(CodexxError::Config(format!("{label} cannot be empty")));
     }
     if name.chars().count() > MAX_NAME_CHARS || name.chars().any(char::is_control) {
         return Err(CodexxError::Config(format!(
-            "{label}最多 {MAX_NAME_CHARS} 个字符，且不能包含控制字符"
+            "{label} can be at most {MAX_NAME_CHARS} characters and must not contain control characters"
         )));
     }
     Ok(name.to_owned())
@@ -59,25 +59,25 @@ pub(crate) fn normalize_mappings(
     }
     if rows.len() > MAX_MAPPINGS {
         return Err(CodexxError::Config(format!(
-            "最多添加 {MAX_MAPPINGS} 个模型"
+            "You can add at most {MAX_MAPPINGS} models"
         )));
     }
-    let default_model = validate_name(default_model, "默认模型 ID")?;
+    let default_model = validate_name(default_model, "Default model ID")?;
     let mut seen = HashSet::new();
     let mut normalized = Vec::new();
     for row in rows {
-        let model = validate_name(&row.model, "模型 ID")?;
+        let model = validate_name(&row.model, "Model ID")?;
         let display_name = if row.display_name.trim().is_empty() {
             model.clone()
         } else {
-            validate_name(&row.display_name, "模型显示名称")?
+            validate_name(&row.display_name, "Model display name")?
         };
         if row
             .context_window
             .is_some_and(|window| !(1..=MAX_CONTEXT_WINDOW).contains(&window))
         {
             return Err(CodexxError::Config(format!(
-                "模型上下文窗口须为 1 至 {MAX_CONTEXT_WINDOW} 之间的整数"
+                "Model context window must be an integer between 1 and {MAX_CONTEXT_WINDOW}"
             )));
         }
         if seen.insert(model.clone()) {
@@ -91,7 +91,7 @@ pub(crate) fn normalize_mappings(
     if !seen.contains(&default_model) {
         if normalized.len() >= MAX_MAPPINGS {
             return Err(CodexxError::Config(format!(
-                "模型列表需要包含默认模型，合计最多 {MAX_MAPPINGS} 个模型"
+                "Model list must include the default model, at most {MAX_MAPPINGS} models total"
             )));
         }
         normalized.insert(
@@ -179,7 +179,7 @@ fn owned_catalog_directory(codex_dir: &Path) -> PathBuf {
 
 fn catalog_filename(catalog: &Value) -> Result<String> {
     let content = serde_json::to_vec(catalog)
-        .map_err(|_| CodexxError::Config("无法生成供应商模型目录".into()))?;
+        .map_err(|_| CodexxError::Config("Unable to generate provider model catalog".into()))?;
     let mut digest = Sha256::new();
     digest.update(b"codex-x-provider-model-catalog-v2\0");
     digest.update(&content);
@@ -237,7 +237,7 @@ fn prepare_owned_directory(codex_dir: &Path) -> Result<PathBuf> {
         match fs::symlink_metadata(&directory) {
             Ok(metadata) if is_link(&metadata) || !metadata.is_dir() => {
                 return Err(CodexxError::Config(
-                    "模型目录被文件或链接占用，请检查 Astra 模型目录".into(),
+                    "Model catalog path is occupied by a file or symlink; check the Astra model catalog".into(),
                 ));
             }
             Ok(_) => {}
@@ -250,7 +250,7 @@ fn prepare_owned_directory(codex_dir: &Path) -> Result<PathBuf> {
             fs::symlink_metadata(&directory).map_err(|error| io_err(&directory, error))?;
         if is_link(&metadata) || !metadata.is_dir() {
             return Err(CodexxError::Config(
-                "模型目录在创建时发生变化，请重试".into(),
+                "Model catalog changed during creation; please retry".into(),
             ));
         }
     }
@@ -351,13 +351,13 @@ pub(crate) fn prepare_model_catalog(
         Ok(metadata) => {
             if is_link(&metadata) || !metadata.is_file() || metadata.len() > MAX_CATALOG_BYTES {
                 return Err(CodexxError::Config(
-                    "已生成的模型目录文件无效，请检查后重试".into(),
+                    "Generated model catalog file is invalid; check and retry".into(),
                 ));
             }
             let existing = fs::read(&path).map_err(|error| io_err(&path, error))?;
             if serde_json::from_slice::<Value>(&existing).ok().as_ref() != Some(&catalog) {
                 return Err(CodexxError::Config(
-                    "已生成的模型目录文件被修改，未覆盖原文件".into(),
+                    "Generated model catalog file was modified; original file was not overwritten".into(),
                 ));
             }
         }
@@ -467,7 +467,7 @@ mod tests {
     fn normalization_preserves_real_models_and_adds_missing_default() {
         let result = normalize_mappings(
             &[
-                mapping(" vendor/model-A ", "菜单名称", Some(1_048_576)),
+                mapping(" vendor/model-A ", "Menu name", Some(1_048_576)),
                 mapping("vendor/model-A", "duplicate", Some(128_000)),
                 mapping("vendor/model-a", "", None),
             ],
@@ -478,7 +478,7 @@ mod tests {
         assert_eq!(result[0], mapping("deepseek-chat", "deepseek-chat", None));
         assert_eq!(
             result[1],
-            mapping("vendor/model-A", "菜单名称", Some(1_048_576))
+            mapping("vendor/model-A", "Menu name", Some(1_048_576))
         );
         assert_eq!(result[2].display_name, "vendor/model-a");
         assert!(normalize_mappings(&[], "").unwrap().is_empty());
@@ -526,7 +526,7 @@ mod tests {
         prepare_model_catalog(
             &fixture.0,
             "provider-a",
-            &[mapping("deepseek-chat", "DeepSeek 常用", Some(131072))],
+            &[mapping("deepseek-chat", "DeepSeek common", Some(131072))],
             "deepseek-chat",
             &mut doc,
         )
@@ -534,7 +534,7 @@ mod tests {
         let catalog = catalog(&doc);
         let model = &catalog["models"][0];
         assert_eq!(model["slug"], "deepseek-chat");
-        assert_eq!(model["display_name"], "DeepSeek 常用");
+        assert_eq!(model["display_name"], "DeepSeek common");
         assert_eq!(model["context_window"], 131072);
         assert_eq!(model["apply_patch_tool_type"], Value::Null);
         assert_eq!(model["input_modalities"], json!(["text"]));

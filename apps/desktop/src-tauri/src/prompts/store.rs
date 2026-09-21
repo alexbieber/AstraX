@@ -98,7 +98,7 @@ pub(crate) fn get_saved_prompt_inner(id: &str) -> Result<SavedPrompt> {
     list_saved_prompts_inner()?
         .into_iter()
         .find(|p| p.id == id)
-        .ok_or_else(|| CodexxError::Config(format!("提示词不存在: {id}")))
+        .ok_or_else(|| CodexxError::Config(format!("Prompt does not exist: {id}")))
 }
 
 pub(crate) fn delete_prompt_inner(id: &str) -> Result<()> {
@@ -147,10 +147,10 @@ fn save_builtin_prompt_override_on_connection(
 ) -> Result<()> {
     let id = template_id.trim();
     if id.is_empty() {
-        return Err(CodexxError::Config("提示词模板标识不能为空".to_string()));
+        return Err(CodexxError::Config("Prompt template id cannot be empty".to_string()));
     }
     if content.trim().is_empty() {
-        return Err(CodexxError::Config("提示词内容不能为空".to_string()));
+        return Err(CodexxError::Config("Prompt content cannot be empty".to_string()));
     }
     let now = now_rfc3339();
     conn.execute(
@@ -271,7 +271,7 @@ mod tests {
         let conn = override_connection();
         let error = save_builtin_prompt_override_on_connection(&conn, "template", "  \n")
             .expect_err("reject empty override");
-        assert!(error.to_string().contains("内容不能为空"));
+        assert!(error.to_string().contains("Content cannot be empty"));
     }
 
     #[test]

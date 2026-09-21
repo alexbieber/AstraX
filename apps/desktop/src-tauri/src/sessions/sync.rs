@@ -23,7 +23,7 @@ fn scan_failure_error(failures: &[String]) -> CodexxError {
         failures
             .first()
             .cloned()
-            .unwrap_or_else(|| "无法确认当前会话同步状态。".to_string()),
+            .unwrap_or_else(|| "Unable to confirm current session sync status.".to_string()),
     )
 }
 
@@ -66,7 +66,7 @@ fn scan_legacy_index_warnings(
         .unwrap_or_else(|error| vec![error.to_string()]);
     failures
         .into_iter()
-        .map(|failure| format!("已忽略旧会话索引异常：{failure}"))
+        .map(|failure| format!("Ignored legacy session index anomaly: {failure}"))
         .collect()
 }
 
@@ -171,7 +171,7 @@ fn scan_provider_sync_data(
     scan_failures.extend(sqlite.scan_failures.iter().cloned());
     scan_failures.extend(indexed_rollouts.scan_failures.iter().cloned());
     for path in &discovery.unreadable_paths {
-        scan_failures.push(format!("无法读取会话数据库: {}", path.display()));
+        scan_failures.push(format!("Unable to read session database: {}", path.display()));
     }
 
     let indexed_failures = indexed_rollouts
@@ -190,7 +190,7 @@ fn scan_provider_sync_data(
             .scan_failures
             .iter()
             .filter(|failure| !indexed_failures.contains(*failure))
-            .map(|failure| format!("已跳过未进入会话索引的异常文件：{failure}")),
+            .map(|failure| format!("Skipped anomalous file not in session index: {failure}")),
     );
     let mut seen = HashSet::new();
     scan_failures.retain(|failure| seen.insert(failure.clone()));
@@ -244,7 +244,7 @@ pub(super) fn session_sync_status_with_discovery(
         Ok(result) => result,
         Err(error) => {
             let mut failures = scan.scan_failures.clone();
-            failures.push(format!("无法读取当前活动会话列表: {error}"));
+            failures.push(format!("Unable to read current active session list: {error}"));
             return Ok(SessionSyncStatus {
                 codex_dir: codex_dir.display().to_string(),
                 target_provider: target,
@@ -324,14 +324,14 @@ pub(super) fn acquire_session_maintenance_lock(codex_dir: &Path) -> Result<Sessi
     let legacy_lock = tmp_dir.join("provider-sync.lock");
     if legacy_lock.exists() {
         return Err(CodexxError::Config(format!(
-            "会话维护正在进行: {}",
+            "Session maintenance in progress: {}",
             legacy_lock.display()
         )));
     }
     let path = tmp_dir.join("session-maintenance.lock");
     if path.is_dir() {
         return Err(CodexxError::Config(format!(
-            "检测到旧版会话维护锁，请确认没有其他 Astra 正在维护会话后删除: {}",
+            "Found a legacy session maintenance lock; confirm no other Astra is maintaining sessions, then delete: {}",
             path.display()
         )));
     }
@@ -343,7 +343,7 @@ pub(super) fn acquire_session_maintenance_lock(codex_dir: &Path) -> Result<Sessi
         .open(&path)
         .map_err(|e| io_err(&path, e))?;
     file.try_lock()
-        .map_err(|_| CodexxError::Config(format!("会话维护正在进行: {}", path.display())))?;
+        .map_err(|_| CodexxError::Config(format!("Session maintenance in progress: {}", path.display())))?;
     file.set_len(0).map_err(|e| io_err(&path, e))?;
     writeln!(file, "pid={}", std::process::id()).map_err(|e| io_err(&path, e))?;
     file.sync_all().map_err(|e| io_err(&path, e))?;
@@ -462,18 +462,18 @@ where
     let mut status = session_sync_status_with_discovery(&codex_dir, target_provider, &discovery)
         .map_err(|error| {
             CodexxError::Config(format!(
-                "同步已完成，但刷新会话列表失败，请重新进入页面：{error}"
+                "Sync finished, but refreshing the session list failed; reopen the page: {error}"
             ))
         })?;
     status.backup_dir = Some(backup.dir.display().to_string());
     if prune_warning.is_some() {
         status
             .warnings
-            .push("同步已完成，但旧备份暂未清理。".to_string());
+            .push("Sync finished, but old backups were not cleaned up yet.".to_string());
     }
     if !mutation.skipped_rollouts.is_empty() {
         status.warnings.push(format!(
-            "有 {} 个会话正在使用，已跳过；退出 Codex 后再同步即可。",
+            "{} sessions are in use and were skipped; quit Codex and sync again.",
             mutation.skipped_rollouts.len()
         ));
     }
@@ -967,7 +967,7 @@ mod tests {
         assert!(status
             .scan_failures
             .iter()
-            .any(|failure| failure.contains("无法解析的 JSON")));
+            .any(|failure| failure.contains("Unparsable JSON")));
         sync_sessions_provider_inner(Some(codex_dir.display().to_string()), None)
             .expect_err("incomplete JSONL scan must block synchronization");
 
@@ -1099,7 +1099,7 @@ mod tests {
         assert!(status
             .warnings
             .iter()
-            .all(|warning| !warning.contains("线程 ID 不一致")));
+            .all(|warning| !warning.contains("Thread ID mismatch")));
         assert_eq!(status.mismatched_sessions, 1);
         assert_eq!(status.subagent_threads, 1);
         for preview in &status.sessions {
@@ -1157,7 +1157,7 @@ mod tests {
         assert!(status
             .scan_failures
             .iter()
-            .any(|failure| failure.contains("线程 ID 不一致")));
+            .any(|failure| failure.contains("Thread ID mismatch")));
         sync_sessions_provider_inner(Some(codex_dir.display().to_string()), None)
             .expect_err("rollout ID must not substitute for its stable thread ID");
         assert_eq!(thread_provider(&database, rollout_id), "openai");
@@ -1184,14 +1184,14 @@ mod tests {
         assert!(status
             .scan_failures
             .iter()
-            .any(|failure| failure.contains("线程 ID 不一致")));
+            .any(|failure| failure.contains("Thread ID mismatch")));
 
         let error = sync_sessions_provider_inner(
             Some(codex_dir.display().to_string()),
             Some(SHARED_SESSION_PROVIDER.to_string()),
         )
         .expect_err("mismatched referenced rollout must block synchronization");
-        assert!(error.to_string().contains("线程 ID 不一致"));
+        assert!(error.to_string().contains("Thread ID mismatch"));
         assert_eq!(thread_provider(&database, sqlite_id), "openai");
         assert!(fs::read_to_string(&rollout)
             .expect("read unchanged rollout")
@@ -1222,7 +1222,7 @@ mod tests {
         assert!(status
             .scan_failures
             .iter()
-            .any(|failure| failure.contains("会话文件不存在")));
+            .any(|failure| failure.contains("Session file does not exist")));
         sync_sessions_provider_inner(Some(codex_dir.display().to_string()), None)
             .expect_err("missing referenced rollout must block synchronization");
         assert!(fs::read_to_string(duplicate)
@@ -1256,7 +1256,7 @@ mod tests {
         assert!(status
             .scan_failures
             .iter()
-            .any(|failure| failure.contains("无法读取会话文件")));
+            .any(|failure| failure.contains("Unable to read session file")));
         sync_sessions_provider_inner(Some(codex_dir.display().to_string()), None)
             .expect_err("unreadable referenced rollout must block synchronization");
 
@@ -1318,7 +1318,7 @@ mod tests {
         assert!(status
             .scan_failures
             .iter()
-            .any(|failure| failure.contains("超出 Codex 会话目录")));
+            .any(|failure| failure.contains("Outside Codex sessions directory")));
         sync_sessions_provider_inner(Some(codex_dir.display().to_string()), None)
             .expect_err("external referenced rollout must block synchronization");
         assert!(fs::read_to_string(&rollout)
@@ -1343,7 +1343,7 @@ mod tests {
         assert!(status
             .scan_failures
             .iter()
-            .any(|failure| failure.contains("活动会话数据库")));
+            .any(|failure| failure.contains("Active session database")));
         sync_sessions_provider_inner(Some(codex_dir.display().to_string()), None)
             .expect_err("unreadable active SQLite must block synchronization");
 
@@ -1461,7 +1461,7 @@ mod tests {
         assert!(status
             .warnings
             .iter()
-            .any(|warning| warning.contains("已忽略旧会话索引异常")));
+            .any(|warning| warning.contains("Ignored legacy session index anomaly")));
 
         let result = sync_sessions_provider_inner(Some(codex_dir.display().to_string()), None)
             .expect("synchronize despite stale legacy reference");
@@ -2211,7 +2211,7 @@ mod tests {
             },
         )
         .expect_err("inject failure after catalog commit");
-        assert_eq!(error.to_string(), "配置错误: catalog rollback test");
+        assert_eq!(error.to_string(), "Configuration error: catalog rollback test");
         assert_eq!(thread_provider(&state, first_id), "openai");
         assert_eq!(thread_provider(&state, second_id), "openai");
         assert_eq!(catalog_provider(&catalog, first_id), "openai");

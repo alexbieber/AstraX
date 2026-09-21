@@ -16,5 +16,5 @@ pub(crate) fn ensure_table<'a>(parent: &'a mut Table, key: &str) -> Result<&'a m
     parent
         .get_mut(key)
         .and_then(|item| item.as_table_mut())
-        .ok_or_else(|| CodexxError::Config(format!("{key} 不是 TOML table")))
+        .ok_or_else(|| CodexxError::Config(format!("{key} is not a TOML table")))
 }

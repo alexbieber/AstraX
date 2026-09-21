@@ -92,43 +92,7 @@ export function OverviewPage({
   onRefresh,
   onOpenUpdate,
 }: OverviewPageProps) {
-  const isChinese = lang === "zh";
-  const text = isChinese
-    ? {
-        eyebrow: "CODEX 配置管理器",
-        notConfigured: "未配置",
-        modelMissing: "未配置模型",
-        codexHome: "CODEX_HOME",
-        directoryPlaceholder: "留空使用默认目录",
-        load: "加载",
-        config: "配置文件",
-        found: "已找到",
-        missing: "未找到",
-        provider: "供应商",
-        official: "官方配置",
-        instruction: "指令提示词",
-        enabled: "已启用",
-        disabled: "未启用",
-        auth: "认证状态",
-        authFile: "auth.json 已找到",
-        officialAuth: "官方认证已保存",
-        noAuth: "未找到",
-        updateFound: "发现新版本",
-        updateAvailable: (version: string) => `AstraX ${version} 已发布`,
-        viewUpdate: "查看更新",
-        liveStatus: "实时状态",
-        currentConfig: "当前 Codex 配置",
-        on: "提示词已启用",
-        off: "提示词未启用",
-        directory: "目录",
-        configPath: "配置",
-        model: "模型",
-        providerName: "供应商标识",
-        instructionFile: "指令文件",
-        reading: "正在读取",
-        readFailed: "读取失败",
-      }
-    : {
+  const text = {
         eyebrow: "CODEX CONFIG MANAGER",
         notConfigured: "Not configured",
         modelMissing: "Model not configured",
@@ -184,7 +148,7 @@ export function OverviewPage({
     : unresolvedStatus;
 
   return (
-    <section className="cx-overview-page" aria-label={isChinese ? "概览" : "Overview"}>
+    <section className="cx-overview-page" aria-label={"Overview"}>
       <header className="cx-overview-header">
         <div className="cx-overview-heading">
           <p className="cx-overview-eyebrow">

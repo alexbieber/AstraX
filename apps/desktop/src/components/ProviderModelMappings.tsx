@@ -8,21 +8,7 @@ const MAX_MAPPINGS = 64;
 const MAX_CONTEXT_WINDOW = 10_000_000;
 
 function getCopy(lang: Language) {
-  return lang === "zh" ? {
-    title: "模型映射", optional: "可选", subtitle: "让 Codex 的模型菜单显示这个供应商实际提供的模型。",
-    hint: "适用于支持 Responses 接口的模型。保存并启用后，重启 Codex 更新模型菜单。已有会话会保留原来的模型选择。",
-    displayName: "菜单显示名称", displayPlaceholder: "留空使用模型 ID", model: "实际模型 ID", modelPlaceholder: "填写供应商提供的模型 ID",
-    context: "上下文窗口", contextPlaceholder: "可选，如 128000", contextHint: "单位为 Token；留空使用默认值，最大 10,000,000。",
-    addCurrent: "添加当前模型", importModels: "导入已获取模型", addRow: "添加空行", remove: "删除映射",
-    empty: "暂未设置模型映射", emptyHint: "留空表示不设置自定义模型菜单。可以添加当前模型，或先获取供应商的模型列表再导入。",
-    noCurrent: "请先填写上方的模型", currentExists: "当前模型已添加", fetchFirst: "请先在上方获取模型列表", allImported: "已获取的模型均已添加",
-    limit: "模型菜单最多支持 64 个模型（包含当前默认模型）。", reserved: "当前默认模型会自动保留在菜单中，并计入 64 个模型的上限。",
-    missingModel: "请填写实际模型 ID", invalidModel: "模型 ID 不能包含控制字符", longModel: "模型 ID 最多 200 个字符",
-    invalidContext: "请填写 1 至 10,000,000 的整数，或留空。", fixErrors: "请先修正标红的内容，再保存供应商。",
-    rowLabel: (index: number) => `第 ${index + 1} 行`, imported: (count: number) => `已添加 ${count} 个模型。`,
-    importLimited: (added: number, skipped: number) => `已添加 ${added} 个模型，达到 64 个上限，另有 ${skipped} 个未添加。`,
-    invalidDefault: "上方的当前模型 ID 不符合要求，请先修改（最多 200 个字符，不能包含控制字符）。",
-  } : {
+  return {
     title: "Model mappings", optional: "Optional", subtitle: "Show this provider’s actual models in the Codex model menu.",
     hint: "For models that support the Responses API. Save and enable this provider, then restart Codex to update its model menu. Existing conversations keep their selected model.",
     displayName: "Menu display name", displayPlaceholder: "Defaults to the model ID", model: "Actual model ID", modelPlaceholder: "Enter the provider’s model ID",
@@ -61,7 +47,7 @@ export function validateProviderModelMappings(rows: readonly ProviderModelMappin
     if (!id) error.model = copy.missingModel;
     else if (/[\u0000-\u001f\u007f-\u009f]/.test(id)) error.model = copy.invalidModel;
     else if (Array.from(id).length > 200) error.model = copy.longModel;
-    else if ((counts.get(id) ?? 0) > 1) error.model = lang === "zh" ? "此模型 ID 已添加，请删除重复行。" : "This model ID is already included. Remove the duplicate row.";
+    else if ((counts.get(id) ?? 0) > 1) error.model = "This model ID is already included. Remove the duplicate row.";
     if (row.contextWindow !== null && (!Number.isSafeInteger(row.contextWindow) || row.contextWindow <= 0 || row.contextWindow > MAX_CONTEXT_WINDOW)) error.contextWindow = copy.invalidContext;
     return error;
   });

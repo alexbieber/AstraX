@@ -638,7 +638,7 @@ where
                     .and_then(|table| table.get(&id))
                     .map(|item| (id.clone(), toml_item_to_json(item), false))
             })
-            .ok_or_else(|| CodexxError::Config(format!("未找到 MCP: {id}")))?;
+            .ok_or_else(|| CodexxError::Config(format!("MCP not found: {id}")))?;
         if let Some(object) = config.as_object_mut() {
             if object.contains_key("enabled") {
                 object.insert("enabled".to_owned(), Value::Bool(true));
@@ -866,7 +866,7 @@ mod tests {
         )
         .expect_err("stale MCP toggle must fail");
 
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(fs::read(&cfg).expect("read external config"), external);
         let conn = open_db().expect("open test database");
         let (_, config, enabled) = managed_mcp_on_connection(&conn, &id)

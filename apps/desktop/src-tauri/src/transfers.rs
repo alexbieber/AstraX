@@ -32,7 +32,7 @@ mod tests {
     use super::*;
     #[test]
     fn suggested_names_fit_filesystems_without_losing_utf8_or_using_windows_devices() {
-        for title in ["中".repeat(100), "🌏".repeat(100)] {
+        for title in ["in".repeat(100), "🌏".repeat(100)] {
             let name = export_name(&title, "session", "md");
             assert!(name.len() <= 184);
             assert!(name.ends_with(".md"));
@@ -52,7 +52,7 @@ fn require_extension(path: &Path, extension: &str) -> Result<()> {
         .is_some_and(|value| value.eq_ignore_ascii_case(extension))
     {
         return Err(CodexxError::Config(format!(
-            "请使用 .{extension} 文件名保存。"
+            "Please save using a .{extension} filename."
         )));
     }
     Ok(())
@@ -87,14 +87,14 @@ pub(crate) async fn export_codex_sessions(
     lang: Option<String>,
 ) -> Result<Option<crate::sessions::SessionExportResult>> {
     if session_ids.is_empty() {
-        return Err(CodexxError::Config("请先选择要导出的会话。".into()));
+        return Err(CodexxError::Config("Please select sessions to export first.".into()));
     }
     let extension = if session_ids.len() == 1 { "md" } else { "zip" };
     let name = export_name(&suggested_name, "Codex-sessions", extension);
     let title = if lang.as_deref() == Some("en") {
         "Export conversations"
     } else {
-        "导出会话"
+        "Export sessions"
     };
     let Some(destination) = save_path(&window, &name, extension, title).await? else {
         return Ok(None);
@@ -108,7 +108,7 @@ pub(crate) async fn export_codex_sessions(
         .map(Some)
     })
     .await
-    .map_err(|_| CodexxError::Config("导出会话失败，请重试。".into()))?
+    .map_err(|_| CodexxError::Config("Failed to export sessions; please try again.".into()))?
 }
 
 #[tauri::command]
@@ -121,7 +121,7 @@ pub(crate) async fn export_skills_mcp_archive(
     let label = match kind.as_str() {
         "mcp" => "MCP",
         "skills" => "Skills",
-        _ => return Err(CodexxError::Config("不支持的导出类型。".into())),
+        _ => return Err(CodexxError::Config("Unsupported export type.".into())),
     };
     let name = format!(
         "Astra-{label}-{}.zip",
@@ -130,7 +130,7 @@ pub(crate) async fn export_skills_mcp_archive(
     let title = if lang.as_deref() == Some("en") {
         format!("Export {label}")
     } else {
-        format!("导出 {label}")
+        format!("Export {label}")
     };
     let Some(destination) = save_path(&window, &name, "zip", &title).await? else {
         return Ok(None);
@@ -144,7 +144,7 @@ pub(crate) async fn export_skills_mcp_archive(
         .map(Some)
     })
     .await
-    .map_err(|_| CodexxError::Config("导出 ZIP 失败，请重试。".into()))?
+    .map_err(|_| CodexxError::Config("Failed to export ZIP; please try again.".into()))?
 }
 
 #[tauri::command]
@@ -156,7 +156,7 @@ pub(crate) async fn import_skills_mcp_archive(
     let title = if lang.as_deref() == Some("en") {
         "Import Skills / MCP ZIP"
     } else {
-        "导入 Skills / MCP ZIP"
+        "Import Skills / MCP ZIP"
     };
     let Some(file) = rfd::AsyncFileDialog::new()
         .set_parent(&window)
@@ -172,5 +172,5 @@ pub(crate) async fn import_skills_mcp_archive(
         crate::skills_mcp::install_skill_archive_path_inner(config_dir, path).map(Some)
     })
     .await
-    .map_err(|_| CodexxError::Config("导入 ZIP 失败，请重试。".into()))?
+    .map_err(|_| CodexxError::Config("Failed to import ZIP; please try again.".into()))?
 }

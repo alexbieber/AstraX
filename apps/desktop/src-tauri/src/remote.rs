@@ -32,7 +32,7 @@ pub(crate) fn remote_client() -> Result<reqwest::blocking::Client> {
         .timeout(REMOTE_TIMEOUT)
         .user_agent(REMOTE_USER_AGENT)
         .build()
-        .map_err(|_| CodexxError::Config("网络客户端初始化失败".to_string()))
+        .map_err(|_| CodexxError::Config("Failed to initialize network client".to_string()))
 }
 
 pub(crate) fn remote_request_error(
@@ -40,11 +40,11 @@ pub(crate) fn remote_request_error(
     error: &reqwest::Error,
 ) -> CodexxError {
     let reason = if error.is_timeout() {
-        "请求超时"
+        "Request timed out"
     } else if error.is_connect() {
-        "网络连接失败"
+        "Network connection failed"
     } else {
-        "网络请求失败"
+        "Network request failed"
     };
     CodexxError::Config(format!("{} {reason}", source.key))
 }
@@ -63,14 +63,14 @@ fn fetch_remote_text(source: &RemoteSource<'_>) -> Result<String> {
     let status = response.status();
     if !status.is_success() {
         return Err(CodexxError::Config(format!(
-            "{} 请求失败（HTTP {}）",
+            "{} request failed (HTTP {})",
             source.key,
             status.as_u16()
         )));
     }
     response
         .text()
-        .map_err(|_| CodexxError::Config(format!("{} 响应读取失败", source.key)))
+        .map_err(|_| CodexxError::Config(format!("Failed to read {} response", source.key)))
 }
 
 pub(crate) fn fetch_first_valid<T, Parse>(sources: &[RemoteSource<'_>], parse: Parse) -> Result<T>
@@ -93,7 +93,7 @@ where
     for source in sources {
         match fetch(source) {
             Ok(body) if body.trim().is_empty() => {
-                errors.push(format!("{} 返回空内容", source.key));
+                errors.push(format!("{} returned empty content", source.key));
             }
             Ok(body) => match parse(source, &body) {
                 Ok(value) => return Ok(value),
@@ -104,7 +104,7 @@ where
     }
 
     Err(CodexxError::Config(format!(
-        "远程内容获取失败{}",
+        "Failed to fetch remote content{}",
         if errors.is_empty() {
             String::new()
         } else {

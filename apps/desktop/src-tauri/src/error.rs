@@ -3,7 +3,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub(crate) enum CodexxError {
-    #[error("无法获取用户主目录")]
+    #[error("Unable to determine user home directory")]
     NoHomeDir,
     #[error("IO error at {path}: {source}")]
     Io {
@@ -19,7 +19,7 @@ pub(crate) enum CodexxError {
         #[source]
         source: serde_json::Error,
     },
-    #[error("配置错误: {0}")]
+    #[error("Configuration error: {0}")]
     Config(String),
     #[error("SQLite error: {0}")]
     Database(String),

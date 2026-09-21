@@ -189,7 +189,7 @@ pub(crate) fn provider_template_from_document(
         .is_some();
     if !provider_exists {
         return Err(CodexxError::Config(format!(
-            "供应商 TOML 缺少 [model_providers.{provider_id}]"
+            "Provider TOML is missing [model_providers.{provider_id}]"
         )));
     }
 
@@ -446,7 +446,7 @@ fn write_provider_with_origin(
 ) -> Result<()> {
     let now = now_rfc3339();
     let model_mappings_json = serde_json::to_string(&provider.model_mappings)
-        .map_err(|error| CodexxError::Config(format!("序列化模型映射失败: {error}")))?;
+        .map_err(|error| CodexxError::Config(format!("Failed to serialize model mapping: {error}")))?;
     let (source, source_id) = origin
         .map(|(source, source_id)| (source, Some(source_id)))
         .unwrap_or((MANUAL_PROVIDER_SOURCE, None));
@@ -640,7 +640,7 @@ pub(crate) fn upsert_ccswitch_provider_on_connection(
     let source_id = source_id.trim();
     if source_id.is_empty() {
         return Err(CodexxError::Config(
-            "cc-switch 供应商缺少稳定来源 ID".to_string(),
+            "cc-switch provider is missing a stable source ID".to_string(),
         ));
     }
     upsert_provider_with_origin(
@@ -673,14 +673,14 @@ fn apply_provider_toml_authority(provider: &mut SavedProvider) -> Result<()> {
     };
     let mut doc = text
         .parse::<DocumentMut>()
-        .map_err(|error| CodexxError::Config(format!("供应商 TOML 无效: {error}")))?;
+        .map_err(|error| CodexxError::Config(format!("Invalid provider TOML: {error}")))?;
     let provider_id = doc
         .get("model_provider")
         .and_then(|item| item.as_str())
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(ToString::to_string)
-        .ok_or_else(|| CodexxError::Config("供应商 TOML 缺少 model_provider".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("Provider TOML is missing model_provider".to_string()))?;
 
     let table = doc
         .get("model_providers")
@@ -688,7 +688,7 @@ fn apply_provider_toml_authority(provider: &mut SavedProvider) -> Result<()> {
         .and_then(|providers| providers.get(&provider_id))
         .and_then(|item| item.as_table())
         .ok_or_else(|| {
-            CodexxError::Config(format!("供应商 TOML 缺少 [model_providers.{provider_id}]"))
+            CodexxError::Config(format!("Provider TOML is missing [model_providers.{provider_id}]"))
         })?;
 
     let model = doc
@@ -757,14 +757,14 @@ fn sync_provider_toml_from_fields(provider: &mut SavedProvider) -> Result<()> {
     };
     let mut doc = text
         .parse::<DocumentMut>()
-        .map_err(|error| CodexxError::Config(format!("供应商 TOML 无效: {error}")))?;
+        .map_err(|error| CodexxError::Config(format!("Invalid provider TOML: {error}")))?;
     let provider_id = doc
         .get("model_provider")
         .and_then(|item| item.as_str())
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(ToString::to_string)
-        .ok_or_else(|| CodexxError::Config("供应商 TOML 缺少 model_provider".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("Provider TOML is missing model_provider".to_string()))?;
 
     if provider.api_key.is_none() {
         provider.api_key = experimental_bearer_token_from_doc(&doc, Some(&provider_id));
@@ -778,7 +778,7 @@ fn sync_provider_toml_from_fields(provider: &mut SavedProvider) -> Result<()> {
         .and_then(|providers| providers.get_mut(&provider_id))
         .and_then(|item| item.as_table_mut())
         .ok_or_else(|| {
-            CodexxError::Config(format!("供应商 TOML 缺少 [model_providers.{provider_id}]"))
+            CodexxError::Config(format!("Provider TOML is missing [model_providers.{provider_id}]"))
         })?;
     table["name"] = value(provider.provider_name.clone());
     super::transport::configure_third_party_transport(table, &provider.base_url, true);
@@ -796,7 +796,7 @@ fn sync_provider_toml_from_fields(provider: &mut SavedProvider) -> Result<()> {
 pub(crate) fn normalize_saved_provider(provider: SavedProvider) -> Result<SavedProvider> {
     let raw_id = provider.id.trim();
     if raw_id.is_empty() {
-        return Err(CodexxError::Config("provider id 不能为空".to_string()));
+        return Err(CodexxError::Config("provider id cannot be empty".to_string()));
     }
     let model_mappings =
         super::model_catalog::normalize_mappings(&provider.model_mappings, &provider.model)?;
@@ -822,17 +822,17 @@ pub(crate) fn normalize_saved_provider(provider: SavedProvider) -> Result<SavedP
         model_mappings,
     };
     if normalized.provider_name.is_empty() {
-        return Err(CodexxError::Config("供应商名称不能为空".to_string()));
+        return Err(CodexxError::Config("Provider name cannot be empty".to_string()));
     }
     if normalized.base_url.is_empty() {
-        return Err(CodexxError::Config("base_url 不能为空".to_string()));
+        return Err(CodexxError::Config("base_url cannot be empty".to_string()));
     }
     if normalized.model.is_empty() {
-        return Err(CodexxError::Config("model 不能为空".to_string()));
+        return Err(CodexxError::Config("model cannot be empty".to_string()));
     }
     if is_placeholder_provider(&normalized.provider_name, &normalized.base_url) {
         return Err(CodexxError::Config(
-            "供应商名称和 base_url 不能使用示例占位值，请填写实际配置".to_string(),
+            "Provider name and base_url cannot use placeholder examples; enter real values".to_string(),
         ));
     }
     // Imported/read records are hydrated from their complete TOML before they
@@ -857,7 +857,7 @@ pub(crate) fn normalize_saved_provider_for_save(
         && provider_by_id_on_connection(conn, &normalized.id)?.is_some()
     {
         return Err(CodexxError::Config(format!(
-            "供应商 ID {} 规范化后与现有供应商冲突，请更换名称或 ID",
+            "Normalized provider ID {} conflicts with an existing provider; change the name or ID",
             requested_id
         )));
     }
@@ -915,10 +915,10 @@ fn duplicate_provider_on_connection(
     let mut saved = list_saved_providers_on_connection(&transaction)?;
     let source = if let Some(id) = provider_id {
         provider_by_id_on_connection(&transaction, id)?
-            .ok_or_else(|| CodexxError::Config("供应商已不存在，请刷新列表后重试".to_string()))?
+            .ok_or_else(|| CodexxError::Config("Provider no longer exists; refresh the list and try again".to_string()))?
     } else {
         let mut detected = live.clone().ok_or_else(|| {
-            CodexxError::Config("当前第三方配置已变更，请刷新列表后重试".to_string())
+            CodexxError::Config("Current third-party config changed; refresh the list and retry".to_string())
         })?;
         // Adopt an unsaved detected original before adding its copy. Otherwise
         // the copy would become the only matching row and appear to be enabled.
@@ -964,7 +964,7 @@ fn duplicate_provider_on_connection(
         .map(str::trim)
         .filter(|name| !name.is_empty())
         .map(ToString::to_string)
-        .unwrap_or_else(|| format!("{} 副本", source.provider_name));
+        .unwrap_or_else(|| format!("{} copy", source.provider_name));
     let mut copy = source.clone();
     copy.id = unique_provider_id_on_connection(&transaction, &format!("{}-copy", source.id))?;
     copy.provider_name = base_name.clone();
@@ -1055,7 +1055,7 @@ pub(crate) fn save_detected_provider_with_rollback_inner(
 fn insert_stored_provider(conn: &Connection, stored: &StoredProvider) -> Result<()> {
     let provider = &stored.provider;
     let model_mappings_json = serde_json::to_string(&provider.model_mappings)
-        .map_err(|error| CodexxError::Config(format!("序列化模型映射失败: {error}")))?;
+        .map_err(|error| CodexxError::Config(format!("Failed to serialize model mapping: {error}")))?;
     conn.execute(
         "INSERT INTO providers
             (id, provider_name, base_url, model, api_key, toml_config, wire_api,
@@ -1114,7 +1114,7 @@ pub(crate) fn rollback_provider_store_inner(rollback: ProviderStoreRollback) -> 
             .find(|stored| stored.provider.id == *id);
         if actual != expected {
             return Err(CodexxError::Database(format!(
-                "供应商 {id} 已被其他操作修改，拒绝覆盖并发变更"
+                "Provider {id} was modified by another operation; refusing concurrent overwrite"
             )));
         }
     }
@@ -1381,7 +1381,7 @@ mod tests {
         );
         assert_ne!(first.provider.id, original.id);
         assert_eq!(first.provider.api_key, original.api_key);
-        assert_eq!(first.provider.provider_name, "Original 副本");
+        assert_eq!(first.provider.provider_name, "Original copy");
         let config = first
             .provider
             .toml_config
@@ -1408,7 +1408,7 @@ mod tests {
             None,
         )
         .unwrap();
-        assert_eq!(second.provider.provider_name, "Original 副本 2");
+        assert_eq!(second.provider.provider_name, "Original copy 2");
         assert_eq!(
             second.active_provider_id.as_deref(),
             Some(original.id.as_str())
@@ -1444,7 +1444,7 @@ mod tests {
     #[test]
     fn failed_immediate_copy_rolls_back_detected_adoption_and_selection() {
         let mut conn = copy_test_connection();
-        conn.execute_batch("CREATE TRIGGER fail_copy BEFORE INSERT ON providers WHEN NEW.provider_name LIKE '%副本%' BEGIN SELECT RAISE(ABORT, 'fixture failure'); END;").unwrap();
+        conn.execute_batch("CREATE TRIGGER fail_copy BEFORE INSERT ON providers WHEN NEW.provider_name LIKE '%copy%' BEGIN SELECT RAISE(ABORT, 'fixture failure'); END;").unwrap();
         let result = duplicate_provider_on_connection(
             &mut conn,
             std::path::Path::new("/fixture/copy-failure"),
@@ -2238,6 +2238,6 @@ request_max_retries = 9
         let mut item = provider("placeholder", "your-provider", None);
         item.model = "gpt-5.5".to_string();
         let error = normalize_saved_provider(item).expect_err("placeholder must be rejected");
-        assert!(error.to_string().contains("示例占位值"));
+        assert!(error.to_string().contains("Example placeholder"));
     }
 }

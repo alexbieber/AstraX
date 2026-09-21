@@ -71,7 +71,6 @@ import "./styles/dark-theme.css";
 
 type Tab = AppTab;
 
-const LANG_KEY = "codexx.lang";
 const THEME_KEY = "codexx.theme";
 const STARTUP_WIZARD_SEEN_KEY = "codexx.startupWizardSeen";
 const ACTIVE_PROVIDER_KEY = "codexx.activeProviderId";
@@ -87,37 +86,37 @@ const bundledInstructionTemplates: InstructionTemplate[] = [
   {
     id: "gpt5.5-unrestricted",
     filename: "gpt5.5-unrestricted.md",
-    title: "gpt-5.5 unrestricted 破甲",
-    subtitle: "方法：先让ai分析项目，分析完之后发【不直白的逆向】命令",
-    badge: "推荐",
+    title: "gpt-5.5 unrestricted jailbreak",
+    subtitle: "Method: have the AI analyze the project first, then send an indirect reverse-engineering prompt",
+    badge: "Recommended",
   },
   {
     id: "gpt5.4-unrestricted",
     filename: "gpt5.4-unrestricted.md",
-    title: "gpt-5.4 unrestricted 破甲",
-    subtitle: "方法：先让ai分析项目，分析完之后发【不直白的逆向】命令",
-    badge: "兼容",
+    title: "gpt-5.4 unrestricted jailbreak",
+    subtitle: "Method: have the AI analyze the project first, then send an indirect reverse-engineering prompt",
+    badge: "Compatible",
   },
   {
     id: "gpt5.5-jeli",
     filename: "gpt5.5-jeli.md",
     title: "gpt5.5-jeli.md",
-    subtitle: "gpt5.5 大白话（80%场景）破甲",
-    badge: "通用",
+    subtitle: "gpt-5.5 plain-language jailbreak (covers ~80% of cases)",
+    badge: "General",
   },
   {
     id: "github-gpt-5-6-sol-unrestricted-33b86c71",
     filename: "gpt-5.6-sol-unrestricted.md",
     title: "gpt-5.6-sol-unrestricted.md",
-    subtitle: "gpt5.6-sol 破甲提示词",
-    badge: "内置",
+    subtitle: "gpt-5.6-sol jailbreak prompt",
+    badge: "Built-in",
   },
   {
     id: "github-3-0-b459e1e8",
-    filename: "海鸥3.0破甲.md",
-    title: "海鸥3.0破甲.md",
-    subtitle: "测试生效：海鸥在线，你要整点薯条吗？",
-    badge: "内置",
+    filename: "seagull-3.0.md",
+    title: "seagull-3.0.md",
+    subtitle: "Test OK: Seagull online — want some fries?",
+    badge: "Built-in",
   },
 ];
 
@@ -152,104 +151,104 @@ const blankPromptForm: SavedPrompt = {
 
 const dict = {
   zh: {
-    appSubtitle: "切换 · 指令 · 配置",
-    manager: "Codex 配置管理器",
-    load: "加载",
-    refresh: "刷新",
+    appSubtitle: "Think · Switch · Build",
+    manager: "Codex config manager",
+    load: "Load",
+    refresh: "Refresh",
     nav: {
-      dashboard: "概览",
-      provider: "供应商",
-      sessions: "会话管理",
-      skillsMcp: "技能和MCP",
-      instruction: "指令提示词",
+      dashboard: "Overview",
+      provider: "Provider",
+      sessions: "Sessions",
+      skillsMcp: "Skills & MCP",
+      instruction: "Prompt",
       toml: "TOML",
-      settings: "设置",
-      about: "关于",
+      settings: "Settings",
+      about: "About",
     },
     dashboard: {
-      config: "配置文件",
-      found: "已找到",
-      missing: "不存在",
-      provider: "供应商",
-      instruction: "指令提示词状态",
-      enabled: "已启用",
-      disabled: "未启用",
-      auth: "认证文件",
-      currentConfig: "当前 Codex 配置",
-      liveStatus: "实时状态",
-      dir: "目录",
-      configPath: "配置",
-      model: "模型",
-      providerName: "供应商",
-      instructionFile: "指令文件",
-      notSet: "未设置",
-      officialDefault: "官方默认",
+      config: "Config",
+      found: "Found",
+      missing: "Missing",
+      provider: "Provider",
+      instruction: "Instruction Prompt",
+      enabled: "Enabled",
+      disabled: "Disabled",
+      auth: "Auth",
+      currentConfig: "Current Codex config",
+      liveStatus: "Live status",
+      dir: "Directory",
+      configPath: "Config",
+      model: "Model",
+      providerName: "Provider",
+      instructionFile: "Instruction",
+      notSet: "Not set",
+      officialDefault: "Official / Default",
     },
     provider: {
-      title: "供应商列表",
-      subtitle: "管理多个官方 Codex 登录与第三方 API，按名称区分账号并随时切换。",
-      add: "添加供应商",
-      importCc: "从 cc-switch 导入",
-      edit: "编辑",
-      viewEdit: "编辑",
-      remove: "删除",
-      switch: "切换",
-      current: "当前",
-      official: "官方配置",
-      noRouting: "不支持路由",
-      authReady: "认证文件存在",
-      authMissing: "未找到认证文件",
-      detected: "从 TOML 检测",
-      local: "本地保存",
-      noProviders: "还没有供应商，点击右上角 + 添加。",
-      officialEdit: "OpenAI Official 编辑",
-      officialHint: "官方配置与当前中转配置独立保存。读取配置不会切换当前供应商；切换回官方时会优先使用已保存配置。",
-      officialUrl: "官方入口",
-      formAdd: "添加新供应商",
-      formEdit: "编辑供应商",
-      formHint: "选择供应商类型并填写配置。新增配置保存到列表，点击启用后生效。",
-      name: "供应商名称",
+      title: "Provider list",
+      subtitle: "Manage named Codex sign-in profiles and third-party APIs, and switch between them.",
+      add: "Add provider",
+      importCc: "Import from cc-switch",
+      edit: "Edit",
+      viewEdit: "Edit",
+      remove: "Delete",
+      switch: "Switch",
+      current: "Current",
+      official: "Official",
+      noRouting: "No routing",
+      authReady: "Auth found",
+      authMissing: "Auth missing",
+      detected: "Detected from TOML",
+      local: "Local",
+      noProviders: "No provider yet. Click + to add one.",
+      officialEdit: "OpenAI Official settings",
+      officialHint: "Official settings are stored separately from the active proxy. Loading a config does not switch providers; switching back uses the saved config first.",
+      officialUrl: "Official URL",
+      formAdd: "Add provider",
+      formEdit: "Edit provider",
+      formHint: "Choose a provider type and enter its settings. New profiles are saved to the list; enable one to use it.",
+      name: "Provider name",
       baseUrl: "Base URL",
-      model: "模型",
+      model: "Model",
       wireApi: "Wire API",
       apiKey: "API Key",
-      apiKeyPlaceholder: "填写 API Key",
+      apiKeyPlaceholder: "Enter API key",
       requiresAuth: "requires_openai_auth",
-      save: "保存到列表",
-      saveAndSwitch: "保存",
-      cancel: "返回列表",
+      save: "Save",
+      saveAndSwitch: "Save",
+      cancel: "Back",
     },
     instruction: {
-      title: "一键管理指令提示词",
-      desc: "启用时写入指令提示词文件并设置 model_instructions_file；禁用时只移除 AstraX 管理的指令提示词字段并删除 md 文件。每次操作前都会创建备份。",
-      enabled: "已启用",
-      disabled: "未启用",
-      unset: "model_instructions_file 未设置",
-      enable: "启用",
-      disable: "禁用 / 删除",
+      title: "Manage instruction prompt",
+      desc: "Enable writes the instruction prompt file and sets model_instructions_file; disable removes AstraX-managed instruction prompt config and deletes the md file. Every write creates a backup first.",
+      enabled: "Enabled",
+      disabled: "Disabled",
+      unset: "model_instructions_file is not set",
+      enable: "Enable",
+      disable: "Disable / delete",
     },
     toml: {
-      title: "当前 live TOML 配置",
-      desc: "这里显示的是 Codex 当前正在使用的 ~/.codex/config.toml，不是本地保存的供应商模板。切换供应商后，这里会变成新写入的 live 配置。",
-      loaded: "已读取",
-      missingText: "# config.toml 不存在，执行切换或启用后会自动创建。",
+      title: "Current live TOML config",
+      desc: "This is the active ~/.codex/config.toml used by Codex, not a saved provider template. After switching providers, this page shows the newly written live config.",
+      loaded: "Loaded",
+      missingText: "# config.toml is missing. It will be created after switching or enabling instruction.",
     },
     backups: {
-      title: "备份与撤回",
-      empty: "还没有备份。首次写入前会自动创建。",
-      restore: "恢复",
+      title: "Backups & restore",
+      empty: "No backups yet. A backup will be created before the first write.",
+      restore: "Restore",
     },
     settings: {
-      title: "设置",
-      language: "界面语言",
-      zh: "中文",
+      title: "Settings",
+      language: "Language",
+      zh: "Chinese",
       en: "English",
-      languageDesc: "默认英文，可随时切换。设置会保存在浏览器本地存储。",
-      productName: "产品名",
-      productDesc: "当前名称为 AstraX，基于 Codex-X（MIT）的 Codex 管理工具，Grok 风格深色界面。",
+      languageDesc: "The interface is English only.",
+      productName: "Product name",
+      productDesc: "AstraX is a Codex manager based on Codex-X (MIT), with a Grok-inspired dark UI.",
     },
-    loadingConfig: "正在读取 Codex 配置...",
-    noAuth: "无 auth",
+    loadingConfig: "Reading Codex config...",
+    noAuth: "No auth",
     authJson: "auth.json",
   },
   en: {
@@ -343,9 +342,9 @@ const dict = {
     settings: {
       title: "Settings",
       language: "Language",
-      zh: "中文",
+      zh: "Chinese",
       en: "English",
-      languageDesc: "English is the default. You can switch at any time; the setting is saved locally.",
+      languageDesc: "The interface is English only.",
       productName: "Product name",
       productDesc: "AstraX is a Codex manager based on Codex-X (MIT), with a Grok-inspired dark UI.",
     },
@@ -357,7 +356,6 @@ const dict = {
 
 function getProviderPageCopy(lang: Lang): ProviderCopy {
   const t = dict[lang];
-  const isChinese = lang === "zh";
   return {
     eyebrow: "Provider",
     title: t.provider.title,
@@ -365,21 +363,17 @@ function getProviderPageCopy(lang: Lang): ProviderCopy {
     importLabel: t.provider.importCc,
     addLabel: t.provider.add,
     noProviders: t.provider.noProviders,
-    currentLabel: isChinese ? "当前使用" : "Current",
-    enableLabel: isChinese ? "启用" : "Enable",
-    testLabel: isChinese ? "测试连接" : "Test connection",
+    currentLabel: "Current",
+    enableLabel: "Enable",
+    testLabel: "Test connection",
     editLabel: t.provider.edit,
-    duplicateLabel: isChinese ? "复制供应商" : "Duplicate provider",
+    duplicateLabel: "Duplicate provider",
     removeLabel: t.provider.remove,
-    deleteTitle: isChinese ? "删除供应商" : "Delete provider",
-    deleteDescription: (providerName) => isChinese
-      ? `“${providerName}”将从供应商列表中删除，此操作无法撤销。`
-      : `“${providerName}” will be removed from the provider list. This cannot be undone.`,
-    deleteCurrentDescription: (providerName) => isChinese
-      ? `“${providerName}”当前正在使用。删除前会先切换到默认官方登录配置，确定继续吗？`
-      : `“${providerName}” is currently active. AstraX will switch to the default official sign-in profile before deleting it. Continue?`,
-    deleteCancelLabel: isChinese ? "取消" : "Cancel",
-    deleteConfirmLabel: isChinese ? "确认删除" : "Delete",
+    deleteTitle: "Delete provider",
+    deleteDescription: (providerName) => `“${providerName}” will be removed from the provider list. This cannot be undone.`,
+    deleteCurrentDescription: (providerName) => `“${providerName}” is currently active. AstraX will switch to the default official sign-in profile before deleting it. Continue?`,
+    deleteCancelLabel: "Cancel",
+    deleteConfirmLabel: "Delete",
     noBaseUrlLabel: "no base_url",
     officialEyebrow: "OpenAI Official",
     officialTitle: t.provider.officialEdit,
@@ -389,47 +383,39 @@ function getProviderPageCopy(lang: Lang): ProviderCopy {
     officialCurrentLabel: t.provider.current,
     officialAuthLabel: "auth.json (JSON)",
     officialTomlLabel: "config.toml (TOML)",
-    officialSaveLabel: isChinese ? "保存官方配置" : "Save official config",
-    loadCcSwitchOfficialLabel: isChinese ? "从 CC Switch 载入" : "Load from CC Switch",
-    resetOfficialLabel: isChinese ? "重置默认官方配置" : "Reset default official config",
-    resetOfficialTitle: isChinese ? "重置默认官方配置" : "Reset default official config",
-    resetOfficialDescription: isChinese
-      ? "这会切换到 OpenAI Official、清除当前 live auth.json，并要求你在 Codex 中重新登录。操作前会自动备份当前配置。"
-      : "This switches to OpenAI Official, removes the live auth.json, and requires a new Codex login. The current files are backed up first.",
-    resetOfficialCancelLabel: isChinese ? "取消" : "Cancel",
-    resetOfficialConfirmLabel: isChinese ? "确认重置" : "Reset",
+    officialSaveLabel: "Save official config",
+    loadCcSwitchOfficialLabel: "Load from CC Switch",
+    resetOfficialLabel: "Reset default official config",
+    resetOfficialTitle: "Reset default official config",
+    resetOfficialDescription: "This switches to OpenAI Official, removes the live auth.json, and requires a new Codex login. The current files are backed up first.",
+    resetOfficialCancelLabel: "Cancel",
+    resetOfficialConfirmLabel: "Reset",
     cancelLabel: t.provider.cancel,
     formEyebrow: "Provider",
     formAddTitle: t.provider.formAdd,
     formEditTitle: t.provider.formEdit,
     formHint: t.provider.formHint,
-    apiConfigTitle: isChinese ? "供应商 API 配置" : "Provider API configuration",
-    apiConfigDescription: isChinese
-      ? "在同一个页面管理 API、认证信息和 config.toml。"
-      : "Manage API, authentication, and config.toml in one place.",
+    apiConfigTitle: "Provider API configuration",
+    apiConfigDescription: "Manage API, authentication, and config.toml in one place.",
     apiKeyLabel: t.provider.apiKey,
     apiKeyPlaceholder: t.provider.apiKeyPlaceholder,
-    showApiKeyLabel: isChinese ? "显示 API Key" : "Show API key",
-    hideApiKeyLabel: isChinese ? "隐藏 API Key" : "Hide API key",
-    baseUrlLabel: isChinese ? "API 请求地址" : t.provider.baseUrl,
+    showApiKeyLabel: "Show API key",
+    hideApiKeyLabel: "Hide API key",
+    baseUrlLabel: t.provider.baseUrl,
     nameLabel: t.provider.name,
     modelLabel: t.provider.model,
-    fetchModelsLabel: isChinese ? "获取模型列表" : "Fetch models",
-    fetchingModelsLabel: isChinese ? "获取中" : "Fetching",
-    chooseModelLabel: (count) => isChinese ? `选择模型（${count}）` : `Choose a model (${count})`,
+    fetchModelsLabel: "Fetch models",
+    fetchingModelsLabel: "Fetching",
+    chooseModelLabel: (count) => `Choose a model (${count})`,
     wireApiLabel: t.provider.wireApi,
     requiresAuthLabel: t.provider.requiresAuth,
     authPreviewTitle: "auth.json (JSON)",
-    authPreviewDescription: isChinese
-      ? "启用时会按供应商的认证方式应用 API Key；此处预览 auth.json 中保存的内容。"
-      : "Enabling applies the API key using this provider's authentication settings. This previews the contents saved in auth.json.",
+    authPreviewDescription: "Enabling applies the API key using this provider's authentication settings. This previews the contents saved in auth.json.",
     tomlTitle: "config.toml (TOML)",
-    tomlDescription: isChinese
-      ? "上方标准字段是启用时的权威值；已有模板中的其他扩展字段会保留。只有点击“重置生成”才会替换为标准模板。"
-      : "The standard fields above are authoritative when enabled. Other fields from an existing template are preserved; only Reset replaces it with the standard template.",
-    resetTomlLabel: isChinese ? "重置生成" : "Reset",
+    tomlDescription: "The standard fields above are authoritative when enabled. Other fields from an existing template are preserved; only Reset replaces it with the standard template.",
+    resetTomlLabel: "Reset",
     saveLabel: t.provider.saveAndSwitch,
-    savingLabel: isChinese ? "保存中..." : "Saving...",
+    savingLabel: "Saving...",
   };
 }
 
@@ -727,15 +713,14 @@ function CodexStateLoading({ lang, loading }: { lang: Lang; loading: boolean }) 
     <section className="cx-state-loading" role="status" aria-live="polite">
       {loading && <Loader2 className="spin" size={22} aria-hidden="true" />}
       <span>{loading
-        ? (lang === "zh" ? "正在读取 Codex 配置..." : "Loading Codex configuration...")
-        : (lang === "zh" ? "Codex 配置读取失败，请返回概览重试" : "Could not load the Codex configuration. Retry from Overview.")}</span>
+        ? "Loading Codex configuration..."
+        : "Could not load the Codex configuration. Retry from Overview."}</span>
     </section>
   );
 }
 
 function App() {
-  const initialLang = (localStorage.getItem(LANG_KEY) as Lang | null) || "en";
-  const [lang, setLang] = React.useState<Lang>(initialLang === "zh" ? "zh" : "en");
+  const [lang] = React.useState<Lang>("en");
   const [theme, setTheme] = React.useState<AppTheme>(() =>
     localStorage.getItem(THEME_KEY) === "light" ? "light" : "dark",
   );
@@ -935,19 +920,16 @@ function App() {
   }, []);
   const currentInstructionId = instructionIdFromPath(state?.instructionFile, instructionTemplates);
   const releaseStatusLabel = React.useMemo(() => {
-    if (updater.state.phase === "downloading") return lang === "zh" ? "下载中" : "Downloading";
-    if (updater.state.phase === "installing") return lang === "zh" ? "安装中" : "Installing";
-    if (updater.state.phase === "ready") return lang === "zh" ? "等待重启" : "Restart required";
-    if (releaseInfo.status === "checking") return lang === "zh" ? "检查中" : "Checking";
-    if (releaseInfo.status === "error") return lang === "zh" ? "失败" : "Failed";
-    if (releaseInfo.hasUpdate) return lang === "zh" ? "有更新" : "Update found";
-    if (releaseInfo.status === "ok") return lang === "zh" ? "已是最新" : "Up to date";
-    return lang === "zh" ? "未检查" : "Idle";
+    if (updater.state.phase === "downloading") return "Downloading";
+    if (updater.state.phase === "installing") return "Installing";
+    if (updater.state.phase === "ready") return "Restart required";
+    if (releaseInfo.status === "checking") return "Checking";
+    if (releaseInfo.status === "error") return "Failed";
+    if (releaseInfo.hasUpdate) return "Update found";
+    if (releaseInfo.status === "ok") return "Up to date";
+    "Idle";
   }, [lang, releaseInfo.hasUpdate, releaseInfo.status, updater.state.phase]);
 
-  React.useEffect(() => {
-    localStorage.setItem(LANG_KEY, lang);
-  }, [lang]);
 
   React.useLayoutEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -1149,7 +1131,7 @@ function App() {
     return savedPrompts.find((item) => item.filename === currentInstructionFilename)?.title
       || instructionTemplates.find((item) => item.filename === currentInstructionFilename)?.title
       || currentInstructionFilename
-      || (lang === "zh" ? "当前提示词" : "Current prompt");
+      || "Current prompt";
   }, [currentInstructionFilename, instructionTemplates, lang, savedPrompts, state?.instructionTemplateKey]);
   const detectedRows = React.useMemo(() => {
     if (state?.isOfficialProvider) return [];
@@ -1257,7 +1239,7 @@ function App() {
       planType: row.planType,
       canQueryQuota: row.canQueryQuota,
       meta: row.meta,
-      sourceLabel: row.source === "official" ? (lang === "zh" ? "Codex 登录" : "Codex login") : undefined,
+      sourceLabel: row.source === "official" ? "Codex login" : undefined,
       editable: row.source === "official" || Boolean(local) || row.source === "detected",
       duplicable: row.source === "official" || Boolean(providerCopySourceForRow(row)),
       deletable: row.source === "official" ? !row.isDefaultOfficial : Boolean(local),
@@ -1282,7 +1264,7 @@ function App() {
   const allSessionsByCwd = React.useMemo(() => {
     const groups = new Map<string, SessionPreview[]>();
     for (const item of visibleSessions) {
-      const key = item.cwd || (lang === "zh" ? "未记录工作目录" : "No workspace recorded");
+      const key = item.cwd || "No workspace recorded";
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(item);
     }
@@ -1292,11 +1274,11 @@ function App() {
   const groupedSessions = React.useMemo(() => {
     const groups = new Map<string, SessionPreview[]>();
     if (!sessionGroupByCwd) {
-      groups.set(lang === "zh" ? "全部会话" : "All sessions", filteredSessions);
+      groups.set("All sessions", filteredSessions);
       return Array.from(groups.entries());
     }
     for (const item of filteredSessions) {
-      const key = item.cwd || (lang === "zh" ? "未记录工作目录" : "No workspace recorded");
+      const key = item.cwd || "No workspace recorded";
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(item);
     }
@@ -1304,7 +1286,7 @@ function App() {
   }, [filteredSessions, lang, sessionGroupByCwd]);
 
   const sessionHasMismatches = Boolean(sessionStatus?.needsSync);
-  const sessionTargetLabel = lang === "zh" ? "共享会话" : "Shared history";
+  const sessionTargetLabel = "Shared history";
   const sessionSyncCount = sessionMismatchCount(sessionStatus);
   const sessionVisibleTotal = showInternalSessions
     ? (sessionStatus?.topLevelThreads ?? 0) + (sessionStatus?.subagentThreads ?? 0)
@@ -1728,10 +1710,8 @@ function App() {
           setBuiltinPromptStatus(uniqueBuiltinPromptStatuses(statuses));
           setInstructionMode("list");
           setToast(detail.customized
-            ? (lang === "zh"
-              ? "本地修改已保存，下次启用时生效；后续 GitHub 同步将跳过这个模板"
-              : "Local changes saved for the next activation. Future GitHub syncs will skip this template.")
-            : (lang === "zh" ? "内容没有变化，模板将继续参与 GitHub 同步" : "No changes detected. This template will continue to sync from GitHub."));
+            ? "Local changes saved for the next activation. Future GitHub syncs will skip this template."
+            : "No changes detected. This template will continue to sync from GitHub.");
         },
       );
       return;
@@ -1745,7 +1725,7 @@ function App() {
         setSavedPrompts(promptList);
         setInstructionMode("list");
         setEditingPromptId(null);
-        setToast(lang === "zh" ? "提示词已保存" : "Prompt saved");
+        setToast("Prompt saved");
       },
     );
   };
@@ -1761,14 +1741,14 @@ function App() {
       },
       (promptList) => {
         setSavedPrompts(promptList);
-        setToast(lang === "zh" ? "提示词已删除" : "Prompt deleted");
+        setToast("Prompt deleted");
       },
     );
 
   const importPromptMd = async (file?: File | null) => {
     if (!file) return;
     if (!file.name.toLowerCase().endsWith(".md")) {
-      setError(lang === "zh" ? "请选择 .md 提示词文件" : "Please choose a .md prompt file");
+      setError("Please choose a .md prompt file");
       return;
     }
     const actionToken = beginActionBusy("importPrompt");
@@ -1788,7 +1768,7 @@ function App() {
       });
       const promptList = await invoke<SavedPrompt[]>("list_saved_prompts");
       setSavedPrompts(promptList);
-      setToast(lang === "zh" ? `已导入提示词：${file.name}` : `Prompt imported: ${file.name}`);
+      setToast(`Prompt imported: ${file.name}`);
     } catch (e) {
       setError(String(e));
     } finally {
@@ -1833,13 +1813,13 @@ function App() {
       if (!quiet) {
         setToast(catalogFailed
           ? promptCatalogReadyRef.current
-            ? (lang === "zh" ? "在线模板库暂时不可用，已保留当前列表" : "Online templates are unavailable; keeping the current list")
-            : (lang === "zh" ? "在线模板库暂时不可用，已使用本地模板" : "Online templates are unavailable; using local templates")
+            ? "Online templates are unavailable; keeping the current list"
+            : "Online templates are unavailable; using local templates"
           : contentFetchFailures > 0
-            ? (lang === "zh" ? `模板目录已同步，${contentFetchFailures} 个模板暂用本地内容` : `Template catalog synced; ${contentFetchFailures} template(s) are using local content`)
+            ? `Template catalog synced; ${contentFetchFailures} template(s) are using local content`
           : updated > 0
-            ? (lang === "zh" ? `已同步 ${updated} 个提示词模板` : `${updated} prompt template(s) synced`)
-            : (lang === "zh" ? "提示词模板已是最新" : "Prompt templates are up to date"));
+            ? `${updated} prompt template(s) synced`
+            : "Prompt templates are up to date");
       }
     } catch (e) {
       if (requestId === promptRefreshRequestRef.current) {
@@ -1893,17 +1873,15 @@ function App() {
     const pendingProvider = normalizedProviderForm();
     const mappingValidation = validateProviderModelMappings(pendingProvider.modelMappings || [], pendingProvider.model, lang);
     if (pendingProvider.modelMappings?.length && pendingProvider.wireApi !== "responses") {
-      setError(lang === "zh" ? "模型映射需要 Responses 接口，请将 Wire API 设为 responses" : "Model mappings require the Responses API. Set Wire API to responses");
+      setError("Model mappings require the Responses API. Set Wire API to responses");
       return;
     }
     if (!mappingValidation.valid) {
-      setError(lang === "zh" ? "请先修正模型映射中的错误" : "Correct the model mappings before saving");
+      setError("Correct the model mappings before saving");
       return;
     }
     if (!pendingProvider.providerName || !pendingProvider.baseUrl || !pendingProvider.model) {
-      setError(lang === "zh"
-        ? "请填写供应商名称、API 请求地址和模型"
-        : "Provider name, API URL, and model are required");
+      setError("Provider name, API URL, and model are required");
       return;
     }
     return call(
@@ -1938,10 +1916,10 @@ function App() {
         setProviderTomlDirty(false);
         setProviderCommonConfigDirty(false);
         setToast(applied && pendingProvider.modelMappings?.length
-          ? (lang === "zh" ? "已保存，请重启 Codex 更新模型菜单" : "Saved. Restart Codex to update its model menu")
+          ? "Saved. Restart Codex to update its model menu"
           : applied
-          ? (lang === "zh" ? "供应商配置已保存并热更新" : "Provider saved and hot-applied")
-          : (lang === "zh" ? "供应商配置已保存" : "Provider saved"));
+          ? "Provider saved and hot-applied"
+          : "Provider saved");
       },
     );
   };
@@ -1954,7 +1932,7 @@ function App() {
         setActiveProviderId(provider.id);
         handleActionResult(result);
         if (provider.modelMappings?.length) {
-          setToast(lang === "zh" ? "已启用，请重启 Codex 更新模型菜单" : "Enabled. Restart Codex to update its model menu");
+          setToast("Enabled. Restart Codex to update its model menu");
         }
       },
     );
@@ -1970,7 +1948,7 @@ function App() {
     const apiKey = (providerForm.apiKey || "").trim();
     if (!baseUrl || !apiKey) {
       setError("");
-      setToast(lang === "zh" ? "请先填写 API 请求地址和 API Key" : "Enter the API URL and API key first");
+      setToast("Enter the API URL and API key first");
       return;
     }
 
@@ -1978,14 +1956,14 @@ function App() {
     providerModelsRequestRef.current = requestId;
     setProviderModelsLoading(true);
     setError("");
-    setToast(lang === "zh" ? "正在获取模型列表..." : "Fetching model list...");
+    setToast("Fetching model list...");
     try {
       const result = await invoke<ProviderModelsResult>("fetch_provider_models", { baseUrl, apiKey });
       if (providerModelsRequestRef.current !== requestId) return;
       setAvailableProviderModels(result.models);
       setToast(result.models.length > 0
-        ? (lang === "zh" ? `已获取 ${result.models.length} 个模型` : `${result.models.length} models fetched`)
-        : (lang === "zh" ? "连接成功，但供应商没有返回模型" : "Connected, but the provider returned no models"));
+        ? `${result.models.length} models fetched`
+        : "Connected, but the provider returned no models");
     } catch (e) {
       if (providerModelsRequestRef.current !== requestId) return;
       setToast("");
@@ -1999,14 +1977,14 @@ function App() {
     const actionToken = beginActionBusy("testProvider");
     setProviderTestingId(id);
     setError("");
-    setToast(lang === "zh" ? "正在检测连接..." : "Testing connection...");
+    setToast("Testing connection...");
     try {
       const result = await invoke<ProviderConnectionResult>("test_provider_connection", { baseUrl, apiKey: apiKey || null });
       if (result.ok) {
-        setToast(lang === "zh" ? `连接成功，响应延迟 ${result.durationMs}ms` : `Connected, ${result.durationMs}ms latency`);
+        setToast(`Connected, ${result.durationMs}ms latency`);
       } else {
         setToast("");
-        setError(lang === "zh" ? `连接失败：${result.message}` : `Connection failed: ${result.message}`);
+        setError(`Connection failed: ${result.message}`);
       }
     } catch (e) {
       setToast("");
@@ -2039,7 +2017,7 @@ function App() {
       });
       if (requestId !== officialDraftRequestRef.current) return;
       if (!candidate) {
-        setToast(lang === "zh" ? "未找到 CC Switch 官方配置" : "No CC Switch official config found");
+        setToast("No CC Switch official config found");
         return;
       }
       setOfficialAuthDirty(true);
@@ -2049,7 +2027,7 @@ function App() {
         authJson: candidate.authJson,
         configText: candidate.configText || current.configText,
       }));
-      setToast(lang === "zh" ? "已从 CC Switch 载入" : "Loaded from CC Switch");
+      setToast("Loaded from CC Switch");
     } catch (e) {
       if (requestId === officialDraftRequestRef.current) setError(String(e));
     } finally {
@@ -2090,11 +2068,9 @@ function App() {
     try {
       const result = await invoke<ImportResult>("import_ccswitch_codex_providers", { dbPath: null });
       const warningText = result.skipped > 0
-        ? (lang === "zh" ? `，跳过 ${result.skipped}` : `, ${result.skipped} skipped`)
+        ? `, ${result.skipped} skipped`
         : "";
-      const successText = lang === "zh"
-        ? `cc-switch 导入完成：新增 ${result.added}，更新 ${result.updated}，合并 ${result.merged}${warningText}；未切换当前供应商`
-        : `cc-switch import complete: ${result.added} added, ${result.updated} updated, ${result.merged} merged${warningText}; current provider unchanged`;
+      const successText = `cc-switch import complete: ${result.added} added, ${result.updated} updated, ${result.merged} merged${warningText}; current provider unchanged`;
       try {
         const nextState = await invoke<CodexState>("get_codex_state", { configDir: configDir || null });
         commitSavedProviders(result.providers);
@@ -2102,9 +2078,7 @@ function App() {
         setToast(successText);
       } catch (refreshError) {
         commitSavedProviders(result.providers);
-        setToast(lang === "zh"
-          ? `${successText}；状态刷新失败，请手动刷新：${String(refreshError)}`
-          : `${successText}; state refresh failed, refresh manually: ${String(refreshError)}`);
+        setToast(`${successText}; state refresh failed, refresh manually: ${String(refreshError)}`);
       }
     } catch (importError) {
       setError(String(importError));
@@ -2118,7 +2092,7 @@ function App() {
     if (!url) return;
     window.setTimeout(() => {
       void invoke("open_url", { url }).catch(() => {
-        setToast(lang === "zh" ? "打开浏览器失败" : "Failed to open browser");
+        setToast("Failed to open browser");
       });
     }, 0);
   }, [lang]);
@@ -2140,7 +2114,7 @@ function App() {
             updateMethod: "native",
           });
           if (quiet) {
-            setToast(lang === "zh" ? `发现新版本 ${releaseTag}，可在概览页查看` : `New version ${releaseTag} is available`);
+            setToast(`New version ${releaseTag} is available`);
           } else {
             setUpdatePromptOpen(true);
           }
@@ -2154,7 +2128,7 @@ function App() {
             htmlUrl: `https://github.com/${FALLBACK_GITHUB_REPO}/releases/latest`,
             hasUpdate: false,
           });
-          if (!quiet) setToast(lang === "zh" ? "当前已是最新版本" : "You are up to date");
+          if (!quiet) setToast("You are up to date");
           return;
         }
       }
@@ -2163,8 +2137,8 @@ function App() {
       // bootstrap and portable builds that cannot use the native updater yet.
       const update = await invoke<AppUpdateInfo>("check_app_update");
       const message = update.hasUpdate
-        ? (lang === "zh" ? "发现新版本" : "Update available")
-        : (lang === "zh" ? "当前已是最新版本" : "You are up to date");
+        ? "Update available"
+        : "You are up to date";
       setReleaseInfo({
         status: "ok",
         latestVersion: update.latestVersion,
@@ -2174,7 +2148,7 @@ function App() {
       });
       if (update.hasUpdate) {
         if (quiet) {
-          setToast(lang === "zh" ? `发现新版本 ${update.latestVersion}，可在概览页查看` : `New version ${update.latestVersion} is available`);
+          setToast(`New version ${update.latestVersion} is available`);
         } else {
           setUpdatePromptOpen(true);
         }
@@ -2182,7 +2156,7 @@ function App() {
         setToast(message);
       }
     } catch {
-      const message = quiet ? (lang === "zh" ? "自动检查失败" : "Auto check failed") : (lang === "zh" ? "检查失败" : "Check failed");
+      const message = quiet ? "Auto check failed" : "Check failed";
       setReleaseInfo({
         status: "error",
       });
@@ -2257,7 +2231,7 @@ function App() {
       if (preview.skills.length + preview.mcpServers.length === 0) {
         setSkillsMcpImportPreview(null);
         setSkillsMcpImportOpen(false);
-        setToast(lang === "zh" ? "没有需要新导入的 Skills 或 MCP" : "No new Skills or MCP items to import");
+        setToast("No new Skills or MCP items to import");
         return;
       }
       setSkillsMcpImportPreview(preview);
@@ -2297,7 +2271,7 @@ function App() {
       if (!isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) return;
       skillsMcpLoadedRef.current = request.configDirKey;
       setSkillsMcpState(result);
-      setToast(lang === "zh" ? "Skills 更新状态已刷新" : "Skill update status refreshed");
+      setToast("Skill update status refreshed");
     } catch (e) {
       if (isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) setError(String(e));
     } finally {
@@ -2314,7 +2288,7 @@ function App() {
       if (!isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) return;
       skillsMcpLoadedRef.current = request.configDirKey;
       setSkillsMcpState(result);
-      setToast(enabled ? (lang === "zh" ? "Skill 已启用" : "Skill enabled") : (lang === "zh" ? "Skill 已禁用" : "Skill disabled"));
+      setToast(enabled ? "Skill enabled" : "Skill disabled");
     } catch (e) {
       if (isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) setError(String(e));
     } finally {
@@ -2331,7 +2305,7 @@ function App() {
       if (!isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) return;
       skillsMcpLoadedRef.current = request.configDirKey;
       setSkillsMcpState(result);
-      setToast(enabled ? (lang === "zh" ? "MCP 已启用" : "MCP enabled") : (lang === "zh" ? "MCP 已禁用" : "MCP disabled"));
+      setToast(enabled ? "MCP enabled" : "MCP disabled");
     } catch (e) {
       if (isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) setError(String(e));
     } finally {
@@ -2357,7 +2331,7 @@ function App() {
       if (!isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) return false;
       skillsMcpLoadedRef.current = request.configDirKey;
       setSkillsMcpState(result);
-      setToast(lang === "zh" ? "备注已保存" : "Note saved");
+      setToast("Note saved");
       return true;
     } catch (e) {
       if (isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) setError(String(e));
@@ -2380,8 +2354,8 @@ function App() {
     try {
       const result = await invoke<CodexDesktopRestartResult>("restart_codex_desktop");
       setToast(result.wasRunning
-        ? (lang === "zh" ? `${result.appName} 已重新启动` : `${result.appName} restarted`)
-        : (lang === "zh" ? `${result.appName} 已启动` : `${result.appName} started`));
+        ? `${result.appName} restarted`
+        : `${result.appName} started`);
       return true;
     } catch (e) {
       setError(String(e));
@@ -2423,7 +2397,7 @@ function App() {
       const result = await invoke<{ path: string; exportedSkills: number; exportedMcp: number } | null>("export_skills_mcp_archive", { configDir: request.configDir, kind, lang });
       if (!result || !isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) return;
       const count = kind === "mcp" ? result.exportedMcp : result.exportedSkills;
-      setToast(lang === "zh" ? `已导出 ${count} 个 ${kind === "mcp" ? "MCP" : "Skills"}` : `Exported ${count} ${kind === "mcp" ? "MCP servers" : "Skills"}`);
+      setToast(`Exported ${count} ${kind === "mcp" ? "MCP servers" : "Skills"}`);
     } catch (e) {
       if (isCurrentSkillsMcpRequest(request.requestId, request.configDirKey)) setError(String(e));
     } finally {
@@ -2448,7 +2422,7 @@ function App() {
         : `Codex-sessions-${new Date().toISOString().slice(0, 10)}`;
       const result = await invoke<{ path: string; exportedSessions: number; failedSessions: number; warnings: string[] } | null>("export_codex_sessions", { configDir: directory || null, sessionIds: ids, suggestedName, lang });
       if (!result || !isCurrentExport()) return;
-      const message = lang === "zh" ? `已导出 ${result.exportedSessions} 个会话` : `Exported ${result.exportedSessions} conversation(s)`;
+      const message = `Exported ${result.exportedSessions} conversation(s)`;
       if (result.failedSessions || result.warnings.length) setError(`${message}；${result.warnings.join("；")}`);
       else setToast(message);
     } catch (e) {
@@ -2501,7 +2475,7 @@ function App() {
 
   const saveOfficialConfig = () => {
     if (!officialForm.providerName.trim()) {
-      setError(lang === "zh" ? "请填写供应商名称" : "Provider name is required");
+      setError("Provider name is required");
       return;
     }
     return call(
@@ -2532,7 +2506,7 @@ function App() {
       const current = await invoke<CodexState>("get_codex_state", { configDir: configDir || null });
       if (requestId !== officialDraftRequestRef.current) return;
       if (!current.isOfficialProvider) {
-        throw new Error(lang === "zh" ? "请先在 Codex 中切换到官方登录" : "Switch Codex to official sign-in first");
+        throw new Error("Switch Codex to official sign-in first");
       }
       setOfficialAuthDirty(true);
       setOfficialForm((form) => ({
@@ -2541,7 +2515,7 @@ function App() {
         configText: current.configText,
         authJson: current.authText || "",
       }));
-      setToast(lang === "zh" ? "已读取当前官方登录，保存后保留到此配置" : "Current sign-in loaded. Save to keep it in this profile.");
+      setToast("Current sign-in loaded. Save to keep it in this profile.");
     } catch (loadError) {
       if (requestId === officialDraftRequestRef.current) setError(String(loadError));
     } finally {
@@ -2550,7 +2524,7 @@ function App() {
   };
 
   const duplicateOfficialProfile = (row: ProviderRow) => {
-    const providerName = `${row.providerName}${lang === "zh" ? " 副本" : " Copy"}`;
+    const providerName = `${row.providerName}${" Copy"}`;
     return call(
       () => invoke<OfficialProfileActionResult>("duplicate_official_profile", {
         configDir: configDir || null, profileId: row.id, providerName,
@@ -2558,7 +2532,7 @@ function App() {
       (result) => {
         if (normalizedConfigDirForComparison(result.state.codexDir) !== activeConfigDirKeyRef.current) return;
         handleActionResult(result);
-        setToast(lang === "zh" ? `已复制为“${result.profile.providerName}”` : `Created “${result.profile.providerName}”`);
+        setToast(`Created “${result.profile.providerName}”`);
       },
     );
   };
@@ -2684,7 +2658,7 @@ function App() {
       () => invoke<DuplicateProviderResult>("duplicate_provider", {
         configDir: configDir || null,
         providerId: findLocalProviderForRow(row)?.id || null,
-        providerName: `${row.providerName}${lang === "zh" ? " 副本" : " Copy"}`,
+        providerName: `${row.providerName}${" Copy"}`,
       }),
       (result) => {
         if (requestedDirKey !== activeConfigDirKeyRef.current) return;
@@ -2695,7 +2669,7 @@ function App() {
           setState((current) => current && !current.isOfficialProvider
             ? { ...current, activeSavedProviderId: result.activeProviderId || undefined } : current);
         }
-        setToast(lang === "zh" ? `已复制为“${result.provider.providerName}”` : `Created “${result.provider.providerName}”`);
+        setToast(`Created “${result.provider.providerName}”`);
       },
     );
   };
@@ -2740,7 +2714,7 @@ function App() {
       await invoke<void>("delete_saved_provider", { id, configDir: configDir || null });
       const providerList = await invoke<SavedProvider[]>("list_saved_providers");
       commitSavedProviders(providerList);
-      setToast(lang === "zh" ? "供应商已删除" : "Provider deleted");
+      setToast("Provider deleted");
       return true;
     } catch (e) {
       setError(String(e));
@@ -2764,7 +2738,7 @@ function App() {
       const profilesRequestId = ++officialProfilesRequestRef.current;
       const profiles = await invoke<OfficialProfileSummary[]>("list_official_profiles", { configDir: configDir || null });
       if (profilesRequestId === officialProfilesRequestRef.current) setOfficialProfiles(profiles);
-      setToast(lang === "zh" ? "官方登录配置已删除" : "Official sign-in profile deleted");
+      setToast("Official sign-in profile deleted");
       return true;
     } catch (deleteError) {
       setError(String(deleteError));
@@ -2783,14 +2757,14 @@ function App() {
       (status) => {
         setSessionStatus(status);
         if (!status.scanComplete) {
-          setToast(status.scanFailures[0] || (lang === "zh" ? "无法确认会话同步状态" : "Unable to verify session sync status"));
+          setToast(status.scanFailures[0] || "Unable to verify session sync status");
           return;
         }
         const hasMismatches = Boolean(status.needsSync);
         const syncCount = sessionMismatchCount(status);
         setToast(hasMismatches
-          ? (lang === "zh" ? `有 ${syncCount} 条会话需要同步` : `${syncCount} session(s) need syncing`)
-          : (lang === "zh" ? "普通会话已同步" : "User conversations are synced"));
+          ? `${syncCount} session(s) need syncing`
+          : "User conversations are synced");
       },
     );
     endActionBusy(actionToken);
@@ -2829,16 +2803,12 @@ function App() {
         setSessionStatus(result.status);
         setSelectedSessionIds([]);
         if (!result.status.scanComplete) {
-          setToast(result.status.scanFailures[0] || (lang === "zh" ? "无法确认会话同步状态" : "Unable to verify session sync status"));
+          setToast(result.status.scanFailures[0] || "Unable to verify session sync status");
         } else if (result.status.needsSync) {
           const remaining = sessionMismatchCount(result.status);
-          setToast(lang === "zh"
-            ? `已同步可写的会话索引，仍有 ${remaining} 条需要重试；聊天内容未改动`
-            : `Writable session indexes were synced; ${remaining} still need retrying. Chat content was not changed.`);
+          setToast(`Writable session indexes were synced; ${remaining} still need retrying. Chat content was not changed.`);
         } else {
-          setToast(lang === "zh"
-            ? "会话索引已全部同步，聊天内容未改动"
-            : "All session indexes are synced. Chat content was not changed.");
+          setToast("All session indexes are synced. Chat content was not changed.");
         }
       },
     );
@@ -2885,13 +2855,9 @@ function App() {
       setSessionDeleteSafetyConfirmed(false);
       const hasPartialFailure = result.failedSessions > 0 || Boolean(result.failureMessage);
       if (hasPartialFailure) {
-        setError(result.failureMessage || (lang === "zh"
-          ? `${result.failedSessions} 个会话删除失败，请关闭其他 Codex 窗口或 CLI 后重试。`
-          : `${result.failedSessions} session deletion(s) failed. Close other Codex windows or CLIs and retry.`));
+        setError(result.failureMessage || `${result.failedSessions} session deletion(s) failed. Close other Codex windows or CLIs and retry.`);
       } else {
-        setToast(lang === "zh"
-          ? `已永久删除 ${result.deletedSessions} 条会话，并清理数据库、Rollout 与关联历史`
-          : `Permanently deleted ${result.deletedSessions} session(s) and cleaned database, rollout, and related history data`);
+        setToast(`Permanently deleted ${result.deletedSessions} session(s) and cleaned database, rollout, and related history data`);
       }
     } catch (e) {
       setError(String(e));
@@ -2935,7 +2901,7 @@ function App() {
       theme={theme}
       onToggleTheme={toggleTheme}
       codexVersion={aboutInfo?.codexVersion
-        || (aboutLoading ? (lang === "zh" ? "正在检测..." : "Detecting...") : undefined)}
+        || (aboutLoading ? "Detecting..." : undefined)}
       appVersion={aboutInfo?.appVersion}
       hasUpdate={Boolean(releaseInfo.hasUpdate)}
       updatePhase={updater.state.phase}
@@ -2992,11 +2958,11 @@ function App() {
         closing={startupClosing}
         lang={lang}
         diagnostics={startupDiagnostics}
-        diagnosticsError={startupDiagnosticsError ? (lang === "zh" ? "暂时无法读取环境信息，请重新检查。配置检查仍可使用。" : "Environment information is unavailable. Try again; configuration checks remain available.") : ""}
+        diagnosticsError={startupDiagnosticsError ? "Environment information is unavailable. Try again; configuration checks remain available." : ""}
         configDir={configDirDraft}
         loading={loading || refreshing || startupDiagnosticsLoading || configHealth.checking || configHealth.repairing}
         configHealthPanel={normalizedConfigDirForComparison(configDirDraft.trim()) !== normalizedConfigDirForComparison(healthConfigDir)
-          ? <p className="cx-config-health-note" role="status">{lang === "zh" ? "目录已更改，请先点击「重新检查」查看此目录的配置。" : "The directory has changed. Choose Recheck to review its configuration."}</p>
+          ? <p className="cx-config-health-note" role="status">{"The directory has changed. Choose Recheck to review its configuration."}</p>
           : <ConfigHealthPanel
           lang={lang}
           report={configHealth.report}
@@ -3038,7 +3004,7 @@ function App() {
                 modelProvider={state?.modelProvider}
                 instructionPath={state
                   ? (state.instructionInjectionMode === "append"
-                    ? `${state.agentsPath} (${lang === "zh" ? "追加模式" : "append"})`
+                    ? `${state.agentsPath} (${"append"})`
                     : state.instructionFile)
                   : null}
                 loading={loading || refreshing}
@@ -3294,9 +3260,7 @@ function App() {
                 orphanedBuiltinPrompt={missingActiveBuiltinTemplateId ? {
                   id: missingActiveBuiltinTemplateId,
                   title: activeInstructionTitle,
-                  description: lang === "zh"
-                    ? "该模板已从在线目录移除，当前配置仍在使用。"
-                    : "This template was removed online but is still active.",
+                  description: "This template was removed online but is still active.",
                 } : null}
                 savedPrompts={savedPrompts}
                 managedSavedPromptId={state.instructionTemplateKey?.startsWith("saved:")
@@ -3308,14 +3272,10 @@ function App() {
                   && !savedPrompts.some((prompt) => currentInstructionFilename === prompt.filename)
                   && !(missingActiveBuiltinTemplateId && state.instructionInjectionMode !== "append")
                   ? {
-                    title: lang === "zh" ? "用户原有指令提示词" : "Existing user prompt",
+                    title: "Existing user prompt",
                     description: state.instructionInjectionMode === "append"
-                      ? (lang === "zh"
-                        ? "追加模式已保留这份外部提示词，并同时加载 AstraX 的 AGENTS.md 区块。"
-                        : "Append mode preserves this external prompt alongside the AstraX AGENTS.md block.")
-                      : (lang === "zh"
-                        ? "当前使用的是非 AstraX 管理的外部提示词。"
-                        : "This external prompt is not managed by AstraX."),
+                      ? "Append mode preserves this external prompt alongside the AstraX AGENTS.md block."
+                      : "This external prompt is not managed by AstraX.",
                     filename: currentInstructionFilename,
                   }
                   : null}
@@ -3359,24 +3319,24 @@ function App() {
               <AboutPage
                 copy={{
                   eyebrow: "About",
-                  title: lang === "zh" ? "关于 AstraX" : "About AstraX",
-                  appVersionLabel: `AstraX ${lang === "zh" ? "版本" : "Version"}`,
-                  codexVersionLabel: `Codex CLI ${lang === "zh" ? "版本" : "Version"}`,
+                  title: "About AstraX",
+                  appVersionLabel: `AstraX ${"Version"}`,
+                  codexVersionLabel: `Codex CLI ${"Version"}`,
                   codexHomeLabel: "CODEX_HOME",
-                  projectLabel: lang === "zh" ? "项目地址" : "Project",
-                  openProjectLabel: lang === "zh" ? "打开项目主页" : "Open project",
-                  openIssuesLabel: lang === "zh" ? "反馈问题" : "Issues",
+                  projectLabel: "Project",
+                  openProjectLabel: "Open project",
+                  openIssuesLabel: "Issues",
                   releasesEyebrow: "GitHub Releases",
-                  releasesTitle: lang === "zh" ? "更新检查" : "Update check",
-                  releaseStatusLabel: lang === "zh" ? "状态" : "Status",
-                  latestVersionLabel: lang === "zh" ? "最新版本" : "Latest version",
-                  checkUpdateLabel: lang === "zh" ? "检查更新" : "Check updates",
-                  openReleasesLabel: lang === "zh" ? "打开下载页" : "Open releases",
+                  releasesTitle: "Update check",
+                  releaseStatusLabel: "Status",
+                  latestVersionLabel: "Latest version",
+                  checkUpdateLabel: "Check updates",
+                  openReleasesLabel: "Open releases",
                 }}
-                appVersion={aboutInfo?.appVersion || (aboutLoading ? (lang === "zh" ? "正在检测" : "Detecting") : "-")}
+                appVersion={aboutInfo?.appVersion || (aboutLoading ? "Detecting" : "-")}
                 codexVersion={aboutInfo?.codexVersion || (aboutLoading
-                  ? (lang === "zh" ? "正在检测..." : "Detecting...")
-                  : (lang === "zh" ? "未检测到" : "Not detected"))}
+                  ? "Detecting..."
+                  : "Not detected")}
                 codexHome={aboutInfo?.codexDir || state?.codexDir || configDir || "~/.codex"}
                 projectUrl={aboutInfo?.projectUrl || `https://github.com/${FALLBACK_GITHUB_REPO}`}
                 release={{
@@ -3417,33 +3377,22 @@ function App() {
                 copy={{
                   eyebrow: "Settings",
                   title: t.settings.title,
-                  languageTitle: t.settings.language,
-                  languageDescription: t.settings.languageDesc,
-                  chineseLabel: t.settings.zh,
-                  englishLabel: t.settings.en,
                   productTitle: t.settings.productName,
                   productDescription: t.settings.productDesc,
                   productValue: "AstraX",
-                  recheckTitle: lang === "zh" ? "环境与配置检查" : "Environment & configuration check",
-                  recheckDescription: lang === "zh"
-                    ? "查看 Codex 环境与配置状态，按需检查和修复。"
-                    : "Review your Codex environment and configuration, and repair issues when needed.",
-                  recheckLabel: lang === "zh" ? "检查" : "Check",
-                  restartTitle: lang === "zh" ? "Codex 桌面客户端" : "Codex desktop app",
-                  restartDescription: lang === "zh"
-                    ? "重新启动本机的 Codex（ChatGPT）桌面客户端，不会重启 AstraX。"
-                    : "Restart the local Codex (ChatGPT) desktop app without restarting AstraX.",
-                  restartLabel: lang === "zh" ? "重启 Codex" : "Restart Codex",
-                  restartTargetLabel: lang === "zh" ? "Codex（ChatGPT）桌面客户端" : "Codex (ChatGPT) desktop app",
-                  restartConfirmTitle: lang === "zh" ? "重启 Codex？" : "Restart Codex?",
-                  restartConfirmDescription: lang === "zh"
-                    ? "正在运行的 Codex 窗口会关闭并重新打开，未保存的输入可能丢失。"
-                    : "The running Codex window will close and reopen. Unsaved input may be lost.",
-                  restartCancelLabel: lang === "zh" ? "取消" : "Cancel",
-                  restartConfirmLabel: lang === "zh" ? "确认重启" : "Restart",
-                  restartingLabel: lang === "zh" ? "正在重启" : "Restarting",
+                  recheckTitle: "Environment & configuration check",
+                  recheckDescription: "Review your Codex environment and configuration, and repair issues when needed.",
+                  recheckLabel: "Check",
+                  restartTitle: "Codex desktop app",
+                  restartDescription: "Restart the local Codex (ChatGPT) desktop app without restarting AstraX.",
+                  restartLabel: "Restart Codex",
+                  restartTargetLabel: "Codex (ChatGPT) desktop app",
+                  restartConfirmTitle: "Restart Codex?",
+                  restartConfirmDescription: "The running Codex window will close and reopen. Unsaved input may be lost.",
+                  restartCancelLabel: "Cancel",
+                  restartConfirmLabel: "Restart",
+                  restartingLabel: "Restarting",
                 }}
-                onLanguageChange={setLang}
                 recheckBusy={loading || refreshing}
                 restartBusy={restartCodexBusy}
                 onRestartCodex={restartCodexDesktop}

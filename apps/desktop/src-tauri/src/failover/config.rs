@@ -44,39 +44,39 @@ impl Default for RoutingTuning {
 impl RoutingTuning {
     pub(crate) fn validate(&self) -> Result<()> {
         for (valid, message) in [
-            (self.max_retries <= 10, "最大重试次数须为 0–10"),
+            (self.max_retries <= 10, "Max retries must be 0–10"),
             (
                 (1..=120).contains(&self.streaming_first_byte_timeout),
-                "流式首字节超时须为 1–120 秒",
+                "Streaming first-byte timeout must be 1–120 seconds",
             ),
             (
                 self.streaming_idle_timeout <= 600,
-                "流式静默超时须为 0–600 秒，0 表示禁用",
+                "Streaming idle timeout must be 0–600 seconds; 0 disables it",
             ),
             (
                 (60..=1200).contains(&self.non_streaming_timeout),
-                "非流式超时须为 60–1200 秒",
+                "Non-streaming timeout must be 60–1200 seconds",
             ),
             (
                 (1..=20).contains(&self.circuit_failure_threshold),
-                "失败阈值须为 1–20",
+                "Failure threshold must be 1–20",
             ),
             (
                 (1..=10).contains(&self.circuit_success_threshold),
-                "恢复成功阈值须为 1–10",
+                "Recovery success threshold must be 1–10",
             ),
             (
                 self.circuit_timeout_seconds <= 300,
-                "恢复等待时间须为 0–300 秒",
+                "Recovery wait time must be 0–300 seconds",
             ),
             (
                 self.circuit_error_rate_threshold.is_finite()
                     && (0.0..=1.0).contains(&self.circuit_error_rate_threshold),
-                "错误率阈值须为 0–100%",
+                "Error-rate threshold must be 0–100%",
             ),
             (
                 (5..=100).contains(&self.circuit_min_requests),
-                "最小请求数须为 5–100",
+                "Minimum request count must be 5–100",
             ),
         ] {
             if !valid {
@@ -98,7 +98,7 @@ pub(crate) fn listen_ip(address: &str) -> Result<IpAddr> {
         .unwrap_or(address);
     address
         .parse()
-        .map_err(|_| CodexxError::Config("监听地址须为 IPv4、IPv6 或 localhost".into()))
+        .map_err(|_| CodexxError::Config("Listen address must be IPv4, IPv6, or localhost".into()))
 }
 
 pub(crate) fn client_ip(address: IpAddr) -> IpAddr {

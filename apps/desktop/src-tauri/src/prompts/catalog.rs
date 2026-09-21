@@ -25,10 +25,10 @@ use std::sync::Mutex;
 
 // Only serialize remote syncs. Local reads must stay available during downloads.
 static BUILTIN_PROMPT_SYNC_LOCK: Mutex<()> = Mutex::new(());
-const CATALOG_CDN_KEY: &str = "模板 CDN";
-const CATALOG_GITHUB_KEY: &str = "GitHub 模板目录";
-const PROMPT_CDN_KEY: &str = "模板 CDN";
-const PROMPT_GITHUB_KEY: &str = "GitHub 模板源";
+const CATALOG_CDN_KEY: &str = "Template CDN";
+const CATALOG_GITHUB_KEY: &str = "GitHub template directory";
+const PROMPT_CDN_KEY: &str = "Template CDN";
+const PROMPT_GITHUB_KEY: &str = "GitHub template source";
 
 #[derive(Debug, Deserialize)]
 struct JsdelivrPackage {
@@ -68,25 +68,25 @@ pub(crate) fn bundled_prompt_metas() -> [BundledPromptMeta; 5] {
         BundledPromptMeta {
             id: "gpt5.5-unrestricted",
             filename: INSTRUCTION_FILENAME,
-            title: "gpt-5.5 unrestricted 破甲",
-            subtitle: "方法：先让ai分析项目，分析完之后发【不直白的逆向】命令",
-            badge: "推荐",
+            title: "gpt-5.5 unrestricted jailbreak",
+            subtitle: "Method: have the AI analyze the project first, then send the [indirect reverse] command",
+            badge: "Recommended",
             content: INSTRUCTION_CONTENT,
         },
         BundledPromptMeta {
             id: "gpt5.4-unrestricted",
             filename: INSTRUCTION_54_FILENAME,
-            title: "gpt-5.4 unrestricted 破甲",
-            subtitle: "方法：先让ai分析项目，分析完之后发【不直白的逆向】命令",
-            badge: "兼容",
+            title: "gpt-5.4 unrestricted jailbreak",
+            subtitle: "Method: have the AI analyze the project first, then send the [indirect reverse] command",
+            badge: "Compatible",
             content: INSTRUCTION_54_CONTENT,
         },
         BundledPromptMeta {
             id: "gpt5.5-jeli",
             filename: INSTRUCTION_JELI_FILENAME,
             title: "gpt5.5-jeli.md",
-            subtitle: "gpt5.5 大白话（80%场景）破甲",
-            badge: "通用",
+            subtitle: "gpt5.5 plain-language jailbreak (covers ~80% of cases)",
+            badge: "General",
             content: INSTRUCTION_JELI_CONTENT,
         },
         // Preserve the former remote IDs so cached and active templates upgrade in place.
@@ -94,16 +94,16 @@ pub(crate) fn bundled_prompt_metas() -> [BundledPromptMeta; 5] {
             id: "github-gpt-5-6-sol-unrestricted-33b86c71",
             filename: INSTRUCTION_56_SOL_FILENAME,
             title: "gpt-5.6-sol-unrestricted.md",
-            subtitle: "gpt5.6-sol 破甲提示词",
-            badge: "内置",
+            subtitle: "gpt5.6-sol jailbreak prompt",
+            badge: "Built-in",
             content: INSTRUCTION_56_SOL_CONTENT,
         },
         BundledPromptMeta {
             id: "github-3-0-b459e1e8",
             filename: INSTRUCTION_SEAGULL_FILENAME,
-            title: "海鸥3.0破甲.md",
-            subtitle: "测试生效：海鸥在线，你要整点薯条吗？",
-            badge: "内置",
+            title: "seagull-3.0.md",
+            subtitle: "Test OK: Seagull online — want some fries?",
+            badge: "Built-in",
             content: INSTRUCTION_SEAGULL_CONTENT,
         },
     ]
@@ -146,34 +146,34 @@ pub(crate) fn stable_remote_prompt_id(filename: &str) -> String {
 fn prompt_display_meta(filename: &str) -> (String, String, String) {
     let curated = match filename.to_ascii_lowercase().as_str() {
         "software-development-maintainer.md" => Some((
-            "长期维护工程师",
-            "正式项目的最小改动、复用、测试与安全规范",
-            "软件开发",
+            "Long-term maintainer engineer",
+            "Minimal changes, reuse, testing, and security practices for production projects",
+            "Software development",
         )),
         "software-development-debugging.md" => Some((
-            "系统化调试与根因修复",
-            "从稳定复现、证据采集到最小修复与回归验证",
-            "软件开发",
+            "Systematic debugging and root-cause fixes",
+            "From stable reproduction and evidence gathering to minimal fixes and regression checks",
+            "Software development",
         )),
         "software-development-code-review.md" => Some((
-            "严格代码审查",
-            "按严重级别发现缺陷、回归、安全风险与测试缺口",
-            "软件开发",
+            "Strict code review",
+            "Find defects, regressions, security risks, and test gaps by severity",
+            "Software development",
         )),
         "writing-clarity-editor.md" => Some((
-            "清晰表达与润色",
-            "保留原意与事实，优化中文或英文的结构、语气和可读性",
-            "写作辅助",
+            "Clear writing and polish",
+            "Keep meaning and facts; improve structure, tone, and readability in Chinese or English",
+            "Writing assistance",
         )),
         "writing-technical-docs.md" => Some((
-            "技术文档写作",
-            "基于代码和事实编写 README、指南、API 与变更文档",
-            "写作辅助",
+            "Technical documentation",
+            "Write READMEs, guides, API docs, and changelogs from code and facts",
+            "Writing assistance",
         )),
         "writing-structured-draft.md" => Some((
-            "结构化长文起草",
-            "把零散材料整理为提纲清晰、论证连贯的完整初稿",
-            "写作辅助",
+            "Structured long-form drafting",
+            "Turn scattered notes into a clear, coherent full draft",
+            "Writing assistance",
         )),
         _ => None,
     };
@@ -192,8 +192,8 @@ fn prompt_display_meta(filename: &str) -> (String, String, String) {
     }
     (
         filename.to_string(),
-        "来自在线模板库".to_string(),
-        "远程".to_string(),
+        "From the online template library".to_string(),
+        "Remote".to_string(),
     )
 }
 
@@ -379,7 +379,7 @@ fn parse_prompt_content(
 ) -> Result<(String, String)> {
     if source.key == PROMPT_CDN_KEY && !trust.accepts_cdn(body) {
         return Err(CodexxError::Config(
-            "CDN 内容变化，需要源站确认".to_string(),
+            "CDN content changed; origin confirmation required".to_string(),
         ));
     }
     Ok((body.to_string(), source.url.to_string()))
@@ -409,7 +409,7 @@ fn finalize_prompt_catalog(mut prompts: Vec<(String, String)>) -> Result<Vec<(St
     });
     if prompts.is_empty() {
         return Err(CodexxError::Config(
-            "在线模板目录中没有可用的 Markdown 文件".to_string(),
+            "No usable Markdown files in the online template directory".to_string(),
         ));
     }
     Ok(prompts)
@@ -448,11 +448,11 @@ pub(crate) fn github_prompt_catalog_from_entries(
             continue;
         }
         let source_url = entry.download_url.ok_or_else(|| {
-            CodexxError::Config(format!("GitHub 模板缺少下载地址: {}", entry.name))
+            CodexxError::Config(format!("GitHub template is missing a download URL: {}", entry.name))
         })?;
         if source_url.trim().is_empty() {
             return Err(CodexxError::Config(format!(
-                "GitHub 模板缺少下载地址: {}",
+                "GitHub template is missing a download URL: {}",
                 entry.name
             )));
         }
@@ -465,7 +465,7 @@ pub(crate) fn github_prompt_catalog_from_entries(
 fn parse_prompt_catalog(source: &RemoteSource<'_>, body: &str) -> Result<RemotePromptCatalog> {
     if source.key == CATALOG_CDN_KEY {
         let package: JsdelivrPackage = serde_json::from_str(body)
-            .map_err(|_| CodexxError::Config("CDN 模板目录格式无效".to_string()))?;
+            .map_err(|_| CodexxError::Config("Invalid CDN template directory format".to_string()))?;
         return Ok(RemotePromptCatalog {
             prompts: jsdelivr_prompt_catalog_from_entries(
                 package.files.into_iter().map(|file| file.name).collect(),
@@ -475,13 +475,13 @@ fn parse_prompt_catalog(source: &RemoteSource<'_>, body: &str) -> Result<RemoteP
     }
     if source.key == CATALOG_GITHUB_KEY {
         let entries: Vec<GithubContentEntry> = serde_json::from_str(body)
-            .map_err(|_| CodexxError::Config("GitHub 模板目录格式无效".to_string()))?;
+            .map_err(|_| CodexxError::Config("Invalid GitHub template directory format".to_string()))?;
         return Ok(RemotePromptCatalog {
             prompts: github_prompt_catalog_from_entries(entries)?,
             authoritative: true,
         });
     }
-    Err(CodexxError::Config("未知模板目录来源".to_string()))
+    Err(CodexxError::Config("Unknown template directory source".to_string()))
 }
 
 fn fetch_prompt_catalog() -> Result<RemotePromptCatalog> {
@@ -545,7 +545,7 @@ fn prompt_status_from_cache(cache: CachedBuiltinPrompt, message: &str) -> Builti
 }
 
 fn unconfirmed_prompt_status(cache: CachedBuiltinPrompt) -> BuiltinPromptStatus {
-    let mut status = prompt_status_from_cache(cache, "在线目录仍在更新，暂时保留本地模板");
+    let mut status = prompt_status_from_cache(cache, "Online catalog is still updating; keeping local templates for now");
     status.sync_issue = Some("content".to_string());
     status
 }
@@ -556,7 +556,7 @@ fn mark_catalog_confirmation_failed(statuses: &mut [BuiltinPromptStatus]) {
     }
     if let Some(status) = statuses.first_mut() {
         status.sync_issue = Some("content".to_string());
-        status.message = "在线目录尚未完全确认，稍后会再次同步".to_string();
+        status.message = "Online catalog is not fully confirmed yet; will sync again later".to_string();
     }
 }
 
@@ -592,9 +592,9 @@ fn refresh_builtin_prompt_from_source(
                 sync_issue: None,
                 checked_at,
                 message: if updated {
-                    "已更新到最新在线模板"
+                    "Updated to the latest online template"
                 } else {
-                    "已是最新在线模板"
+                    "Already on the latest online template"
                 }
                 .to_string(),
                 customized: false,
@@ -622,11 +622,11 @@ fn refresh_builtin_prompt_from_source(
                 sync_issue: Some("content".to_string()),
                 checked_at: cached_before.map(|item| item.checked_at),
                 message: if cached {
-                    "在线模板暂时不可用，已使用本地缓存"
+                    "Online template temporarily unavailable; using local cache"
                 } else if bundled.is_some() {
-                    "在线模板暂时不可用，已使用软件内置版本"
+                    "Online template temporarily unavailable; using the built-in version"
                 } else {
-                    "在线模板暂时不可用，且没有本地副本"
+                    "Online template temporarily unavailable and no local copy exists"
                 }
                 .to_string(),
                 customized: false,
@@ -655,9 +655,9 @@ fn bundled_prompt_status(meta: BundledPromptMeta, message: &str) -> BuiltinPromp
 
 fn customized_prompt_status(id: &str, filename: &str) -> Result<BuiltinPromptStatus> {
     let mut status = if let Some(cache) = cached_builtin_prompt(id)? {
-        prompt_status_from_cache(cache, "本地已修改，GitHub 同步已跳过")
+        prompt_status_from_cache(cache, "Locally modified; GitHub sync skipped")
     } else if let Some(meta) = bundled_prompt_meta(id) {
-        bundled_prompt_status(meta, "本地已修改，GitHub 同步已跳过")
+        bundled_prompt_status(meta, "Locally modified; GitHub sync skipped")
     } else {
         let (title, subtitle, badge) = prompt_display_meta(filename);
         BuiltinPromptStatus {
@@ -672,12 +672,12 @@ fn customized_prompt_status(id: &str, filename: &str) -> Result<BuiltinPromptSta
             content_source: "local".to_string(),
             sync_issue: None,
             checked_at: None,
-            message: "本地已修改，GitHub 同步已跳过".to_string(),
+            message: "Locally modified; GitHub sync skipped".to_string(),
             customized: true,
         }
     };
     status.customized = true;
-    status.message = "本地已修改，GitHub 同步已跳过".to_string();
+    status.message = "Locally modified; GitHub sync skipped".to_string();
     Ok(status)
 }
 
@@ -688,7 +688,7 @@ fn mark_customized_prompt_statuses(
     for status in statuses {
         if customized_ids.contains(&status.id) {
             status.customized = true;
-            status.message = "本地已修改，GitHub 同步已跳过".to_string();
+            status.message = "Locally modified; GitHub sync skipped".to_string();
         }
     }
 }
@@ -704,7 +704,7 @@ fn include_customized_prompt_statuses(
         {
             statuses.push(prompt_status_from_cache(
                 cache,
-                "本地已修改，GitHub 同步已跳过",
+                "Locally modified; GitHub sync skipped",
             ));
         }
     }
@@ -731,8 +731,8 @@ pub(crate) fn cached_prompt_fallback_statuses(
         let status = cache_map
             .get(meta.id)
             .cloned()
-            .map(|cache| prompt_status_from_cache(cache, "使用上次成功同步的本地缓存"))
-            .unwrap_or_else(|| bundled_prompt_status(meta, "使用打包内置版本"));
+            .map(|cache| prompt_status_from_cache(cache, "Using the last successfully synced local cache"))
+            .unwrap_or_else(|| bundled_prompt_status(meta, "Using the bundled built-in version"));
         seen_ids.insert(status.id.to_ascii_lowercase());
         seen_filenames.insert(status.filename.to_ascii_lowercase());
         statuses.push(status);
@@ -750,7 +750,7 @@ pub(crate) fn cached_prompt_fallback_statuses(
         seen_filenames.insert(filename);
         statuses.push(prompt_status_from_cache(
             cache,
-            "使用上次成功同步的本地缓存",
+            "Using the last successfully synced local cache",
         ));
     }
     statuses
@@ -768,7 +768,7 @@ pub(crate) fn refresh_builtin_prompts_with_active(
 ) -> Result<Vec<BuiltinPromptStatus>> {
     let _sync_guard = BUILTIN_PROMPT_SYNC_LOCK
         .lock()
-        .map_err(|_| CodexxError::Database("提示词缓存锁已损坏".to_string()))?;
+        .map_err(|_| CodexxError::Database("Prompt cache lock is corrupted".to_string()))?;
     let customized_ids = builtin_prompt_override_ids_inner()?;
     let catalog = match fetch_prompt_catalog() {
         Ok(catalog) => catalog,
@@ -777,7 +777,7 @@ pub(crate) fn refresh_builtin_prompts_with_active(
             for status in &mut statuses {
                 status.sync_issue = Some("catalog".to_string());
                 if !status.customized {
-                    status.message = "在线模板目录暂时不可用，已保留本地内容".to_string();
+                    status.message = "Online template catalog temporarily unavailable; kept local content".to_string();
                 }
             }
             return Ok(statuses);
@@ -813,7 +813,7 @@ pub(crate) fn refresh_builtin_prompts_with_active(
             statuses.push(if customized_ids.contains(meta.id) {
                 customized_prompt_status(meta.id, meta.filename)?
             } else {
-                bundled_prompt_status(meta, "在线目录暂未提供该模板，使用软件内置版本")
+                bundled_prompt_status(meta, "Online catalog does not provide this template yet; using the built-in version")
             });
         }
     }
@@ -836,7 +836,7 @@ pub(crate) fn refresh_builtin_prompts_with_active(
                     if !statuses.iter().any(|status| status.id == active_id) {
                         let mut status = prompt_status_from_cache(
                             cache,
-                            "该在线模板已下架，当前配置继续使用本地副本",
+                            "This online template was removed; current config continues using the local copy",
                         );
                         status.content_source = "removed".to_string();
                         statuses.push(status);
@@ -898,13 +898,13 @@ pub(crate) fn builtin_prompt_content(
         .as_ref()
         .map(|item| item.filename.clone())
         .or_else(|| bundled.map(|item| item.filename.to_string()))
-        .ok_or_else(|| CodexxError::Config(format!("提示词模板不存在或尚未同步: {id}")))?;
+        .ok_or_else(|| CodexxError::Config(format!("Prompt template does not exist or has not synced yet: {id}")))?;
     if let Some(content) = builtin_prompt_override_inner(id)? {
         return Ok((
             filename.clone(),
             format!("./{filename}"),
             content,
-            "本地已修改".to_string(),
+            "Locally modified".to_string(),
         ));
     }
     if let Some(cache) = cached {
@@ -912,19 +912,19 @@ pub(crate) fn builtin_prompt_content(
             cache.filename.clone(),
             format!("./{}", cache.filename),
             cache.content,
-            "本地缓存".to_string(),
+            "Local cache".to_string(),
         ));
     }
     let bundled = bundled.ok_or_else(|| {
         CodexxError::Config(format!(
-            "提示词尚无本地内容，请先同步 GitHub 模板: {template_id}"
+            "Prompt has no local content yet; sync the GitHub template first: {template_id}"
         ))
     })?;
     Ok((
         bundled.filename.to_string(),
         format!("./{}", bundled.filename),
         bundled.content.to_string(),
-        "打包内置".to_string(),
+        "Bundled".to_string(),
     ))
 }
 
@@ -1028,9 +1028,9 @@ mod tests {
             .expect("local content must not wait for sync")
             .unwrap();
         assert_eq!(cached.2, "last downloaded content");
-        assert_eq!(cached.3, "本地缓存");
+        assert_eq!(cached.3, "Local cache");
         assert_eq!(bundled.2, INSTRUCTION_CONTENT);
-        assert_eq!(bundled.3, "打包内置");
+        assert_eq!(bundled.3, "Bundled");
         assert_eq!(before, after, "reading must not refresh the cache");
     }
 
@@ -1119,7 +1119,7 @@ mod tests {
             .find(|status| status.id == "removed-but-edited")
             .expect("include the newly edited template in the sync response");
         assert!(edited.customized);
-        assert!(edited.message.contains("本地已修改"));
+        assert!(edited.message.contains("Locally modified"));
     }
 
     #[test]
@@ -1167,14 +1167,14 @@ mod tests {
         assert_eq!(
             prompt_display_meta("software-development-maintainer.md"),
             (
-                "长期维护工程师".to_string(),
-                "正式项目的最小改动、复用、测试与安全规范".to_string(),
-                "软件开发".to_string(),
+                "Long-term maintainer engineer".to_string(),
+                "Minimal changes, reuse, testing, and security practices for production projects".to_string(),
+                "Software development".to_string(),
             )
         );
         assert_eq!(
             prompt_display_meta("writing-technical-docs.md").2,
-            "写作辅助"
+            "Writing assistance"
         );
     }
 
@@ -1219,7 +1219,7 @@ mod tests {
             .find(|status| status.id == "edited-template")
             .expect("customized cached prompt remains visible");
         assert!(status.customized);
-        assert!(status.message.contains("同步已跳过"));
+        assert!(status.message.contains("Sync skipped"));
     }
 
     #[test]
@@ -1434,7 +1434,7 @@ mod tests {
     fn failed_catalog_confirmation_always_requests_a_later_retry() {
         let mut statuses = vec![bundled_prompt_status(
             bundled_prompt_metas()[0],
-            "在线目录暂未提供该模板，使用软件内置版本",
+            "Online catalog does not provide this template yet; using the built-in version",
         )];
 
         mark_catalog_confirmation_failed(&mut statuses);

@@ -36,7 +36,7 @@ pub(crate) fn managed_agents_bounds(content: &str) -> Result<Option<(usize, usiz
     }
     if begins.len() != 1 || ends.len() != 1 || begins[0] >= ends[0].0 {
         return Err(CodexxError::Config(
-            "AGENTS.md 中的 Astra 受管区块标记不完整或重复，请先修复 BEGIN/END 标记".to_string(),
+            "Astra managed block markers in AGENTS.md are incomplete or duplicated; fix the BEGIN/END markers first".to_string(),
         ));
     }
     Ok(Some((begins[0], ends[0].0 + ends[0].1)))

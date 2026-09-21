@@ -27,7 +27,7 @@ fn read_integer(doc: &DocumentMut, key: &str) -> Result<Option<i64>> {
     doc.get(key)
         .map(|item| {
             item.as_integer()
-                .ok_or_else(|| CodexxError::Config(format!("{key} 必须为整数")))
+                .ok_or_else(|| CodexxError::Config(format!("{key} must be an integer")))
         })
         .transpose()
 }

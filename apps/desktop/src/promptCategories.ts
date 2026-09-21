@@ -33,13 +33,7 @@ export function defaultPromptCategoryForKey(promptKey: string) {
 }
 
 function defaultPromptCategories(lang: Lang): PromptCategory[] {
-  return lang === "zh"
-    ? [
-        { id: "security-reverse", name: "破甲/逆向" },
-        { id: "software-development", name: "软件开发" },
-        { id: "writing", name: "写作辅助" },
-      ]
-    : [
+  return [
         { id: "security-reverse", name: "Security / reverse" },
         { id: "software-development", name: "Software development" },
         { id: "writing", name: "Writing" },

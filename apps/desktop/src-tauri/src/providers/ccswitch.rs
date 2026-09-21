@@ -333,7 +333,7 @@ pub(crate) fn import_ccswitch_codex_providers_inner(path: Option<String>) -> Res
             .collect::<Vec<_>>()
             .join("\n- ");
         return Err(CodexxError::Config(format!(
-            "cc-switch 数据库不存在: {}\n已检查候选路径:\n- {}",
+            "cc-switch database does not exist: {}\nChecked candidate paths:\n- {}",
             db.display(),
             candidates
         )));
@@ -344,7 +344,7 @@ pub(crate) fn import_ccswitch_codex_providers_inner(path: Option<String>) -> Res
         OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
     )
     .map_err(|e| {
-        CodexxError::Database(format!("打开 cc-switch 数据库失败 {}: {e}", db.display()))
+        CodexxError::Database(format!("Failed to open cc-switch database {}: {e}", db.display()))
     })?;
 
     let rows_vec = read_ccswitch_codex_rows(&conn)?;
@@ -383,7 +383,7 @@ pub(crate) fn import_ccswitch_codex_providers_inner(path: Option<String>) -> Res
         if is_official_ccswitch_row(&row) {
             skipped += 1;
             warnings.push(format!(
-                "跳过 {} ({})：官方认证不作为第三方供应商导入",
+                "Skipped {} ({}): official auth is not imported as a third-party provider",
                 row.name, row.id
             ));
             continue;
@@ -402,7 +402,7 @@ pub(crate) fn import_ccswitch_codex_providers_inner(path: Option<String>) -> Res
             None => {
                 skipped += 1;
                 warnings.push(format!(
-                    "跳过 {} ({})：未找到可用 config/base_url，可能是官方登录或空模板",
+                    "Skipped {} ({}): no usable config/base_url found; may be official login or an empty template",
                     row.name, row.id
                 ));
             }
@@ -443,7 +443,7 @@ pub(crate) fn read_ccswitch_official_auth_inner(
         OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX,
     )
     .map_err(|e| {
-        CodexxError::Database(format!("打开 cc-switch 数据库失败 {}: {e}", db.display()))
+        CodexxError::Database(format!("Failed to open cc-switch database {}: {e}", db.display()))
     })?;
 
     let provider_columns = table_column_set(&conn, "providers")?;
@@ -485,7 +485,7 @@ pub(crate) fn read_ccswitch_official_auth_inner(
         .get(2)
         .map_err(|e| CodexxError::Database(e.to_string()))?;
     let settings: Value = serde_json::from_str(&settings_config).map_err(|e| {
-        CodexxError::Database(format!("cc-switch official settings JSON 解析失败: {e}"))
+        CodexxError::Database(format!("Failed to parse cc-switch official settings JSON: {e}"))
     })?;
 
     let auth = settings
@@ -493,7 +493,7 @@ pub(crate) fn read_ccswitch_official_auth_inner(
         .cloned()
         .filter(|value| value.is_object())
         .ok_or_else(|| {
-            CodexxError::Database("cc-switch official provider 缺少 auth object".to_string())
+            CodexxError::Database("cc-switch official provider is missing an auth object".to_string())
         })?;
 
     let config_text = settings
@@ -506,7 +506,7 @@ pub(crate) fn read_ccswitch_official_auth_inner(
         .and_then(|doc| string_value(&doc, "model"));
 
     let auth_json = serde_json::to_string_pretty(&auth)
-        .map_err(|e| CodexxError::Database(format!("官方 auth JSON 格式化失败: {e}")))?;
+        .map_err(|e| CodexxError::Database(format!("Failed to format official auth JSON: {e}")))?;
 
     Ok(Some(OfficialAuthCandidate {
         auth_json,

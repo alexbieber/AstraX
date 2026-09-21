@@ -91,10 +91,10 @@ type SessionManagementPageProps = {
 };
 
 function formatSessionTime(value?: number | null, lang: Lang = "zh") {
-  if (!value) return lang === "zh" ? "未知时间" : "Unknown time";
+  if (!value) return "Unknown time";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return lang === "zh" ? "未知时间" : "Unknown time";
-  return date.toLocaleString(lang === "zh" ? "zh-CN" : undefined, {
+  if (Number.isNaN(date.getTime())) return "Unknown time";
+  return date.toLocaleString(undefined, {
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
@@ -102,7 +102,7 @@ function formatSessionTime(value?: number | null, lang: Lang = "zh") {
   });
 }
 
-function compactPath(value: string | null | undefined, max = 58, missing = "未记录路径") {
+function compactPath(value: string | null | undefined, max = 58, missing = "No path recorded") {
   if (!value) return missing;
   const normalized = value.replace(/\\/g, "/");
   if (normalized.length <= max) return normalized;
@@ -156,63 +156,7 @@ export function SessionManagementPage({
   onExportSessions,
   onDeleteSafetyConfirmedChange,
 }: SessionManagementPageProps) {
-  const isChinese = lang === "zh";
-  const copy = isChinese
-    ? {
-        syncEyebrow: "会话同步",
-        title: "会话管理",
-        description: "同步普通会话到共享列表，内部任务不参与同步。不会修改聊天内容。",
-        syncTo: "同步到",
-        check: "检查会话",
-        checking: "检查中...",
-        sync: "同步会话",
-        syncing: "同步中...",
-        clickToCheck: "点击检查会话",
-        scanIncomplete: "无法确认同步状态，请查看下方原因",
-        needsSync: (count: number) => `有 ${count} 条会话需要同步`,
-        allSynced: "普通会话已同步",
-        sessionCount: (count: number) => `${count} 条会话`,
-        local: "本地会话",
-        list: "会话列表",
-        shown: (shown: number, total: number) => `展示 ${shown} / ${total} 条`,
-        loaded: (count: number) => `当前加载 ${count} 条`,
-        search: "搜索标题 / 项目 / 供应商 / ID",
-        groupByProject: "按项目路径分组",
-        showInternal: (count: number) => `显示内部会话 (${count})`,
-        deleteSelected: "删除选中",
-        exportSelected: "导出选中",
-        exportOne: "导出为 Markdown",
-        exporting: "导出中…",
-        exportHint: "单个会话保存为 Markdown；多个会话打包为 ZIP",
-        deleteMany: (count: number) => `永久删除 ${count} 条`,
-        selectAll: "选择当前列表中的全部会话",
-        selectProject: (path: string, count: number) => `选择项目 ${path} 的 ${count} 条会话`,
-        projectCount: (count: number, truncated: boolean) => `${truncated ? "已加载 " : ""}${count} 条`,
-        projectShown: (shown: number, total: number) => `显示 ${shown} / 共 ${total} 条`,
-        selectSession: "选择会话",
-        archived: "已归档",
-        internal: "内部",
-        internalHint: "内部任务仅供查看，不参与会话同步。",
-        pending: "待同步",
-        unknownProvider: "未知供应商",
-        noModel: "未记录",
-        noMatch: "没有匹配的会话。",
-        noSessions: "还没有读取到会话。点击右上角“检查会话”刷新。",
-        diagnostics: "诊断信息",
-        diagnosticsCount: (count: number) => `${count} 条 · 点击查看`,
-        deleteTitle: (count: number) => `永久删除 ${count} 条会话`,
-        irreversible: "此操作不可恢复",
-        deleteDescription: "所选会话将从 Codex 的本地数据中永久删除，不会移入回收站，也不会创建新的备份。",
-        deleteChildren: "由这些会话派生的子会话也会一并删除。",
-        closeClients: "请先关闭正在使用这些会话的 Codex 窗口或 CLI。",
-        pendingDelete: "待删除会话",
-        moreSessions: (count: number) => `另有 ${count} 条会话未在此处展开`,
-        safetyCheck: "我已关闭其他正在使用这些会话的 Codex 窗口或 CLI",
-        cancel: "取消",
-        deleting: "正在永久删除...",
-        confirmDelete: (count: number) => `确认永久删除 ${count} 条`,
-      }
-    : {
+  const copy = {
         syncEyebrow: "SESSION SYNC",
         title: "Session management",
         description: "Keep user conversations in one shared history. Internal tasks are excluded from sync; chat content is unchanged.",
@@ -285,7 +229,7 @@ export function SessionManagementPage({
         title={copy.deleteTitle(selectedSessions.length)}
         description={copy.deleteDescription}
         size="lg"
-        closeLabel={isChinese ? "关闭" : "Close"}
+        closeLabel={"Close"}
         closeOnBackdrop={!sessionDeleteBusy}
         closeOnEscape={!sessionDeleteBusy}
         showCloseButton={!sessionDeleteBusy}
@@ -320,10 +264,10 @@ export function SessionManagementPage({
         <div className="cx-session-delete-list" aria-label={copy.pendingDelete}>
           {selectedSessions.slice(0, 8).map((item) => (
             <div className="cx-session-delete-item" key={item.id}>
-              <strong title={item.title}>{item.title || (isChinese ? "未命名会话" : "Untitled session")}</strong>
+              <strong title={item.title}>{item.title || "Untitled session"}</strong>
               <code>#{shortId(item.id)}</code>
               <span title={item.cwd || item.rolloutPath || undefined}>
-                {compactPath(item.cwd || item.rolloutPath, 72, isChinese ? "未记录路径" : "No path recorded")}
+                {compactPath(item.cwd || item.rolloutPath, 72, "No path recorded")}
               </span>
             </div>
           ))}
@@ -440,12 +384,12 @@ export function SessionManagementPage({
                   aria-label={copy.selectAll}
                   disabled={loading || sessionDeleteBusy}
                 />
-                <span>{isChinese ? "会话" : "Session"}</span>
-                <span>{isChinese ? "更新时间" : "Updated"}</span>
-                <span>{isChinese ? "供应商" : "Provider"}</span>
-                <span>{isChinese ? "模型" : "Model"}</span>
+                <span>{"Session"}</span>
+                <span>{"Updated"}</span>
+                <span>{"Provider"}</span>
+                <span>{"Model"}</span>
                 <span className="cx-session-id-heading">ID</span>
-                <span className="cx-session-actions-heading">{isChinese ? "导出" : "Export"}</span>
+                <span className="cx-session-actions-heading">{"Export"}</span>
               </div>
               <div className="cx-session-table-body">
                 {groupedSessions.map(([group, items]) => {
@@ -470,7 +414,7 @@ export function SessionManagementPage({
                             onChange={(event) => onSetSessionGroupSelected(projectSessions, event.target.checked)}
                             aria-label={copy.selectProject(group, projectSessions.length)}
                           />
-                          <span title={group}>{compactPath(group, 96, isChinese ? "未记录路径" : "No path recorded")}</span>
+                          <span title={group}>{compactPath(group, 96, "No path recorded")}</span>
                           <em>{groupCountLabel}</em>
                         </label>
                       )}
@@ -490,17 +434,17 @@ export function SessionManagementPage({
                               checked={selectedSessionSet.has(item.id)}
                               disabled={loading || sessionDeleteBusy}
                               onChange={() => onToggleSessionSelected(item.id)}
-                              aria-label={`${copy.selectSession}: ${item.title || (isChinese ? "未命名会话" : "Untitled session")} (#${shortId(item.id)})`}
+                              aria-label={`${copy.selectSession}: ${item.title || "Untitled session"} (#${shortId(item.id)})`}
                             />
                           </span>
                           <div className="cx-session-row-copy">
                             <div className="cx-session-row-title">
-                              <strong title={item.title}>{item.title || (isChinese ? "未命名会话" : "Untitled session")}</strong>
+                              <strong title={item.title}>{item.title || "Untitled session"}</strong>
                               {item.archived && <span className="cx-session-state">{copy.archived}</span>}
                               {item.isSubagent && <span className="cx-session-state" title={copy.internalHint}>{copy.internal}</span>}
                               {item.needsSync && !item.isSubagent && <span className="cx-session-state cx-session-state--warn">{copy.pending}</span>}
                             </div>
-                            {!sessionGroupByCwd && <p title={item.cwd || item.rolloutPath || undefined}>{compactPath(item.cwd || item.rolloutPath, 72, isChinese ? "未记录路径" : "No path recorded")}</p>}
+                            {!sessionGroupByCwd && <p title={item.cwd || item.rolloutPath || undefined}>{compactPath(item.cwd || item.rolloutPath, 72, "No path recorded")}</p>}
                           </div>
                           <span className="cx-session-meta cx-session-meta--time" title={item.updatedAtMs ? new Date(item.updatedAtMs).toLocaleString() : undefined}>{formatSessionTime(item.updatedAtMs, lang)}</span>
                           <code className="cx-session-meta cx-session-meta--provider" title={item.modelProvider || undefined}>{item.modelProvider || copy.unknownProvider}</code>
@@ -511,7 +455,7 @@ export function SessionManagementPage({
                             className="cx-session-row-export"
                             onClick={() => onExportSessions([item.id])}
                             disabled={loading || sessionDeleteBusy || sessionExportBusy}
-                            aria-label={`${copy.exportOne}: ${item.title || (isChinese ? "未命名会话" : "Untitled session")}`}
+                            aria-label={`${copy.exportOne}: ${item.title || "Untitled session"}`}
                             title={copy.exportOne}
                           >
                             <Download size={15} strokeWidth={1.9} aria-hidden="true" />

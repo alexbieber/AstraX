@@ -64,7 +64,7 @@ fn existing_directory_entry(path: &Path, metadata: &fs::Metadata) -> Result<()> 
 
     if metadata_is_file_link(metadata) {
         return Err(CodexxError::Config(format!(
-            "此链接被创建成了文件链接，不能作为文件夹使用：{}。请在创建链接的工具中重新建立目录链接",
+            "This link was created as a file symlink and cannot be used as a folder: {}. Please recreate it as a directory symlink in the tool that created it",
             path.display()
         )));
     }
@@ -73,14 +73,14 @@ fn existing_directory_entry(path: &Path, metadata: &fs::Metadata) -> Result<()> 
         return match fs::metadata(path) {
             Ok(target) if target.is_dir() => Ok(()),
             _ => Err(CodexxError::Config(format!(
-                "文件夹链接已失效或目标不是文件夹：{}",
+                "Folder symlink is broken or target is not a folder: {}",
                 path.display()
             ))),
         };
     }
 
     Err(CodexxError::Config(format!(
-        "此路径已被同名文件占用，不是文件夹：{}",
+        "This path is occupied by a file with the same name and is not a folder: {}",
         path.display()
     )))
 }
@@ -384,7 +384,7 @@ mod tests {
         let error = ensure_directory(&occupied).expect_err("file is not a directory");
 
         assert!(!directory_exists(&occupied));
-        assert!(error.to_string().contains("不是文件夹"));
+        assert!(error.to_string().contains("Not a folder"));
         assert_eq!(
             fs::read_to_string(&occupied).expect("read occupying file"),
             "keep me"
@@ -413,7 +413,7 @@ mod tests {
             fs::read(target.join("config.toml")).expect("read symlink target"),
             b"linked"
         );
-        assert!(error.to_string().contains("链接已失效"));
+        assert!(error.to_string().contains("Symlink is broken"));
         fs::remove_dir_all(root).expect("remove test directory");
     }
 
@@ -423,7 +423,7 @@ mod tests {
         use std::os::windows::fs::symlink_dir;
 
         let root = temp_dir("ensure-directory-windows-link");
-        let target = root.join("目标 文件夹");
+        let target = root.join("Target folder");
         let link = root.join("linked-codex-home");
         fs::create_dir(&target).expect("create target directory");
         match symlink_dir(&target, &link) {
@@ -448,7 +448,7 @@ mod tests {
         fs::remove_dir(&target).expect("remove symlink target");
         let error = ensure_directory(&link).expect_err("reject broken directory symlink");
         assert!(!directory_exists(&link));
-        assert!(error.to_string().contains("链接已失效"));
+        assert!(error.to_string().contains("Symlink is broken"));
         fs::remove_dir(&link).expect("remove directory symlink");
         fs::remove_dir_all(root).expect("remove test directory");
     }
@@ -503,7 +503,7 @@ mod tests {
         let error = ensure_directory(&link).expect_err("reject file link as directory");
 
         assert!(!directory_exists(&link));
-        assert!(error.to_string().contains("文件链接"));
+        assert!(error.to_string().contains("File symlink"));
         assert!(fs::symlink_metadata(&link).is_ok());
         assert!(target.is_dir());
         fs::remove_file(&link).expect("remove file link");

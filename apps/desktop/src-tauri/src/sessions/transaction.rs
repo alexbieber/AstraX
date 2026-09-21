@@ -97,7 +97,7 @@ pub(super) fn prepare_sqlite_updates(sqlite_paths: &[PathBuf]) -> Result<Vec<Pen
         for path in sqlite_paths {
             if !path.exists() {
                 return Err(CodexxError::Database(format!(
-                    "SQLite 文件不存在: {}",
+                    "SQLite file does not exist: {}",
                     path.display()
                 )));
             }
@@ -110,7 +110,7 @@ pub(super) fn prepare_sqlite_updates(sqlite_paths: &[PathBuf]) -> Result<Vec<Pen
                 OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX,
             )
             .map_err(|error| {
-                CodexxError::Database(format!("打开 SQLite 失败 {}: {error}", path.display()))
+                CodexxError::Database(format!("Failed to open SQLite {}: {error}", path.display()))
             })?;
             conn.busy_timeout(Duration::from_secs(5))
                 .map_err(|error| CodexxError::Database(error.to_string()))?;
@@ -140,7 +140,7 @@ pub(super) fn prepare_sqlite_updates(sqlite_paths: &[PathBuf]) -> Result<Vec<Pen
                 )
                 .map_err(|error| {
                     CodexxError::Database(format!(
-                        "打开 SQLite 观察连接失败 {}: {error}",
+                        "Failed to open SQLite observe connection {}: {error}",
                         identity.display()
                     ))
                 })?;
@@ -327,7 +327,7 @@ fn restore_sqlite_update(
         let current = sqlite_data_version(&update.observer)?;
         if current != expected_data_version {
             return Err(CodexxError::Config(format!(
-                "会话数据库已发生变化，已保留备份且未覆盖: {}",
+                "Session database has changed; backup kept and not overwritten: {}",
                 update.path.display()
             )));
         }
@@ -390,7 +390,7 @@ pub(super) fn rollback_mutation(
             .iter_mut()
             .find(|update| update.path == attempt.path)
         else {
-            errors.push(format!("缺少 SQLite 恢复连接: {}", attempt.path.display()));
+            errors.push(format!("Missing SQLite restore connection: {}", attempt.path.display()));
             continue;
         };
         if let Err(error) = restore_sqlite_update(update, attempt.expected_data_version) {
@@ -408,7 +408,7 @@ pub(super) fn mutation_error(original: CodexxError, recovery_errors: Vec<String>
         original
     } else {
         CodexxError::Config(format!(
-            "同步失败，自动恢复也未完成：{original}；{}",
+            "Sync failed and automatic restore did not finish: {original}; {}",
             recovery_errors.join("；")
         ))
     }
@@ -436,7 +436,7 @@ fn validate_rollout_classification(rollouts: &RolloutScan) -> Result<()> {
     for change in &rollouts.changes {
         if rollout_text_is_internal(&change.original_text) {
             return Err(CodexxError::Config(
-                "内部会话不能同步为普通会话。".to_string(),
+                "Internal sessions cannot be synced as regular sessions.".to_string(),
             ));
         }
         paths.insert(change.path.clone());
@@ -444,7 +444,7 @@ fn validate_rollout_classification(rollouts: &RolloutScan) -> Result<()> {
     for path in paths {
         if !rollout_path_has_syncable_identity(&path)? {
             return Err(CodexxError::Config(format!(
-                "会话类型已变化，已停止同步；请重新检查会话：{}",
+                "Session type changed; sync stopped. Recheck the session: {}",
                 path.display()
             )));
         }

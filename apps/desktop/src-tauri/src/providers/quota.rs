@@ -42,8 +42,8 @@ impl OfficialQuery {
 
     fn label(self) -> &'static str {
         match self {
-            Self::Quota => "额度",
-            Self::ResetCredits => "重置次数",
+            Self::Quota => "Quota",
+            Self::ResetCredits => "Reset count",
         }
     }
 }
@@ -149,9 +149,9 @@ fn display_email(value: Option<&str>) -> Option<String> {
 
 fn quota_headers(credentials: &OfficialProfileQuotaCredentials) -> Result<HeaderMap> {
     let token = nonempty(Some(&credentials.access_token))
-        .ok_or_else(|| config_error("此官方配置尚未登录，请先在 Codex 中登录"))?;
+        .ok_or_else(|| config_error("This official profile is not signed in; please sign in via Codex first"))?;
     let mut authorization = HeaderValue::from_str(&format!("Bearer {token}"))
-        .map_err(|_| config_error("此官方配置的登录凭据无效，请重新登录"))?;
+        .map_err(|_| config_error("Login credentials for this official profile are invalid; please sign in again"))?;
     authorization.set_sensitive(true);
     let mut headers = HeaderMap::new();
     headers.insert(AUTHORIZATION, authorization);
@@ -159,7 +159,7 @@ fn quota_headers(credentials: &OfficialProfileQuotaCredentials) -> Result<Header
     headers.insert(USER_AGENT, HeaderValue::from_static("codex-cli"));
     if let Some(account_id) = nonempty(credentials.account_id.as_deref()) {
         let mut account = HeaderValue::from_str(account_id)
-            .map_err(|_| config_error("此官方配置的账号标识无效，请重新登录"))?;
+            .map_err(|_| config_error("Account identifier for this official profile is invalid; please sign in again"))?;
         account.set_sensitive(true);
         headers.insert("ChatGPT-Account-Id", account);
     }
@@ -174,7 +174,7 @@ fn quota_client() -> Result<Client> {
         .timeout(Duration::from_secs(15))
         .connect_timeout(Duration::from_secs(5))
         .build()
-        .map_err(|_| config_error("官方账号查询客户端初始化失败"))
+        .map_err(|_| config_error("Failed to initialize official account query client"))
 }
 
 fn check_status(status: StatusCode, query: OfficialQuery) -> Result<()> {
@@ -183,27 +183,27 @@ fn check_status(status: StatusCode, query: OfficialQuery) -> Result<()> {
     }
     let label = query.label();
     let message = match status.as_u16() {
-        401 => format!("官方登录已失效，请重新登录此账号后查询{label}（HTTP 401）"),
-        403 => format!("无法访问官方{label}服务（HTTP 403），请稍后重试或检查网络"),
-        429 => format!("官方{label}查询过于频繁，请稍后重试（HTTP 429）"),
-        300..=399 => format!("官方{label}接口发生重定向，已停止请求，请稍后重试"),
-        code @ 500..=599 => format!("官方{label}服务暂不可用（HTTP {code}），请稍后重试"),
-        code => format!("官方{label}查询失败（HTTP {code}），请稍后重试"),
+        401 => format!("Official login expired; sign in again for this account, then query {label} (HTTP 401)"),
+        403 => format!("Cannot access official {label} service (HTTP 403); retry later or check the network"),
+        429 => format!("Official {label} queries are too frequent; try again later (HTTP 429)"),
+        300..=399 => format!("Official {label} endpoint redirected; request stopped. Try again later"),
+        code @ 500..=599 => format!("Official {label} service temporarily unavailable (HTTP {code}); try again later"),
+        code => format!("Official {label} query failed (HTTP {code}); try again later"),
     };
     Err(CodexxError::Config(message))
 }
 
 fn read_bounded_body(reader: impl Read, content_length: Option<u64>) -> Result<Vec<u8>> {
     if content_length.is_some_and(|length| length > MAX_RESPONSE_BYTES as u64) {
-        return Err(config_error("官方查询响应过大，已停止读取"));
+        return Err(config_error("Official query response too large; stopped reading"));
     }
     let mut bytes = Vec::new();
     reader
         .take(MAX_RESPONSE_BYTES as u64 + 1)
         .read_to_end(&mut bytes)
-        .map_err(|_| config_error("读取官方查询响应失败，请稍后重试"))?;
+        .map_err(|_| config_error("Failed to read official query response; try again later"))?;
     if bytes.len() > MAX_RESPONSE_BYTES {
-        return Err(config_error("官方查询响应过大，已停止读取"));
+        return Err(config_error("Official query response too large; stopped reading"));
     }
     Ok(bytes)
 }
@@ -261,13 +261,13 @@ fn parse_quota_response(
     checked_at: DateTime<Utc>,
 ) -> Result<OfficialQuotaSnapshot> {
     let raw: RawQuotaResponse = serde_json::from_slice(bytes)
-        .map_err(|_| config_error("官方额度响应格式无法识别，请稍后重试"))?;
+        .map_err(|_| config_error("Official quota response format unrecognized; try again later"))?;
     if nonempty(raw.account_id.as_deref())
         .zip(nonempty(credentials.account_id.as_deref()))
         .is_some_and(|(actual, expected)| actual != expected)
     {
         return Err(config_error(
-            "额度响应与所选官方账号不一致，请重新登录此配置后重试",
+            "Quota response does not match the selected official account; sign in again for this profile",
         ));
     }
     let mut limits = Vec::new();
@@ -329,7 +329,7 @@ fn parse_reset_credits_response(
     checked_at: DateTime<Utc>,
 ) -> Result<OfficialResetCreditsSnapshot> {
     let raw: RawResetCreditsResponse = serde_json::from_slice(bytes)
-        .map_err(|_| config_error("官方重置次数响应格式无法识别，请稍后重试"))?;
+        .map_err(|_| config_error("Official reset-count response format unrecognized; try again later"))?;
     Ok(OfficialResetCreditsSnapshot {
         profile_id: profile_id.to_owned(),
         available_count: raw.available_count,
@@ -342,7 +342,7 @@ fn ensure_same_credentials(
     current: &OfficialProfileQuotaCredentials,
 ) -> Result<()> {
     if expected != credential_fingerprint(current) {
-        return Err(config_error("此官方账号的登录信息已变化，请重新刷新"));
+        return Err(config_error("Login info for this official account changed; please refresh again"));
     }
     Ok(())
 }
@@ -359,11 +359,11 @@ fn fetch_official_response(
         .send()
         .map_err(|error| {
             if error.is_timeout() {
-                config_error(&format!("官方{label}查询超时，请检查网络后重试"))
+                config_error(&format!("Official {label} query timed out; check the network and retry"))
             } else if error.is_connect() {
-                config_error(&format!("无法连接官方{label}接口，请检查网络或代理设置"))
+                config_error(&format!("Cannot connect to official {label} endpoint; check network or proxy settings"))
             } else {
-                config_error(&format!("官方{label}网络请求失败，请稍后重试"))
+                config_error(&format!("Official {label} network request failed; try again later"))
             }
         })?;
     check_status(response.status(), query)?;
@@ -377,9 +377,9 @@ fn read_query_credentials(
 ) -> Result<OfficialProfileQuotaCredentials> {
     let _query_guard = QUERY_CREDENTIAL_LOCK
         .lock()
-        .map_err(|_| config_error("官方账号查询暂不可用，请重试"))?;
+        .map_err(|_| config_error("Official account query temporarily unavailable; please retry"))?;
     let _file_guard = acquire_live_config_lock(codex_dir)
-        .map_err(|_| config_error("官方配置正在修改，请稍后刷新"))?;
+        .map_err(|_| config_error("Official profile is being modified; refresh later"))?;
     official_profile_quota_credentials(codex_dir, profile_id)
 }
 
@@ -394,7 +394,7 @@ fn read_official_snapshot<T>(
     let bytes = fetch(&credentials)?;
     let snapshot = parse(&bytes, profile_id, &credentials, Utc::now())?;
     let current = read_query_credentials(codex_dir, profile_id)
-        .map_err(|_| config_error("此官方配置已变化或被删除，请重新选择账号后查询"))?;
+        .map_err(|_| config_error("This official profile changed or was deleted; select the account again and query"))?;
     ensure_same_credentials(fingerprint, &current)?;
     Ok(snapshot)
 }
@@ -609,7 +609,7 @@ mod tests {
         )
         .unwrap_err()
         .to_string();
-        assert!(error.contains("不一致"));
+        assert!(error.contains("Mismatch"));
         assert!(!error.contains("private-account"));
         assert!(!error.contains("synthetic-access-token"));
         assert!(
@@ -686,7 +686,7 @@ mod tests {
         assert!(quota_headers(&empty)
             .unwrap_err()
             .to_string()
-            .contains("尚未登录"));
+            .contains("Not signed in"));
         let mut invalid = credentials(None);
         invalid.access_token = "private-secret\r\nInjected: true".to_owned();
         let error = quota_headers(&invalid).unwrap_err().to_string();
@@ -695,7 +695,7 @@ mod tests {
         invalid = credentials(Some("private-account\r\nInjected: true"));
         let error = quota_headers(&invalid).unwrap_err().to_string();
         assert!(!error.contains("private-account"));
-        assert!(error.contains("账号标识无效"));
+        assert!(error.contains("Invalid account identifier"));
     }
 
     #[test]
@@ -703,10 +703,10 @@ mod tests {
         for query in [OfficialQuery::Quota, OfficialQuery::ResetCredits] {
             assert!(check_status(StatusCode::OK, query).is_ok());
             for (status, expected) in [
-                (401, "重新登录"),
-                (403, "检查网络"),
-                (429, "过于频繁"),
-                (302, "重定向"),
+                (401, "Sign in again"),
+                (403, "Check network"),
+                (429, "Too frequent"),
+                (302, "Redirect"),
                 (503, "HTTP 503"),
             ] {
                 let error = check_status(StatusCode::from_u16(status).unwrap(), query)
@@ -726,7 +726,7 @@ mod tests {
             assert!(read_bounded_body(&large[..], content_length)
                 .unwrap_err()
                 .to_string()
-                .contains("响应过大"));
+                .contains("Response too large"));
         }
     }
 
@@ -740,7 +740,7 @@ mod tests {
         )
         .unwrap_err()
         .to_string();
-        assert!(error.contains("格式无法识别"));
+        assert!(error.contains("Unrecognized format"));
         assert!(!error.contains("private-secret-token"));
     }
 
@@ -759,7 +759,7 @@ mod tests {
             let error = ensure_same_credentials(fingerprint, &changed)
                 .unwrap_err()
                 .to_string();
-            assert!(error.contains("登录信息已变化"));
+            assert!(error.contains("Login info changed"));
             assert!(!error.contains("private-replacement-token"));
             assert!(!error.contains("account-b"));
             assert!(!error.contains("changed@example.test"));
@@ -830,7 +830,7 @@ mod tests {
                 parse_reset_credits_response(raw.as_bytes(), "official-profile-a", checked_at())
                     .unwrap_err()
                     .to_string();
-            assert!(error.contains("重置次数响应格式无法识别"));
+            assert!(error.contains("Reset-count response format unrecognized"));
             assert!(!error.contains("private-malformed-response"));
         }
     }
@@ -939,7 +939,7 @@ mod tests {
             },
             |bytes, id, _, time| parse_reset_credits_response(bytes, id, time),
         ).unwrap_err().to_string();
-        assert!(error.contains("登录信息已变化"));
+        assert!(error.contains("Login info changed"));
         assert!(!error.contains("synthetic-replacement-token"));
         std::fs::remove_dir_all(dir).unwrap();
     }

@@ -19,21 +19,7 @@ export type OfficialQuotaDialogProps = {
 };
 
 function getCopy(lang: Language) {
-  return lang === "zh" ? {
-    title: "官方 Codex 额度", close: "关闭", refresh: "刷新额度", refreshing: "查询中",
-    loading: "正在查询此账号的可用额度…", loadingHint: "可以随时关闭窗口，稍后重新查询。",
-    error: "暂时无法查询额度", previous: "刷新失败，当前保留上次查询结果。",
-    accountUnknown: "未提供账号邮箱", planUnknown: "未提供套餐信息", remaining: "剩余额度", used: "已使用",
-    resetUnknown: "未提供重置时间", resetDue: "已到重置时间，请刷新", percentUnknown: "未提供百分比",
-    windowUnknown: "未知窗口", weekly: "每周额度", main: "通用额度", others: "其他额度",
-    empty: "暂未返回通用额度", emptyHint: "服务未提供此账号的通用额度数据，可稍后刷新查询。",
-    noWindow: "未提供额度窗口", noWindowHint: "服务未提供此项额度的百分比或重置时间。",
-    unavailable: "当前不可用", reached: "额度已用完", available: "可用", checked: "查询于",
-    codeReview: "代码审查", mismatch: "返回的额度不属于当前账号，请重新查询。",
-    snapshotHint: "额度以最近一次查询结果为准。倒计时结束后请刷新确认。",
-    resets: "可用重置", resetLoading: "查询中", resetError: "暂时无法查询重置次数",
-    resetPrevious: "重置次数刷新失败，保留上次查询结果。", resetInvalid: "服务未返回有效的可用重置次数。",
-  } : {
+  return {
     title: "Official Codex quota", close: "Close", refresh: "Refresh quota", refreshing: "Checking",
     loading: "Checking this account’s available quota…", loadingHint: "You can close this window and check again later.",
     error: "Unable to check quota", previous: "Refresh failed. The last available results are shown.",
@@ -65,20 +51,20 @@ function formatWindow(seconds: number | null, lang: Language, copy: QuotaCopy): 
   if (seconds === 604_800) return copy.weekly;
   let rest = Math.floor(seconds);
   const values: string[] = [];
-  const units: [number, string, string][] = [[86_400, "天", "d"], [3_600, "小时", "h"], [60, "分钟", "m"], [1, "秒", "s"]];
-  for (const [size, zh, en] of units) {
+  const units: [number, string][] = [[86_400, "d"], [3_600, "h"], [60, "m"], [1, "s"]];
+  for (const [size, en] of units) {
     const value = Math.floor(rest / size);
-    if (value) values.push(lang === "zh" ? `${value} ${zh}` : `${value}${en}`);
+    if (value) values.push(`${value}${en}`);
     rest %= size;
   }
   const duration = values.join(" ");
-  return lang === "zh" ? `${duration}额度` : `${duration} quota`;
+  return `${duration} quota`;
 }
 
 function formatReset(resetsAt: string | null, now: number, lang: Language, copy: QuotaCopy): { relative: string; exact: string | null; overdue: boolean } {
   const time = resetsAt ? Date.parse(resetsAt) : Number.NaN;
   if (!Number.isFinite(time)) return { relative: copy.resetUnknown, exact: null, overdue: false };
-  const exact = new Date(time).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", {
+  const exact = new Date(time).toLocaleString("en-US", {
     year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
   });
   if (time <= now) return { relative: copy.resetDue, exact, overdue: true };
@@ -87,10 +73,6 @@ function formatReset(resetsAt: string | null, now: number, lang: Language, copy:
   const hours = Math.floor(minutes % 1_440 / 60);
   const remainder = minutes % 60;
   let duration: string;
-  if (lang === "zh") {
-    duration = days ? `${days} 天${hours ? ` ${hours} 小时` : ""}` : hours ? `${hours} 小时${remainder ? ` ${remainder} 分钟` : ""}` : `${minutes} 分钟`;
-    return { relative: `${duration}后重置`, exact, overdue: false };
-  }
   duration = days ? `${days}d${hours ? ` ${hours}h` : ""}` : hours ? `${hours}h${remainder ? ` ${remainder}m` : ""}` : `${minutes}m`;
   return { relative: `Resets in ${duration}`, exact, overdue: false };
 }
@@ -186,7 +168,7 @@ export function OfficialQuotaDialog({ lang, configDir, profile, onClose }: Offic
   const main = data?.limits.find((limit) => limit.id === "main");
   const others = data?.limits.filter((limit) => limit.id !== "main") ?? [];
   const email = data?.email || profile?.email;
-  const checked = data?.checkedAt && Number.isFinite(Date.parse(data.checkedAt)) ? new Date(data.checkedAt).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : null;
+  const checked = data?.checkedAt && Number.isFinite(Date.parse(data.checkedAt)) ? new Date(data.checkedAt).toLocaleString("en-US", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }) : null;
 
   return <ModalShell open={Boolean(profile)} onClose={close} title={copy.title} description={profile?.name} closeLabel={copy.close} size="md" className="cx-official-quota-dialog" bodyClassName="cx-official-quota-body" footer={
     <><Button variant="secondary" onClick={close}>{copy.close}</Button><Button variant="primary" icon={busy ? <Loader2 size={14} className="cx-quota-spin" /> : <RefreshCw size={14} />} disabled={busy} onClick={() => void load(true)}>{busy ? copy.refreshing : copy.refresh}</Button></>
@@ -197,7 +179,7 @@ export function OfficialQuotaDialog({ lang, configDir, profile, onClose }: Offic
         <span><Ticket size={16} aria-hidden="true" />{copy.resets}</span>
         <div aria-live="polite">
           {resetBusy && <Loader2 size={13} className="cx-quota-spin" aria-hidden="true" />}
-          {resetCredits ? <strong>{resetCredits.availableCount}<small>{lang === "zh" ? "次" : resetCredits.availableCount === 1 ? "reset" : "resets"}</small></strong> : <span className="cx-quota-reset-credits-status">{resetBusy ? copy.resetLoading : "—"}</span>}
+          {resetCredits ? <strong>{resetCredits.availableCount}<small>{resetCredits.availableCount === 1 ? "reset" : "resets"}</small></strong> : <span className="cx-quota-reset-credits-status">{resetBusy ? copy.resetLoading : "—"}</span>}
         </div>
       </div>
       {resetError && <p role="alert"><AlertCircle size={12} aria-hidden="true" /><span><strong>{resetCredits ? copy.resetPrevious : copy.resetError}</strong><span>{resetError}</span></span></p>}

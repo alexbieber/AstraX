@@ -138,8 +138,8 @@ fn visible_message(record: Record) -> Option<Message> {
                 .into_iter()
                 .filter_map(|part| match part.kind.as_str() {
                     "input_text" | "output_text" | "text" => part.text,
-                    "input_image" | "image" => Some("[图片 / Image]".to_string()),
-                    "input_audio" | "audio" => Some("[音频 / Audio]".to_string()),
+                    "input_image" | "image" => Some("[Image]".to_string()),
+                    "input_audio" | "audio" => Some("[Audio]".to_string()),
                     _ => None,
                 })
                 .collect::<Vec<_>>()
@@ -155,7 +155,7 @@ fn visible_message(record: Record) -> Option<Message> {
         if !body.is_empty() {
             body.push_str("\n\n");
         }
-        body.push_str("[图片 / Image]");
+        body.push_str("[Image]");
     }
     if body.trim().is_empty() {
         return None;
@@ -245,14 +245,14 @@ fn visit_records(
     mut visitor: impl FnMut(Message) -> Result<()>,
 ) -> Result<usize> {
     file.seek(SeekFrom::Start(0))
-        .map_err(|error| CodexxError::Config(format!("无法读取会话：{error}")))?;
+        .map_err(|error| CodexxError::Config(format!("Unable to read session: {error}")))?;
     let mut reader = BufReader::new(file.take(length));
     let mut malformed = 0;
     let mut verified_meta = false;
     loop {
         if reader
             .fill_buf()
-            .map_err(|error| CodexxError::Config(format!("无法读取会话：{error}")))?
+            .map_err(|error| CodexxError::Config(format!("Unable to read session: {error}")))?
             .is_empty()
         {
             break;
@@ -270,13 +270,13 @@ fn visit_records(
         let has_content = line.has_content;
         if !ended {
             drain_line(&mut reader)
-                .map_err(|error| CodexxError::Config(format!("无法读取会话：{error}")))?;
+                .map_err(|error| CodexxError::Config(format!("Unable to read session: {error}")))?;
         }
         match parsed {
             Ok(record) if record.kind == "session_meta" => {
                 if record.payload.id.as_deref() != Some(expected_id) {
                     return Err(CodexxError::Config(
-                        "会话文件与所选会话不一致，已停止导出".to_string(),
+                        "Session file does not match the selected session; export stopped".to_string(),
                     ));
                 }
                 verified_meta = true;
@@ -285,7 +285,7 @@ fn visit_records(
                 if let Some(message) = visible_message(record) {
                     if !verified_meta {
                         return Err(CodexxError::Config(
-                            "会话文件缺少有效的身份记录，已停止导出".to_string(),
+                            "Session file is missing a valid identity record; export stopped".to_string(),
                         ));
                     }
                     visitor(message)?;
@@ -297,7 +297,7 @@ fn visit_records(
     }
     if !verified_meta {
         return Err(CodexxError::Config(
-            "会话文件缺少有效的身份记录，已停止导出".to_string(),
+            "Session file is missing a valid identity record; export stopped".to_string(),
         ));
     }
     Ok(malformed)
@@ -308,7 +308,7 @@ fn safe_rollout_path(codex_dir: &Path, session: &SessionPreview) -> Result<PathB
         .rollout_path
         .as_deref()
         .filter(|path| !path.trim().is_empty())
-        .ok_or_else(|| CodexxError::Config("找不到此会话的聊天记录文件".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("Chat history file for this session was not found".to_string()))?;
     let path = PathBuf::from(raw);
     let path = if path.is_absolute() {
         path
@@ -320,12 +320,12 @@ fn safe_rollout_path(codex_dir: &Path, session: &SessionPreview) -> Result<PathB
         || metadata.file_type().is_symlink()
         || !path.to_string_lossy().ends_with(".jsonl")
     {
-        return Err(CodexxError::Config("不支持此会话文件类型".to_string()));
+        return Err(CodexxError::Config("This session file type is not supported".to_string()));
     }
     let canonical = path.canonicalize().map_err(|error| io_err(&path, error))?;
     if !is_canonical_rollout_storage_path(codex_dir, &canonical) {
         return Err(CodexxError::Config(
-            "会话文件路径不属于所选会话，已停止导出".to_string(),
+            "Session file path does not belong to the selected session; export stopped".to_string(),
         ));
     }
     Ok(canonical)
@@ -355,7 +355,7 @@ fn write_markdown(codex_dir: &Path, session: &SessionPreview, output: &mut File)
         if message.event {
             if event_counts.len() >= MAX_MESSAGE_KEYS {
                 return Err(CodexxError::Config(
-                    "此会话消息过多，请拆分后导出".to_string(),
+                    "This session has too many messages; split it before exporting".to_string(),
                 ));
             }
             *event_counts.entry(message_key(&message)).or_default() += 1;
@@ -369,22 +369,22 @@ fn write_markdown(codex_dir: &Path, session: &SessionPreview, output: &mut File)
     };
     write(&format!("# {}\n\n", markdown_label(&session.title)))?;
     if let Some(project) = session.cwd.as_deref().and_then(session_project_title) {
-        write(&format!("- 项目 / Project：{}\n", markdown_label(&project)))?;
+        write(&format!("- Project: {}\n", markdown_label(&project)))?;
     }
     if let Some(model) = &session.model {
-        write(&format!("- 模型 / Model：{}\n", markdown_label(model)))?;
+        write(&format!("- Model: {}\n", markdown_label(model)))?;
     }
     if let Some(at) = session
         .updated_at_ms
         .and_then(chrono::DateTime::from_timestamp_millis)
     {
         write(&format!(
-            "- 最近活动 / Last activity：{}\n",
+            "- Last activity: {}\n",
             at.to_rfc3339()
         ))?;
     }
     write(&format!(
-        "- 会话 / Session：{}\n\n",
+        "- Session: {}\n\n",
         markdown_label(&session.id)
     ))?;
     let mut count = 0;
@@ -398,9 +398,9 @@ fn write_markdown(codex_dir: &Path, session: &SessionPreview, output: &mut File)
             }
         }
         let name = if message.role == "user" {
-            "用户 / User"
+            "User"
         } else {
-            "助手 / Assistant"
+            "Assistant"
         };
         write(&format!("---\n\n## {name}\n\n"))?;
         if let Some(at) = message
@@ -417,12 +417,12 @@ fn write_markdown(codex_dir: &Path, session: &SessionPreview, output: &mut File)
     })?;
     if count == 0 {
         return Err(CodexxError::Config(
-            "此会话没有可导出的用户或助手消息".to_string(),
+            "This session has no exportable user or assistant messages".to_string(),
         ));
     }
     if malformed > 0 {
         write(&format!(
-            "> 有 {malformed} 条不完整或过大的记录未能导出。\n"
+            "> {malformed} incomplete or oversized records could not be exported.\n"
         ))?;
     }
     output.flush().map_err(|error| io_err(&path, error))?;
@@ -484,7 +484,7 @@ fn filename(title: &str, index: usize) -> String {
         "{:03}-{}.md",
         index + 1,
         if cleaned.is_empty() {
-            "会话"
+            "Session"
         } else {
             cleaned
         }
@@ -499,7 +499,7 @@ fn destination_snapshot(path: &Path) -> Result<Option<[u8; 32]>> {
     };
     if !metadata.is_file() || metadata.file_type().is_symlink() {
         return Err(CodexxError::Config(
-            "请选择普通文件作为导出位置".to_string(),
+            "Please choose a regular file as the export destination".to_string(),
         ));
     }
     let mut file = File::open(path).map_err(|error| io_err(path, error))?;
@@ -529,7 +529,7 @@ pub(crate) fn export_codex_sessions_inner(
         .filter(|id| !id.trim().is_empty() && seen.insert(id.clone()))
         .collect();
     if ids.is_empty() {
-        return Err(CodexxError::Config("请先选择要导出的会话".to_string()));
+        return Err(CodexxError::Config("Please select sessions to export first".to_string()));
     }
     let destination = PathBuf::from(destination);
     let extension = if ids.len() == 1 { "md" } else { "zip" };
@@ -539,26 +539,26 @@ pub(crate) fn export_codex_sessions_inner(
             .is_some_and(|ext| ext.eq_ignore_ascii_case(extension))
     {
         return Err(CodexxError::Config(format!(
-            "请选择 .{extension} 文件作为导出位置"
+            "Please choose a .{extension} file as the export destination"
         )));
     }
     let parent = destination
         .parent()
         .and_then(|path| path.canonicalize().ok())
-        .ok_or_else(|| CodexxError::Config("导出文件夹不存在".to_string()))?;
+        .ok_or_else(|| CodexxError::Config("Export folder does not exist".to_string()))?;
     if codex_dir
         .canonicalize()
         .is_ok_and(|root| parent.starts_with(root))
         || is_canonical_rollout_storage_path(&codex_dir, &parent)
     {
         return Err(CodexxError::Config(
-            "请选择 Codex 数据目录之外的位置保存导出文件".to_string(),
+            "Please save the export outside the Codex data directory".to_string(),
         ));
     }
     let destination = parent.join(
         destination
             .file_name()
-            .ok_or_else(|| CodexxError::Config("请选择导出文件名".to_string()))?,
+            .ok_or_else(|| CodexxError::Config("Please choose an export filename".to_string()))?,
     );
     let snapshot = destination_snapshot(&destination)?;
     let paths = sqlite_candidate_paths(&codex_dir);
@@ -572,7 +572,7 @@ pub(crate) fn export_codex_sessions_inner(
     for id in &ids {
         let Some(session) = sessions.get(id) else {
             warnings.push(format!(
-                "会话 {} 已不在当前会话列表中",
+                "Session {} is no longer in the current session list",
                 id.chars().take(8).collect::<String>()
             ));
             continue;
@@ -582,14 +582,14 @@ pub(crate) fn export_codex_sessions_inner(
             Ok(malformed) => {
                 if malformed > 0 {
                     warnings.push(format!(
-                        "「{}」有 {malformed} 条不完整或过大的记录未能导出",
+                        ""{}" had {malformed} incomplete or oversized records that could not be exported",
                         session.title.chars().take(60).collect::<String>()
                     ));
                 }
                 prepared.push((session.title.clone(), output));
             }
             Err(error) => warnings.push(format!(
-                "「{}」导出失败：{error}",
+                "Failed to export "{}": {error}",
                 session.title.chars().take(60).collect::<String>()
             )),
         }
@@ -611,7 +611,7 @@ pub(crate) fn export_codex_sessions_inner(
                     .compression_method(zip::CompressionMethod::Deflated)
                     .unix_permissions(0o600),
             )
-            .map_err(|error| CodexxError::Config(format!("无法创建会话压缩包：{error}")))?;
+            .map_err(|error| CodexxError::Config(format!("Unable to create session archive: {error}")))?;
             let file = source.file.as_mut().unwrap();
             file.seek(SeekFrom::Start(0))
                 .map_err(|error| io_err(&source.path, error))?;
@@ -619,7 +619,7 @@ pub(crate) fn export_codex_sessions_inner(
         }
         archive.file = Some(
             zip.finish()
-                .map_err(|error| CodexxError::Config(format!("无法完成会话压缩包：{error}")))?,
+                .map_err(|error| CodexxError::Config(format!("Unable to finalize session archive: {error}")))?,
         );
         &mut archive
     };
@@ -632,7 +632,7 @@ pub(crate) fn export_codex_sessions_inner(
     output.file.take();
     if destination_snapshot(&destination)? != snapshot {
         return Err(CodexxError::Config(
-            "导出位置的文件已被其他程序修改，请重新导出".to_string(),
+            "Export destination was modified by another program; please export again".to_string(),
         ));
     }
     fs::rename(&output.path, &destination).map_err(|error| io_err(&destination, error))?;
@@ -715,14 +715,14 @@ mod tests {
     #[test]
     fn exports_markdown_titles_times_and_code_without_system_tools_or_reasoning() {
         let fixture = Fixture::new();
-        let path = fixture.add("session-one", "我的项目", &[
+        let path = fixture.add("session-one", "My project", &[
             response("system", "SYSTEM-PRIVATE"), response("developer", "DEVELOPER-PRIVATE"),
             response("user", "# AGENTS.md instructions\nPRIVATE INSTRUCTIONS"),
             response("user", "<environment_context>PRIVATE ENV</environment_context>"),
-            event("user", "帮我写代码"),
+            event("user", "Help me write code"),
             json!({"type":"event_msg","payload":{"type":"agent_reasoning","text":"REASONING-PRIVATE"}}),
             json!({"type":"response_item","payload":{"type":"function_call","arguments":"TOOL-PRIVATE"}}),
-            event("assistant", "可以：\n```rust\nprintln!(\"hello\");\n```"),
+            event("assistant", "Sure:\n```rust\nprintln!(\"hello\");\n```"),
         ], false);
         let before = fs::read(&path).unwrap();
         let database = fs::read(&fixture.database).unwrap();
@@ -731,8 +731,8 @@ mod tests {
         assert_eq!(result.failed_sessions, 0);
         assert!(result.warnings.is_empty());
         let markdown = fs::read_to_string(result.path).unwrap();
-        assert!(markdown.starts_with("# 我的项目"));
-        assert!(markdown.contains("项目 / Project：project"));
+        assert!(markdown.starts_with("# My project"));
+        assert!(markdown.contains("Project: project"));
         assert!(markdown.contains("2026-09-12T10:00:00+00:00"));
         assert!(markdown.contains("```rust\nprintln!(\"hello\");\n```"));
         assert!(!markdown.contains("PRIVATE"));
@@ -746,43 +746,43 @@ mod tests {
         let fixture = Fixture::new();
         fixture.add(
             "repeated",
-            "问答",
+            "Q&A",
             &[
-                event("user", "继续"),
-                response("user", "继续\n"),
-                response("assistant", "第一次回答"),
-                event("assistant", "第一次回答"),
-                event("user", "继续"),
-                response("user", "继续"),
-                event("assistant", "第二次回答"),
-                response("assistant", "第二次回答"),
-                response("user", "只有旧格式的问题"),
-                response("assistant", "只有旧格式的答案"),
+                event("user", "Continue"),
+                response("user", "Continue\n"),
+                response("assistant", "First reply"),
+                event("assistant", "First reply"),
+                event("user", "Continue"),
+                response("user", "Continue"),
+                event("assistant", "Second reply"),
+                response("assistant", "Second reply"),
+                response("user", "Old-format question only"),
+                response("assistant", "Old-format answer only"),
             ],
             false,
         );
         let result = fixture.export(&["repeated"], "repeated.md").unwrap();
         let text = fs::read_to_string(result.path).unwrap();
-        assert_eq!(text.matches("继续").count(), 2);
-        assert_eq!(text.matches("第一次回答").count(), 1);
-        assert_eq!(text.matches("第二次回答").count(), 1);
-        assert_eq!(text.matches("## 用户 / User").count(), 3);
-        assert_eq!(text.matches("## 助手 / Assistant").count(), 3);
-        assert!(text.contains("只有旧格式的答案"));
+        assert_eq!(text.matches("Continue").count(), 2);
+        assert_eq!(text.matches("First reply").count(), 1);
+        assert_eq!(text.matches("Second reply").count(), 1);
+        assert_eq!(text.matches("## User").count(), 3);
+        assert_eq!(text.matches("## Assistant").count(), 3);
+        assert!(text.contains("Old-format answer only"));
     }
 
     #[test]
     fn images_are_placeholders_and_large_payload_does_not_hide_later_messages() {
         let fixture = Fixture::new();
-        fixture.add("image", "图片", &[
-            json!({"type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"看看图片"},{"type":"input_image","image_url":format!("data:image/png;base64,{}", "B".repeat(3 * 1024 * 1024))}]}}),
+        fixture.add("image", "Image", &[
+            json!({"type":"response_item","payload":{"type":"message","role":"user","content":[{"type":"input_text","text":"Look at the image"},{"type":"input_image","image_url":format!("data:image/png;base64,{}", "B".repeat(3 * 1024 * 1024))}]}}),
             json!({"type":"response_item","payload":{"type":"function_call_output","output":"T".repeat(3 * 1024 * 1024)}}),
-            response("assistant", "这是一张图片。"),
+            response("assistant", "This is an image."),
         ], false);
         let result = fixture.export(&["image"], "image.md").unwrap();
         let text = fs::read_to_string(result.path).unwrap();
-        assert!(text.contains("[图片 / Image]"));
-        assert!(text.contains("这是一张图片。"));
+        assert!(text.contains("[Image]"));
+        assert!(text.contains("This is an image."));
         assert!(!text.contains("base64"));
         assert!(text.len() < 2000);
         assert!(result.warnings.is_empty());
@@ -791,20 +791,20 @@ mod tests {
     #[test]
     fn exports_only_explicit_selection_and_does_not_auto_include_subagents() {
         let fixture = Fixture::new();
-        fixture.add("parent", "主会话", &[event("user", "父会话正文")], false);
+        fixture.add("parent", "Main session", &[event("user", "Parent session body")], false);
         fixture.add(
             "child",
-            "内部会话",
-            &[event("assistant", "子会话正文")],
+            "Internal session",
+            &[event("assistant", "Child session body")],
             true,
         );
         let result = fixture.export(&["parent"], "parent.md").unwrap();
         let text = fs::read_to_string(result.path).unwrap();
-        assert!(!text.contains("子会话正文"));
+        assert!(!text.contains("Child session body"));
         let result = fixture.export(&["child"], "child.md").unwrap();
         assert!(fs::read_to_string(result.path)
             .unwrap()
-            .contains("子会话正文"));
+            .contains("Child session body"));
     }
 
     #[test]
@@ -812,14 +812,14 @@ mod tests {
         let fixture = Fixture::new();
         fixture.add(
             "one",
-            "../同一个:标题",
-            &[event("user", "第一条正文")],
+            "../same:title",
+            &[event("user", "First body")],
             false,
         );
         fixture.add(
             "two",
-            "../同一个:标题",
-            &[event("assistant", "第二条正文")],
+            "../same:title",
+            &[event("assistant", "Second body")],
             false,
         );
         let result = fixture
@@ -841,15 +841,15 @@ mod tests {
                 .unwrap()
                 .read_to_string(&mut text)
                 .unwrap();
-            assert!(text.contains("正文"));
+            assert!(text.contains("Body"));
         }
     }
 
     #[test]
     fn unreadable_or_missing_selection_is_reported_without_empty_zip_members() {
         let fixture = Fixture::new();
-        fixture.add("good", "可读取", &[event("user", "正文")], false);
-        let bad = fixture.add("bad", "无法读取", &[event("user", "坏记录")], false);
+        fixture.add("good", "Readable", &[event("user", "Body")], false);
+        let bad = fixture.add("bad", "Unreadable", &[event("user", "Bad record")], false);
         fs::remove_file(bad).unwrap();
         let result = fixture
             .export(&["good", "bad", "missing"], "partial.zip")
@@ -868,7 +868,7 @@ mod tests {
     #[test]
     fn rejects_outside_paths_and_mismatched_metadata_without_overwriting_destination() {
         let fixture = Fixture::new();
-        let original = fixture.add("outside", "外部", &[event("user", "PRIVATE")], false);
+        let original = fixture.add("outside", "External", &[event("user", "PRIVATE")], false);
         let outside = fixture.root.join(original.file_name().unwrap());
         fs::rename(original, &outside).unwrap();
         Connection::open(&fixture.database)
@@ -884,7 +884,7 @@ mod tests {
             fs::read_to_string(fixture.root.join("protected.md")).unwrap(),
             "existing export"
         );
-        let mismatch = fixture.add("mismatch", "不一致", &[event("user", "PRIVATE")], false);
+        let mismatch = fixture.add("mismatch", "Mismatch", &[event("user", "PRIVATE")], false);
         fs::write(
             mismatch,
             "{\"type\":\"session_meta\",\"payload\":{\"id\":\"another\"}}\n",
@@ -902,7 +902,7 @@ mod tests {
     #[test]
     fn rejects_destination_inside_codex_storage_and_wrong_file_extensions() {
         let fixture = Fixture::new();
-        fixture.add("one", "一个", &[event("user", "正文")], false);
+        fixture.add("one", "One", &[event("user", "Body")], false);
         assert!(fixture.export(&["one"], "wrong.zip").is_err());
         assert!(fixture.export(&["one"], "codex/export.md").is_err());
         assert!(fixture.export(&[], "none.md").is_err());
@@ -913,8 +913,8 @@ mod tests {
         let fixture = Fixture::new();
         let original = fixture.add(
             "custom-name",
-            "自定义文件名",
-            &[event("user", "正常正文")],
+            "Custom filename",
+            &[event("user", "Normal body")],
             false,
         );
         let renamed = fixture.codex.join("sessions/imported-conversation.jsonl");
@@ -929,27 +929,27 @@ mod tests {
         let result = fixture.export(&["custom-name"], "custom.md").unwrap();
         assert!(fs::read_to_string(result.path)
             .unwrap()
-            .contains("正常正文"));
+            .contains("Normal body"));
     }
 
     #[test]
     fn malformed_record_is_skipped_without_consuming_next_message() {
         let fixture = Fixture::new();
-        let path = fixture.add("malformed", "有损坏记录", &[event("user", "第一条")], false);
+        let path = fixture.add("malformed", "Has corrupted records", &[event("user", "First")], false);
         let mut file = OpenOptions::new().append(true).open(path).unwrap();
         writeln!(file, "{{this is not json").unwrap();
-        writeln!(file, "{}", event("assistant", "损坏之后的正常回复")).unwrap();
+        writeln!(file, "{}", event("assistant", "Normal reply after corruption")).unwrap();
         let result = fixture.export(&["malformed"], "malformed.md").unwrap();
         let text = fs::read_to_string(result.path).unwrap();
-        assert!(text.contains("损坏之后的正常回复"));
-        assert!(result.warnings[0].contains("1 条"));
+        assert!(text.contains("Normal reply after corruption"));
+        assert!(result.warnings[0].contains("1 item"));
     }
 
     #[test]
     fn multiline_title_cannot_inject_markdown_metadata() {
         assert_eq!(
-            markdown_label("名称\n<script>*x*</script>"),
-            "名称 &lt;script&gt;\\*x\\*&lt;/script&gt;"
+            markdown_label("Name\n<script>*x*</script>"),
+            "Name &lt;script&gt;\\*x\\*&lt;/script&gt;"
         );
     }
 
@@ -967,11 +967,11 @@ mod tests {
         analysis["payload"]["channel"] = json!("analysis");
         let path = fixture.add(
             "blank",
-            "正常记录",
+            "Normal record",
             &[
-                event("user", "正常问题"),
+                event("user", "Normal question"),
                 analysis,
-                event("assistant", "正常回答"),
+                event("assistant", "Normal answer"),
             ],
             false,
         );
@@ -990,7 +990,7 @@ mod tests {
     fn rejects_rollout_and_destination_symlinks() {
         use std::os::unix::fs::symlink;
         let fixture = Fixture::new();
-        let path = fixture.add("link", "链接", &[event("user", "正文")], false);
+        let path = fixture.add("link", "Link", &[event("user", "Body")], false);
         let real = fixture.codex.join("sessions/real.jsonl");
         fs::rename(&path, &real).unwrap();
         symlink(&real, &path).unwrap();
@@ -1007,7 +1007,7 @@ mod tests {
     #[test]
     fn ignores_legacy_database_rows_when_an_active_database_exists() {
         let fixture = Fixture::new();
-        fixture.add("active", "当前", &[event("user", "当前正文")], false);
+        fixture.add("active", "Current", &[event("user", "Current body")], false);
         let legacy = fixture.codex.join("state_4.sqlite");
         fs::copy(&fixture.database, &legacy).unwrap();
         Connection::open(legacy)

@@ -761,7 +761,7 @@ fn invalid_persisted_settings_restore_direct_without_restarting_listener() {
     let status = get_status(fixture.scope()).unwrap();
     assert!(!status.running && !status.takeover_active);
     assert!(!fixture.text().contains("http://127.0.0.1:"));
-    assert!(status.message.unwrap().contains("路由设置需要检查"));
+    assert!(status.message.unwrap().contains("Routing settings need review"));
 }
 
 #[test]

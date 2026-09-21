@@ -55,7 +55,7 @@ export function AppToast({
         ? <Loader2 className="cx-app-toast-loader" size={18} aria-hidden="true" />
         : <span className="cx-app-toast-dot" aria-hidden="true" />}
       <div className="cx-app-toast-copy">
-        <strong>{firstLine || (isError ? (lang === "zh" ? "操作失败" : "Action failed") : "AstraX")}</strong>
+        <strong>{firstLine || (isError ? "Action failed" : "AstraX")}</strong>
         {detail && <span>{detail}</span>}
       </div>
     </div>
@@ -94,7 +94,6 @@ export function UpdateDialog({
   onRetry,
   onRestart,
 }: UpdateDialogProps) {
-  const isChinese = lang === "zh";
   const updaterState = state ?? {
     ...INITIAL_APP_UPDATER_STATE,
     phase: "available" as const,
@@ -109,39 +108,7 @@ export function UpdateDialog({
     ? Math.min(100, Math.round((updaterState.downloadedBytes / totalBytes) * 100))
     : null;
 
-  const copy = isChinese
-    ? {
-        checkingTitle: "正在检查更新",
-        checkingDescription: "正在确认是否有新版本。",
-        availableTitle: "发现新版本",
-        availableDescription: onUpdate
-          ? "可以直接在软件内完成更新，无需重新下载安装包。"
-          : "检测到新版本，可前往下载页获取对应平台的安装包。",
-        downloadingTitle: "正在下载更新",
-        downloadingDescription: "请保持 AstraX 打开，下载完成后会自动安装。",
-        installingTitle: "正在安装更新",
-        installingDescription: "即将完成，请暂时不要关闭软件。",
-        readyTitle: "更新已准备好",
-        readyDescription: "重新启动 AstraX 即可使用新版本。",
-        errorTitle: "更新没有完成",
-        errorDescription: updaterState.failure === "restart"
-          ? "软件未能重新启动，请再试一次。"
-          : "请重试；如果仍然失败，也可以前往下载页更新。",
-        idleTitle: "当前已是最新版本",
-        idleDescription: "暂时没有可用的新版本。",
-        current: "当前版本",
-        latest: "新版本",
-        later: "稍后",
-        close: "关闭",
-        updateNow: "立即更新",
-        downloading: "正在下载",
-        installing: "正在安装",
-        restart: "重新启动",
-        retry: "重试",
-        downloadPage: "打开下载页",
-        releaseNotes: "本次更新",
-      }
-    : {
+  const copy = {
         checkingTitle: "Checking for updates",
         checkingDescription: "Checking whether a new version is available.",
         availableTitle: "New version available",
@@ -344,7 +311,6 @@ export function StartupWizardDialog({
   onOpenSettings,
   onEnter,
 }: StartupWizardDialogProps) {
-  const isChinese = lang === "zh";
   const isManual = mode === "manual";
   const recheckButton = (
     <Button
@@ -353,7 +319,7 @@ export function StartupWizardDialog({
       onClick={onRecheck}
       disabled={loading}
     >
-      {loading ? (isChinese ? "正在检查" : "Checking") : (isChinese ? "重新检查" : "Recheck")}
+      {loading ? "Checking" : "Recheck"}
     </Button>
   );
 
@@ -362,26 +328,26 @@ export function StartupWizardDialog({
       open={open}
       onClose={onSkip}
       size="lg"
-      title={isChinese ? "环境与配置检查" : "Environment & configuration check"}
+      title={"Environment & configuration check"}
       description={isManual
-        ? (isChinese ? "查看环境与配置状态，发现问题后可选择修复。" : "Review your environment and configuration, and choose whether to repair any issues.")
-        : (isChinese ? "首次使用前，检查 Codex 环境与配置是否就绪。" : "Before you get started, check whether your Codex environment and configuration are ready.")}
+        ? "Review your environment and configuration, and choose whether to repair any issues."
+        : "Before you get started, check whether your Codex environment and configuration are ready."}
       showCloseButton={isManual}
-      closeLabel={isChinese ? "关闭" : "Close"}
+      closeLabel={"Close"}
       closeOnBackdrop={isManual}
       closeOnEscape={isManual}
       className={closing ? "cx-startup-dialog cx-startup-dialog--closing" : "cx-startup-dialog"}
       footer={(
         isManual ? (
           <>
-            <Button variant="secondary" onClick={onSkip}>{isChinese ? "关闭" : "Close"}</Button>
+            <Button variant="secondary" onClick={onSkip}>{"Close"}</Button>
             {recheckButton}
           </>
         ) : (
           <>
-            <Button variant="ghost" onClick={onSkip}>{isChinese ? "跳过" : "Skip"}</Button>
-            <Button variant="secondary" icon={<Settings size={16} />} onClick={onOpenSettings}>{isChinese ? "去设置" : "Settings"}</Button>
-            <Button icon={<CheckCircle2 size={16} />} onClick={onEnter}>{isChinese ? "进入 AstraX" : "Enter AstraX"}</Button>
+            <Button variant="ghost" onClick={onSkip}>{"Skip"}</Button>
+            <Button variant="secondary" icon={<Settings size={16} />} onClick={onOpenSettings}>{"Settings"}</Button>
+            <Button icon={<CheckCircle2 size={16} />} onClick={onEnter}>{"Enter AstraX"}</Button>
           </>
         )
       )}
@@ -402,7 +368,7 @@ export function StartupWizardDialog({
       {diagnosticsError && <div className="cx-startup-diagnostics-notice cx-startup-diagnostics-notice--error" role="alert">
         <AlertCircle size={17} aria-hidden="true" />
         <div>
-          <strong>{isChinese ? "环境检查未完成" : "Environment check did not finish"}</strong>
+          <strong>{"Environment check did not finish"}</strong>
           <p>{diagnosticsError}</p>
         </div>
       </div>}
@@ -410,21 +376,19 @@ export function StartupWizardDialog({
       {!diagnostics && !diagnosticsError && <div className="cx-startup-diagnostics-notice" role="status" aria-live="polite">
         {loading ? <Loader2 className="spin" size={17} aria-hidden="true" /> : <RefreshCw size={17} aria-hidden="true" />}
         <p>{loading
-          ? (isChinese ? "正在检查 Codex 环境…" : "Checking your Codex environment…")
-          : (isChinese ? "点击重新检查，查看当前环境状态。" : "Choose Recheck to see the current environment status.")}</p>
+          ? "Checking your Codex environment…"
+          : "Choose Recheck to see the current environment status."}</p>
       </div>}
 
       {diagnostics && <div className="cx-startup-checks">
         {diagnostics.items.map((item) => {
           const isOk = item.status === "ok";
           const isManual = item.status === "manual";
-          const statusText = isChinese
-            ? item.message
-            : isOk
-              ? "Detected"
-              : isManual
-                ? "Manual selection required"
-                : "Not found";
+          const statusText = isOk
+            ? "Detected"
+            : isManual
+              ? "Manual selection required"
+              : "Not found";
           return (
             <article className={`cx-startup-check${isOk ? " cx-startup-check--ok" : isManual ? " cx-startup-check--manual" : ""}`} key={item.key}>
               <div className="cx-startup-check-icon" aria-hidden="true">

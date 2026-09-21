@@ -221,7 +221,7 @@ AstraX/
 - [ ] More provider presets and first-run onboarding  
 - [x] Screenshot gallery for README previews  
 - [ ] Optional light theme polish to match the dark brand  
-- [ ] Fresh AstraX-branded screenshot set (English UI)  
+- [x] Fresh AstraX-branded screenshot set (English UI)  
 
 Contributions welcome — open an issue or PR on [alexbieber/AstraX](https://github.com/alexbieber/AstraX).
 

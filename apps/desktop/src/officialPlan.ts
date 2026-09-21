@@ -15,7 +15,7 @@ export function getOfficialPlan(planType: string | null | undefined, lang: "zh" 
     business: { label: "Business", tone: "team" },
     enterprise: { label: "Enterprise", tone: "enterprise" },
     edu: { label: "Edu", tone: "edu" },
-    free: { label: lang === "zh" ? "免费版" : "Free", tone: "free" },
+    free: { label: "Free", tone: "free" },
     go: { label: "Go", tone: "neutral" },
   };
   return Object.prototype.hasOwnProperty.call(known, key) ? known[key] : { label: raw, tone: "neutral" };

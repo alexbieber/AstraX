@@ -192,19 +192,19 @@ fn profile_owned_auth(codex_dir: &Path, profile_id: &str) -> Result<Option<Value
     profile_name(codex_dir, profile_id)?;
     let is_current = selected_profile_id(codex_dir)? == profile_id
         && live_config_is_official(codex_dir)
-            .map_err(|_| CodexxError::Config("无法确认当前官方登录状态，请刷新配置".to_string()))?;
+            .map_err(|_| CodexxError::Config("Unable to confirm current official login status; refresh the profile".to_string()))?;
     if is_current {
         let text = read_to_string_if_exists(&crate::auth_path(codex_dir))
-            .map_err(|_| CodexxError::Config("无法读取当前官方认证，请重新登录".to_string()))?;
+            .map_err(|_| CodexxError::Config("Unable to read current official credentials; please sign in again".to_string()))?;
         // Live logout/refresh owns the current profile. Do not resurrect a stale
         // snapshot or consult another account's historical recovery credentials.
         return parse_auth(&text)
-            .map_err(|_| CodexxError::Config("当前官方认证无效，请重新登录".to_string()));
+            .map_err(|_| CodexxError::Config("Current official credentials are invalid; please sign in again".to_string()));
     }
     saved_official_profile_candidate(codex_dir, profile_id)
         .map(|candidate| candidate.and_then(|candidate| candidate.auth))
         .map_err(|_| {
-            CodexxError::Config("无法读取此官方配置的认证，请重新保存登录信息".to_string())
+            CodexxError::Config("Unable to read credentials for this official profile; save login info again".to_string())
         })
 }
 
@@ -213,10 +213,10 @@ pub(crate) fn official_profile_quota_credentials(
     profile_id: &str,
 ) -> Result<OfficialProfileQuotaCredentials> {
     let auth = profile_owned_auth(codex_dir, profile_id)?.ok_or_else(|| {
-        CodexxError::Config("此官方配置尚未登录，请先在 Codex 中登录".to_string())
+        CodexxError::Config("This official profile is not signed in; please sign in via Codex first".to_string())
     })?;
     let access_token = quota_access_token(&auth).ok_or_else(|| {
-        CodexxError::Config("此配置没有可用的 ChatGPT 登录凭据，无法查询订阅额度".to_string())
+        CodexxError::Config("This profile has no usable ChatGPT credentials; cannot query subscription quota".to_string())
     })?;
     Ok(OfficialProfileQuotaCredentials {
         access_token,
@@ -314,14 +314,14 @@ fn profile_name(codex_dir: &Path, id: &str) -> Result<String> {
     if id == DEFAULT_OFFICIAL_PROFILE_ID {
         return Ok(DEFAULT_OFFICIAL_PROFILE_NAME.to_string());
     }
-    Err(CodexxError::Config(format!("未找到官方配置: {id}")))
+    Err(CodexxError::Config(format!("Official profile not found: {id}")))
 }
 
 fn normalize_name(name: &str) -> Result<String> {
     let name = name.trim();
     if name.is_empty() || name.chars().count() > 100 {
         return Err(CodexxError::Config(
-            "官方配置名称必须为 1–100 个字符".to_string(),
+            "Official profile name must be 1–100 characters".to_string(),
         ));
     }
     Ok(name.to_string())
@@ -329,7 +329,7 @@ fn normalize_name(name: &str) -> Result<String> {
 
 fn bounded_copy_name(base_name: &str, ordinal: Option<usize>) -> String {
     let base_name = base_name.trim();
-    let (stem, marker) = [" 副本", " Copy"]
+    let (stem, marker) = [" copy", " Copy"]
         .into_iter()
         .find_map(|marker| base_name.strip_suffix(marker).map(|stem| (stem, marker)))
         .unwrap_or((base_name, ""));
@@ -361,7 +361,7 @@ fn detail(codex_dir: &Path, id: &str) -> Result<OfficialProfileDetail> {
     let candidate = profile_candidate(codex_dir, id)?;
     if candidate.is_none() && id != DEFAULT_OFFICIAL_PROFILE_ID {
         return Err(CodexxError::Config(format!(
-            "官方配置 {provider_name} 的快照缺失，未使用其他账号替代"
+            "Snapshot for official profile {provider_name} is missing; did not substitute another account"
         )));
     }
     let model = candidate
@@ -379,7 +379,7 @@ fn detail(codex_dir: &Path, id: &str) -> Result<OfficialProfileDetail> {
         .and_then(|candidate| candidate.auth.as_ref())
         .map(serde_json::to_string_pretty)
         .transpose()
-        .map_err(|error| CodexxError::Config(format!("读取官方认证失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to read official credentials: {error}")))?
         .unwrap_or_default();
     let owned_auth = profile_owned_auth(codex_dir, id).ok().flatten();
     let metadata = owned_auth
@@ -404,7 +404,7 @@ fn detail(codex_dir: &Path, id: &str) -> Result<OfficialProfileDetail> {
         auth_json,
         source: candidate
             .map(|candidate| candidate.source)
-            .unwrap_or_else(|| "根据当前 config.toml 生成".to_string()),
+            .unwrap_or_else(|| "Generated from current config.toml".to_string()),
     })
 }
 
@@ -489,7 +489,7 @@ fn parse_auth(text: &str) -> Result<Option<Value>> {
         return Ok(None);
     }
     let auth: Value = serde_json::from_str(text)
-        .map_err(|error| CodexxError::Config(format!("官方 auth.json 不是有效 JSON: {error}")))?;
+        .map_err(|error| CodexxError::Config(format!("Official auth.json is not valid JSON: {error}")))?;
     let has_endpoint = ["base_url", "baseUrl", "api_base", "endpoint"]
         .iter()
         .any(|key| auth.get(key).is_some());
@@ -506,7 +506,7 @@ fn parse_auth(text: &str) -> Result<Option<Value>> {
         });
     if !auth.is_object() || has_endpoint || (!is_chatgpt_auth(&auth) && !official_api_key) {
         return Err(CodexxError::Config(
-            "官方认证必须是有效的 Codex 官方登录认证或 OpenAI API Key；留空可保存待登录配置"
+            "Official credentials must be a valid Codex official login or OpenAI API key; leave empty to save a pending-login profile"
                 .to_string(),
         ));
     }
@@ -572,7 +572,7 @@ impl Mutation {
                 // Keep per-account recovery snapshots and the new selection
                 // when an external writer prevents restoring the live pair.
                 return CodexxError::Config(format!(
-                    "{error}；live 配置回滚失败，已保留账号恢复快照：{rollback}"
+                    "{error}; live config rollback failed; account recovery snapshot kept: {rollback}"
                 ));
             }
         }
@@ -593,7 +593,7 @@ impl Mutation {
                     .map_err(database_error)?;
                 if read_store(&transaction, &self.codex_dir)? != *after {
                     return Err(CodexxError::Config(
-                        "官方配置记录已被其他操作修改，拒绝覆盖".to_string(),
+                        "Official profile record was modified by another operation; refusing overwrite".to_string(),
                     ));
                 }
                 let scope = normalized_path_scope(&self.codex_dir);
@@ -629,7 +629,7 @@ impl Mutation {
         if failures.is_empty() {
             error
         } else {
-            CodexxError::Config(format!("{error}；回滚失败：{}", failures.join("；")))
+            CodexxError::Config(format!("{error}; rollback failed: {}", failures.join("；")))
         }
     }
 }
@@ -762,7 +762,7 @@ fn save_locked(
         })?;
         let profile = detail(codex_dir, &id)?.profile;
         Ok(OfficialProfileActionResult {
-            action: action(codex_dir, format!("已保存官方配置 {name}"), backup_id)?,
+            action: action(codex_dir, format!("Saved official profile {name}"), backup_id)?,
             profile,
         })
     })
@@ -788,7 +788,7 @@ pub(crate) fn duplicate_official_profile_inner(
     let _lock = acquire_live_config_lock(&codex_dir)?;
     let source = detail(&codex_dir, &profile_id)?;
     let base_name =
-        provider_name.unwrap_or_else(|| format!("{} 副本", source.profile.provider_name));
+        provider_name.unwrap_or_else(|| format!("{} copy", source.profile.provider_name));
     let saved = read_store(&open_store()?, &codex_dir)?;
     let default_name = profile_name(&codex_dir, DEFAULT_OFFICIAL_PROFILE_ID)?;
     let mut copy_name = bounded_copy_name(&base_name, None);
@@ -842,7 +842,7 @@ pub(crate) fn reset_default_official_profile_inner(
         true,
     )?
     .action;
-    result.message = "已新建默认官方配置，请在 Codex 中重新登录".to_string();
+    result.message = "Created a new default official profile; please sign in again in Codex".to_string();
     Ok(result)
 }
 
@@ -897,10 +897,10 @@ fn switch_official_profile_with_before_apply(
         })?;
         mutation.update_store(|conn| select_profile(conn, &codex_dir, &profile_id))?;
         let message = if target.profile.has_auth {
-            format!("已切换到 {}", target.profile.provider_name)
+            format!("Switched to {}", target.profile.provider_name)
         } else {
             format!(
-                "已切换到 {}，请在 Codex 中完成登录",
+                "Switched to {}; please complete login in Codex",
                 target.profile.provider_name
             )
         };
@@ -916,12 +916,12 @@ pub(crate) fn delete_official_profile_inner(
     ensure_directory(&codex_dir)?;
     let _lock = acquire_live_config_lock(&codex_dir)?;
     if profile_id == DEFAULT_OFFICIAL_PROFILE_ID {
-        return Err(CodexxError::Config("不能删除默认官方配置".to_string()));
+        return Err(CodexxError::Config("Cannot delete the default official profile".to_string()));
     }
     profile_name(&codex_dir, &profile_id)?;
     if live_config_is_official(&codex_dir)? && selected_profile_id(&codex_dir)? == profile_id {
         return Err(CodexxError::Config(
-            "请先切换到其他配置，再删除当前官方配置".to_string(),
+            "Switch to another profile before deleting the current official profile".to_string(),
         ));
     }
     with_mutation(&codex_dir, |mutation| {
@@ -1448,7 +1448,7 @@ mod tests {
     fn official_profile_copies_bound_unicode_names_and_numbered_suffixes() {
         let _guard = crate::app_db::test_db_guard();
         let dir = prepare_home("long-copy-names");
-        let original_name = "账🦀".repeat(50);
+        let original_name = "Acct🦀".repeat(50);
         save(
             &dir,
             Some(DEFAULT_OFFICIAL_PROFILE_ID),
@@ -1469,9 +1469,9 @@ mod tests {
             )
             .unwrap();
             let suffix = if ordinal == 1 {
-                " 副本".to_string()
+                " copy".to_string()
             } else {
-                format!(" 副本 {ordinal}")
+                format!(" copy {ordinal}")
             };
             assert_eq!(copy.profile.provider_name.chars().count(), 100);
             assert!(copy.profile.provider_name.ends_with(&suffix));
@@ -1815,7 +1815,7 @@ mod tests {
                 write_json(&auth_path(codex_dir), &auth("concurrent-refresh"))
             })
             .unwrap_err();
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(live_auth(&dir), auth("concurrent-refresh"));
         assert_eq!(fs::read(config_path(&dir)).unwrap(), config_before);
         assert_eq!(

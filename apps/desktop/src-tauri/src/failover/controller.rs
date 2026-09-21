@@ -175,7 +175,7 @@ fn manager() -> &'static Mutex<HashMap<PathBuf, Running>> {
 fn lock_manager() -> Result<MutexGuard<'static, HashMap<PathBuf, Running>>> {
     manager()
         .lock()
-        .map_err(|_| CodexxError::Config("路由服务忙，请重新打开 Astra".into()))
+        .map_err(|_| CodexxError::Config("Routing service is busy; please reopen Astra".into()))
 }
 fn directory(config_dir: Option<String>) -> Result<PathBuf> {
     let path = crate::resolve_codex_dir(config_dir)?;
@@ -198,9 +198,9 @@ fn load_record(dir: &Path) -> Result<Record> {
         });
     };
     let raw: serde_json::Value = serde_json::from_str(&text)
-        .map_err(|_| CodexxError::Config("路由设置无法读取，请检查应用数据备份".into()))?;
+        .map_err(|_| CodexxError::Config("Unable to read routing settings; check app data backups".into()))?;
     let mut record: Record = serde_json::from_value(raw.clone())
-        .map_err(|_| CodexxError::Config("路由设置格式不正确".into()))?;
+        .map_err(|_| CodexxError::Config("Routing settings format is invalid".into()))?;
     if raw
         .get("settings")
         .and_then(|s| s.get("routerEnabled"))
@@ -238,7 +238,7 @@ fn save_record_on_connection(
     record: &Record,
 ) -> Result<()> {
     let text = serde_json::to_string(record)
-        .map_err(|_| CodexxError::Config("无法保存路由设置".into()))?;
+        .map_err(|_| CodexxError::Config("Unable to save routing settings".into()))?;
     conn.execute("INSERT INTO provider_failover(codex_dir,record_json) VALUES(?1,?2) ON CONFLICT(codex_dir) DO UPDATE SET record_json=excluded.record_json", params![normalized_path_scope(dir),text])
         .map_err(|e| CodexxError::Database(e.to_string()))?;
     Ok(())
@@ -317,7 +317,7 @@ fn original_table(journal: &ProxyJournal) -> Result<Table> {
         .original_table
         .parse::<DocumentMut>()
         .map(|doc| doc.as_table().clone())
-        .map_err(|_| CodexxError::Config("直连配置备份无法读取，未覆盖当前配置".into()))
+        .map_err(|_| CodexxError::Config("Direct-connect config backup unreadable; current config was not overwritten".into()))
 }
 fn proxy_table(original: &Table, journal: &ProxyJournal) -> Result<Table> {
     // The local transport is independent of upstream-specific auth commands,
@@ -359,7 +359,7 @@ fn replace_table(doc: &mut DocumentMut, key: &str, table: Table) -> Result<()> {
     }
     doc.get_mut("model_providers")
         .and_then(Item::as_table_mut)
-        .ok_or_else(|| CodexxError::Config("model_providers 必须是配置表".into()))?
+        .ok_or_else(|| CodexxError::Config("model_providers must be a configuration table".into()))?
         .insert(key, Item::Table(table));
     Ok(())
 }
@@ -511,7 +511,7 @@ pub(crate) fn direct_document(dir: &Path, doc: &DocumentMut) -> Result<DocumentM
             };
             if token == Some(journal.token.as_str()) {
                 return Err(CodexxError::Config(
-                    "路由配置正在更新或恢复标记已改变，请稍后重试".into(),
+                    "Routing config is updating or the restore marker changed; please try again later".into(),
                 ));
             }
         }
@@ -553,10 +553,10 @@ fn provider_models(provider: &SavedProvider) -> Vec<String> {
 
 fn route(provider: &SavedProvider) -> Result<ProxyRoute> {
     if provider.wire_api != "responses" {
-        return Err(CodexxError::Config("需要支持 Responses 的供应商".into()));
+        return Err(CodexxError::Config("A provider that supports Responses is required".into()));
     }
     let url = reqwest::Url::parse(provider.base_url.trim())
-        .map_err(|_| CodexxError::Config("供应商地址无效".into()))?;
+        .map_err(|_| CodexxError::Config("Invalid provider URL".into()))?;
     if !matches!(url.scheme(), "http" | "https")
         || url.host_str().is_none()
         || !url.username().is_empty()
@@ -566,7 +566,7 @@ fn route(provider: &SavedProvider) -> Result<ProxyRoute> {
         || matches!(url.host_str(), Some("chatgpt.com" | "chat.openai.com"))
     {
         return Err(CodexxError::Config(
-            "需要第三方 API 地址，官方登录不参与自动切换".into(),
+            "A third-party API URL is required; official login is not used for auto-failover".into(),
         ));
     }
     let doc = provider
@@ -575,7 +575,7 @@ fn route(provider: &SavedProvider) -> Result<ProxyRoute> {
         .filter(|text| !text.trim().is_empty())
         .map(|text| {
             text.parse::<DocumentMut>()
-                .map_err(|_| CodexxError::Config("供应商配置格式不正确".into()))
+                .map_err(|_| CodexxError::Config("Provider config format is invalid".into()))
         })
         .transpose()?;
     let table = doc.as_ref().and_then(|doc| {
@@ -593,7 +593,7 @@ fn route(provider: &SavedProvider) -> Result<ProxyRoute> {
         // Client-generated query parameters belong to the primary provider and
         // may contain credentials. Do not reuse them with a different supplier.
         return Err(CodexxError::Config(
-            "带有专用查询参数的供应商暂不支持自动切换".into(),
+            "Providers with custom query parameters do not support auto-failover yet".into(),
         ));
     }
     let mut api_key = provider
@@ -619,17 +619,17 @@ fn route(provider: &SavedProvider) -> Result<ProxyRoute> {
                     .ok()
                     .filter(|key| !key.trim().is_empty())
                     .ok_or_else(|| {
-                        CodexxError::Config("供应商 API Key 所需的环境变量不可用".into())
+                        CodexxError::Config("Environment variable required for the provider API key is unavailable".into())
                     })?,
             );
         }
     }
     if provider.requires_openai_auth && api_key.is_none() {
-        return Err(CodexxError::Config("请先填写该供应商的 API Key".into()));
+        return Err(CodexxError::Config("Please enter the API key for this provider first".into()));
     }
     if let Some(key) = &api_key {
         reqwest::header::HeaderValue::from_str(&format!("Bearer {key}"))
-            .map_err(|_| CodexxError::Config("供应商 API Key 格式不正确".into()))?;
+            .map_err(|_| CodexxError::Config("Provider API key format is invalid".into()))?;
     }
     let mut headers = Vec::new();
     if let Some(table) = table {
@@ -648,23 +648,23 @@ fn route(provider: &SavedProvider) -> Result<ProxyRoute> {
                             | "origin"
                     ) {
                         return Err(CodexxError::Config(
-                            "该供应商包含不适用于自动切换的自定义认证或连接请求头".into(),
+                            "This provider has custom auth or connection headers that are not compatible with auto-failover".into(),
                         ));
                     }
                     let text = item
                         .as_str()
-                        .ok_or_else(|| CodexxError::Config("供应商请求头需要文本值".into()))?;
+                        .ok_or_else(|| CodexxError::Config("Provider request headers must be text values".into()))?;
                     let text = if from_env {
                         std::env::var(text).map_err(|_| {
-                            CodexxError::Config("供应商请求头所需的环境变量不可用".into())
+                            CodexxError::Config("Environment variable required for provider request headers is unavailable".into())
                         })?
                     } else {
                         text.to_owned()
                     };
                     reqwest::header::HeaderName::from_bytes(key.as_bytes())
-                        .map_err(|_| CodexxError::Config("供应商请求头名称无效".into()))?;
+                        .map_err(|_| CodexxError::Config("Invalid provider request header name".into()))?;
                     reqwest::header::HeaderValue::from_str(&text)
-                        .map_err(|_| CodexxError::Config("供应商请求头值无效".into()))?;
+                        .map_err(|_| CodexxError::Config("Invalid provider request header value".into()))?;
                     headers.push((key.to_owned(), text));
                 }
             }
@@ -763,7 +763,7 @@ fn route_plan(dir: &Path, settings: &FailoverSettings) -> Result<(Vec<ProxyRoute
         return Ok((vec![], options));
     }
     let primary = current_route(dir)?
-        .ok_or_else(|| CodexxError::Config("请先配置一个 Codex 供应商".into()))?;
+        .ok_or_else(|| CodexxError::Config("Please configure a Codex provider first".into()))?;
     if primary.official.is_some() || !settings.auto_failover_enabled {
         return Ok((vec![primary], options));
     }
@@ -779,12 +779,12 @@ fn normalized_settings(mut settings: FailoverSettings) -> Result<FailoverSetting
     settings.version = 2;
     settings.listen_address = config::listen_ip(&settings.listen_address)?.to_string();
     if settings.listen_port < 1024 {
-        return Err(CodexxError::Config("监听端口须为 1024–65535".into()));
+        return Err(CodexxError::Config("Listen port must be between 1024 and 65535".into()));
     }
     settings.tuning.validate()?;
     if settings.provider_ids.len() > MAX_QUEUE {
         return Err(CodexxError::Config(format!(
-            "队列最多支持 {MAX_QUEUE} 个供应商"
+            "Queue supports at most {MAX_QUEUE} providers"
         )));
     }
     let mut seen = HashSet::new();
@@ -792,7 +792,7 @@ fn normalized_settings(mut settings: FailoverSettings) -> Result<FailoverSetting
         *id = id.trim().to_owned();
         if id.is_empty() || !seen.insert(id.clone()) || id.starts_with("official:") {
             return Err(CodexxError::Config(
-                "队列包含重复、无效或官方账号，请重新选择第三方供应商".into(),
+                "Queue contains duplicate, invalid, or official accounts; please reselect third-party providers".into(),
             ));
         }
     }
@@ -804,7 +804,7 @@ fn normalized_settings(mut settings: FailoverSettings) -> Result<FailoverSetting
 fn random_token() -> Result<String> {
     let mut bytes = [0u8; 32];
     getrandom::getrandom(&mut bytes)
-        .map_err(|_| CodexxError::Config("无法创建本地路由凭据".into()))?;
+        .map_err(|_| CodexxError::Config("Unable to create local routing credentials".into()))?;
     Ok(bytes.iter().map(|byte| format!("{byte:02x}")).collect())
 }
 fn start_listener(dir: &Path, record: &Record) -> Result<Running> {
@@ -878,7 +878,7 @@ fn attach_route(dir: &Path, record: &mut Record, runtime: &mut Running) -> Resul
     let (before, raw) = read_document(dir)?;
     let mut direct = direct_document(dir, &raw)?;
     let primary = current_route(dir)?
-        .ok_or_else(|| CodexxError::Config("当前没有可接管的 Codex 供应商".into()))?;
+        .ok_or_else(|| CodexxError::Config("No Codex provider is available to take over".into()))?;
     let (routes, options) = route_plan(dir, &record.settings)?;
     let key = direct
         .get("model_provider")
@@ -949,7 +949,7 @@ fn detach_route(dir: &Path, record: &Record, runtime: &mut Running) -> Result<()
             })
         {
             return Err(CodexxError::Config(
-                "本地路由配置已被修改，无法确认恢复目标；服务继续运行，请先检查 config.toml".into(),
+                "Local routing config was modified; cannot confirm restore target. Service is still running — check config.toml first".into(),
             ));
         }
     }
@@ -973,7 +973,7 @@ fn inspect_external_change(dir: &Path, record: &mut Record, runtime: &mut Runnin
         // but do not quietly take over a newly selected account.
         detach_route(dir, record, runtime)?;
         record.settings.takeover_enabled = false;
-        record.message = Some("Codex 配置已在外部改变，已停止接管；本地路由服务仍在运行。".into());
+        record.message = Some("Codex config changed externally; takeover stopped. Local routing service is still running.".into());
         save_record(dir, record)?;
         changed(dir);
     }
@@ -1081,10 +1081,10 @@ fn switch_to_p1(dir: &Path, settings: &mut FailoverSettings) -> Result<()> {
     if settings.provider_ids.is_empty() {
         let primary = current_route(dir)?
             .filter(|route| route.official.is_none())
-            .ok_or_else(|| CodexxError::Config("请先添加第三方供应商到故障转移队列".into()))?;
+            .ok_or_else(|| CodexxError::Config("Please add third-party providers to the failover queue first".into()))?;
         if !saved.iter().any(|provider| provider.id == primary.id) {
             return Err(CodexxError::Config(
-                "请先保存当前供应商，或选择一个已保存的 P1 供应商".into(),
+                "Please save the current provider, or select a saved P1 provider".into(),
             ));
         }
         settings.provider_ids.push(primary.id);
@@ -1093,7 +1093,7 @@ fn switch_to_p1(dir: &Path, settings: &mut FailoverSettings) -> Result<()> {
     let provider = saved
         .iter()
         .find(|provider| provider.id == id)
-        .ok_or_else(|| CodexxError::Config("P1 供应商已不存在，请更新队列".into()))?;
+        .ok_or_else(|| CodexxError::Config("P1 provider no longer exists; please update the queue".into()))?;
     route(provider)?;
     if current_route(dir)?.is_none_or(|current| current.id != id) {
         crate::providers::activate_saved_provider_inner(
@@ -1170,7 +1170,7 @@ pub(crate) fn save_settings(
     let mut runtimes = lock_manager()?;
     if SHUTTING_DOWN.load(Ordering::Acquire) {
         return Err(CodexxError::Config(
-            "Astra 正在退出，未更改路由设置".into(),
+            "Astra is exiting; routing settings were not changed".into(),
         ));
     }
     let mut old = load_record(&dir)?;
@@ -1183,14 +1183,14 @@ pub(crate) fn save_settings(
                 || settings.listen_port != runtime.proxy.port())
         {
             return Err(CodexxError::Config(
-                "请先关闭路由服务，再修改监听地址或端口".into(),
+                "Please stop the routing service before changing the listen address or port".into(),
             ));
         }
     }
     let enable_auto = settings.auto_failover_enabled && !old.settings.auto_failover_enabled;
     if enable_auto && (!settings.router_enabled || !settings.takeover_enabled) {
         return Err(CodexxError::Config(
-            "请先开启路由服务和 Codex 请求接管".into(),
+            "Please enable the routing service and Codex request takeover first".into(),
         ));
     }
     let before = FileCheckpoint::capture(&dir)?;
@@ -1272,7 +1272,7 @@ pub(crate) fn save_settings(
         return match restored {
             Ok(()) => Err(error),
             Err(rollback) => Err(CodexxError::Config(format!(
-                "{error}；配置恢复未完成，路由服务保持可用：{rollback}"
+                "{error}; config restore did not finish; routing service remains available: {rollback}"
             ))),
         };
     }
@@ -1304,7 +1304,7 @@ pub(crate) fn with_provider_change<T>(
         if let Err(error) = attach_route(&dir, &mut record, runtime) {
             record.settings.takeover_enabled = false;
             record.message = Some(format!(
-                "供应商操作已结束，但重新接管失败；当前使用直连：{error}"
+                "Provider operation finished, but re-takeover failed; using direct connection: {error}"
             ));
             save_record(&dir, &record)?;
             changed(&dir);
@@ -1339,7 +1339,7 @@ fn refresh_routes_locked(dir: &Path, record: &mut Record, runtime: &mut Running)
         Err(error) => {
             detach_route(dir, record, runtime)?;
             record.settings.takeover_enabled = false;
-            record.message = Some(format!("当前供应商配置不可用，已恢复直连：{error}"));
+            record.message = Some(format!("Current provider config is unavailable; restored direct connection: {error}"));
             save_record(dir, record)?;
             changed(dir);
             Ok(())
@@ -1416,7 +1416,7 @@ fn record_selection(
         .unwrap_or("custom");
     let mut table = provider_table(&doc, key)
         .cloned()
-        .ok_or_else(|| CodexxError::Config("自动切换目标的供应商配置不存在".into()))?;
+        .ok_or_else(|| CodexxError::Config("Failover target provider config does not exist".into()))?;
     if let Some(api_key) = provider.api_key.as_deref().filter(|s| !s.is_empty()) {
         table["experimental_bearer_token"] = value(api_key);
         table["requires_openai_auth"] = value(false);
@@ -1520,7 +1520,7 @@ pub(crate) fn initialize() -> Result<()> {
             Err(error) => {
                 record.settings.router_enabled = false;
                 record.settings.takeover_enabled = false;
-                record.message = Some(format!("路由设置需要检查，当前使用直连：{error}"));
+                record.message = Some(format!("Routing settings need review; using direct connection: {error}"));
                 save_record(&dir, &record)?;
                 continue;
             }
@@ -1529,7 +1529,7 @@ pub(crate) fn initialize() -> Result<()> {
             if desired && current_route(&dir)?.is_none_or(|route| route.id != last.primary_id) {
                 record.settings.takeover_enabled = false;
                 record.message =
-                    Some("当前供应商已在外部改变，已保留直连；需要时重新启用接管。".into());
+                    Some("Current provider changed externally; kept direct connection. Re-enable takeover when needed.".into());
             }
         }
         let started = start_listener(&dir, &record);
@@ -1538,7 +1538,7 @@ pub(crate) fn initialize() -> Result<()> {
                 if record.settings.takeover_enabled {
                     if let Err(error) = attach_route(&dir, &mut record, &mut runtime) {
                         record.settings.takeover_enabled = false;
-                        record.message = Some(format!("重新接管失败，当前使用直连：{error}"));
+                        record.message = Some(format!("Re-takeover failed; using direct connection: {error}"));
                     }
                 }
                 // Once the live configuration points here, a failed status
@@ -1550,7 +1550,7 @@ pub(crate) fn initialize() -> Result<()> {
             Err(error) => {
                 record.settings.router_enabled = false;
                 record.settings.takeover_enabled = false;
-                record.message = Some(format!("路由未启动，当前使用直连：{error}"));
+                record.message = Some(format!("Routing is not started; using direct connection: {error}"));
                 save_record(&dir, &record)?;
             }
         }
@@ -1582,7 +1582,7 @@ fn ensure_watcher() {
                     for (dir, runtime) in runtimes.iter_mut() {
                         if let Ok(mut record) = load_record(dir) {
                             if let Err(error) = refresh_routes_locked(dir, &mut record, runtime) {
-                                record.message = Some(format!("路由配置需要检查：{error}"));
+                                record.message = Some(format!("Routing config needs review: {error}"));
                                 let _ = save_record(dir, &record);
                             }
                         }

@@ -125,14 +125,14 @@ fn sqlite_commit_failpoint_restores_committed_and_uncommitted_databases() {
         Some("custom".to_string()),
         |point| match point {
             MutationPoint::AfterSqliteCommit(0) => {
-                Err(CodexxError::Config("提交后注入失败".to_string()))
+                Err(CodexxError::Config("Post-commit injection failed".to_string()))
             }
             _ => Ok(()),
         },
     )
     .expect_err("fail after first sqlite commit");
 
-    assert_eq!(error.to_string(), "配置错误: 提交后注入失败");
+    assert_eq!(error.to_string(), "Configuration error: post-commit injection failed");
     assert_eq!(thread_provider(&first, id), "openai");
     assert_eq!(thread_provider(&second, id), "openai");
     assert_eq!(
@@ -222,14 +222,14 @@ fn sqlite_restore_does_not_overwrite_new_codex_writes() {
                          INSERT INTO concurrent_marker (value) VALUES ('keep-new-write');",
                     )
                     .expect("write after provider sync commit");
-                Err(CodexxError::Config("并发写入后注入失败".to_string()))
+                Err(CodexxError::Config("Post-concurrent-write injection failed".to_string()))
             }
             _ => Ok(()),
         },
     )
     .expect_err("recovery must detect the concurrent write");
 
-    assert!(error.to_string().contains("会话数据库已发生变化"));
+    assert!(error.to_string().contains("Session database has changed"));
     assert_eq!(thread_provider(&database, id), "custom");
     let marker: String = Connection::open(&database)
         .expect("open database with concurrent write")
@@ -282,7 +282,7 @@ fn sqlite_restore_rechecks_after_waiting_for_a_writer() {
                 ready_rx
                     .recv_timeout(Duration::from_secs(2))
                     .expect("wait for concurrent writer lock");
-                Err(CodexxError::Config("持锁写入期间注入失败".to_string()))
+                Err(CodexxError::Config("Injection failed while holding the write lock".to_string()))
             }
             _ => Ok(()),
         },
@@ -294,7 +294,7 @@ fn sqlite_restore_rechecks_after_waiting_for_a_writer() {
         .expect("writer handle")
         .join()
         .expect("join concurrent writer");
-    assert!(error.to_string().contains("会话数据库已发生变化"));
+    assert!(error.to_string().contains("Session database has changed"));
     assert_eq!(thread_provider(&database, id), "custom");
     let marker: String = Connection::open(&database)
         .expect("open database after concurrent commit")
@@ -402,7 +402,7 @@ fn injected_failure_restores_sqlite_and_jsonl_without_touching_global_state() {
                     original_global
                 );
                 assert!(!global_backup.exists());
-                Err(CodexxError::Config("测试注入失败".to_string()))
+                Err(CodexxError::Config("Test injection failed".to_string()))
             }
             _ => Ok(()),
         },
@@ -410,7 +410,7 @@ fn injected_failure_restores_sqlite_and_jsonl_without_touching_global_state() {
     .expect_err("hook must fail after all writes");
 
     assert!(hook_called);
-    assert_eq!(error.to_string(), "配置错误: 测试注入失败");
+    assert_eq!(error.to_string(), "Configuration error: test injection failed");
     assert_eq!(thread_provider(&database, id), "openai");
     let restored_index: (i64, String) = Connection::open(&database)
         .expect("open restored session metadata")
@@ -482,7 +482,7 @@ fn internal_reclassification_before_mutation_aborts_without_registering_or_rewri
             },
         )
         .expect_err("reclassification must abort sync");
-        assert!(error.to_string().contains("会话类型已变化"), "{error}");
+        assert!(error.to_string().contains("Session type has changed"), "{error}");
         assert_eq!(thread_provider(&database, id), "openai");
         assert_eq!(
             fs::read_to_string(&rollout).expect("read internal rollout"),
@@ -525,7 +525,7 @@ fn internal_reclassification_after_file_writes_rolls_back_other_files_and_all_da
             Ok(())
         })
         .expect_err("reclassification must prevent database commits");
-    assert!(error.to_string().contains("会话类型已变化"), "{error}");
+    assert!(error.to_string().contains("Session type has changed"), "{error}");
     assert_eq!(thread_provider(&database, parent), "openai");
     assert_eq!(thread_provider(&database, child), "openai");
     assert_eq!(

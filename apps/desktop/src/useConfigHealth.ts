@@ -104,9 +104,7 @@ export function useConfigHealth(options: {
 
   const dismiss = useCallback((hint = false) => {
     setNotice(null); noticeTime.current = null;
-    if (hint) runtime.current.onHint(runtime.current.lang === "zh"
-      ? "稍后可到「设置 → 通用设置 → 环境与配置检查」处理。"
-      : "You can check and repair this later in Settings → General → Environment & configuration check.");
+    if (hint) runtime.current.onHint("You can check and repair this later in Settings → General → Environment & configuration check.");
   }, []);
 
   const noticeVisible = Boolean(notice && report?.status === "issues"
@@ -154,15 +152,14 @@ export function useConfigHealth(options: {
       if (!current()) return;
       dismiss(); accept(result.report);
       if (result.report.status === "healthy") registry.current?.clear(result.report);
-      const zh = runtime.current.lang === "zh";
       runtime.current.onHint(result.report.status === "healthy"
-        ? (zh ? "配置已检查并修复，请重新打开原来的 Codex 对话。" : "Configuration checked and repaired. Reopen the Codex conversation.")
-        : (zh ? "可自动处理的部分已修复，其余问题可在通用设置中查看。" : "Supported repairs are complete. Review the remaining issues in General settings."));
+        ? "Configuration checked and repaired. Reopen the Codex conversation."
+        : "Supported repairs are complete. Review the remaining issues in General settings.");
       runtime.current.onRepaired();
     } catch (cause) {
       if (current()) {
         dismiss(); setError(String(cause));
-        runtime.current.onHint(runtime.current.lang === "zh" ? "配置未修复，请到「设置 → 通用设置」查看原因或重新检查。" : "Configuration was not repaired. Review the issue or check again in Settings → General.");
+        runtime.current.onHint("Configuration was not repaired. Review the issue or check again in Settings → General.");
       }
     } finally { if (current()) { busyRef.current = false; setRepairing(false); } }
   }, [accept, dismiss]);

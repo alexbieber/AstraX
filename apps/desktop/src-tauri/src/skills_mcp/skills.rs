@@ -269,7 +269,7 @@ pub(super) fn scan_skill_dir(
             source: source.to_string(),
             path: path.display().to_string(),
             content_hash: hash,
-            update_status: "未检查".to_string(),
+            update_status: "Not checked".to_string(),
         });
         seen.insert(id);
     }
@@ -300,7 +300,7 @@ fn move_dir_replace(src: &Path, dst: &Path) -> Result<()> {
         })
         .map_err(|e| {
             CodexxError::Config(format!(
-                "移动目录失败 {} -> {}: {e}",
+                "Failed to move directory {} -> {}: {e}",
                 src.display(),
                 dst.display()
             ))
@@ -329,11 +329,11 @@ pub(crate) fn toggle_codex_skill_inner(
     if enabled {
         if disabled_path.exists() {
             move_dir_replace(&disabled_path, &enabled_path)
-                .map_err(|e| CodexxError::Config(format!("启用 Skill 失败: {e}")))?;
+                .map_err(|e| CodexxError::Config(format!("Failed to enable Skill: {e}")))?;
         }
     } else if enabled_path.exists() {
         move_dir_replace(&enabled_path, &disabled_path)
-            .map_err(|e| CodexxError::Config(format!("禁用 Skill 失败: {e}")))?;
+            .map_err(|e| CodexxError::Config(format!("Failed to disable Skill: {e}")))?;
     }
     build_skills_mcp_state_inner(config_dir)
 }
@@ -357,7 +357,7 @@ fn ccswitch_skill_meta_by_directory() -> Result<HashMap<String, CcSwitchSkillMet
     )
     .map_err(|e| {
         CodexxError::Database(format!(
-            "打开 cc-switch Skills 数据库失败 {}: {e}",
+            "Failed to open cc-switch Skills database {}: {e}",
             db.display()
         ))
     })?;
@@ -420,24 +420,24 @@ fn download_repo_skill_hashes(
         .get(&url)
         .set("User-Agent", "Astra")
         .call()
-        .map_err(|e| format!("下载 {owner}/{repo}@{branch} 失败: {e}"))?;
+        .map_err(|e| format!("Failed to download {owner}/{repo}@{branch}: {e}"))?;
     let mut bytes = Vec::new();
     response
         .into_reader()
         .take(MAX_ZIP_BYTES + 1)
         .read_to_end(&mut bytes)
-        .map_err(|e| format!("读取 {owner}/{repo}@{branch} ZIP 失败: {e}"))?;
+        .map_err(|e| format!("Failed to read {owner}/{repo}@{branch} ZIP: {e}"))?;
     if bytes.len() as u64 > MAX_ZIP_BYTES {
-        return Err(format!("{owner}/{repo}@{branch} ZIP 超过 100MB"));
+        return Err(format!("{owner}/{repo}@{branch} ZIP exceeds 100MB"));
     }
 
     let mut archive = zip::ZipArchive::new(Cursor::new(bytes))
-        .map_err(|e| format!("解析 {owner}/{repo}@{branch} ZIP 失败: {e}"))?;
+        .map_err(|e| format!("Failed to parse {owner}/{repo}@{branch} ZIP: {e}"))?;
     let mut files = Vec::<(String, Vec<u8>)>::new();
     for i in 0..archive.len() {
         let mut file = archive
             .by_index(i)
-            .map_err(|e| format!("读取 ZIP 条目失败: {e}"))?;
+            .map_err(|e| format!("Failed to read ZIP entry: {e}"))?;
         if file.is_dir() {
             continue;
         }
@@ -453,7 +453,7 @@ fn download_repo_skill_hashes(
         }
         let mut data = Vec::new();
         file.read_to_end(&mut data)
-            .map_err(|e| format!("读取 ZIP 文件失败: {e}"))?;
+            .map_err(|e| format!("Failed to read ZIP file: {e}"))?;
         files.push((normalized, data));
     }
 
@@ -511,9 +511,9 @@ pub(crate) fn check_skill_updates_inner(config_dir: Option<String>) -> Result<Sk
             )
             .ok();
         let local_status = match (&old, &skill.content_hash) {
-            (Some(a), Some(b)) if a != b => "本地有变化".to_string(),
-            (Some(_), Some(_)) => "已是最新".to_string(),
-            _ => "已记录".to_string(),
+            (Some(a), Some(b)) if a != b => "Local changes".to_string(),
+            (Some(_), Some(_)) => "Up to date".to_string(),
+            _ => "Recorded".to_string(),
         };
         let meta = ccswitch_meta.get(&skill.directory.to_ascii_lowercase());
         skill.update_status = if let Some(meta) = meta {
@@ -530,13 +530,13 @@ pub(crate) fn check_skill_updates_inner(config_dir: Option<String>) -> Result<Sk
                     let remote_hash = remote_hashes.get(&skill.directory.to_ascii_lowercase());
                     let local_hash = skill.content_hash.as_ref().or(meta.content_hash.as_ref());
                     match (local_hash, remote_hash) {
-                        (Some(local), Some(remote)) if local != remote => "有新版本".to_string(),
-                        (Some(_), Some(_)) => "已是最新".to_string(),
-                        (_, Some(_)) => "已记录远程".to_string(),
-                        _ => "未找到远程目录".to_string(),
+                        (Some(local), Some(remote)) if local != remote => "Update available".to_string(),
+                        (Some(_), Some(_)) => "Up to date".to_string(),
+                        (_, Some(_)) => "Remote recorded".to_string(),
+                        _ => "Remote directory not found".to_string(),
                     }
                 }
-                Err(e) => format!("远程检查失败：{e}"),
+                Err(e) => format!("Remote check failed: {e}"),
             }
         } else {
             local_status

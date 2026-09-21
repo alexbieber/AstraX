@@ -122,7 +122,7 @@ pub(crate) fn remember_current_instruction_prompt(codex_dir: &Path) -> Result<Op
         .unwrap_or_else(|| {
             (
                 format!("external-{}", sanitize_id(stem)),
-                format!("外部提示词 · {stem}"),
+                format!("External prompt · {stem}"),
                 normalized_filename,
             )
         });

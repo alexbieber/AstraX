@@ -8,7 +8,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::time::Instant;
 
-const MODELS_SOURCE_KEY: &str = "获取模型列表";
+const MODELS_SOURCE_KEY: &str = "Fetch model list";
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -54,20 +54,20 @@ enum ProviderModelsAttempt {
 fn provider_models_url(base_url: &str) -> Result<reqwest::Url> {
     let trimmed = base_url.trim();
     if trimmed.is_empty() {
-        return Err(CodexxError::Config("base_url 不能为空".to_string()));
+        return Err(CodexxError::Config("base_url cannot be empty".to_string()));
     }
 
     let mut url = reqwest::Url::parse(trimmed)
-        .map_err(|_| CodexxError::Config("base_url 格式不正确".to_string()))?;
+        .map_err(|_| CodexxError::Config("base_url format is invalid".to_string()))?;
     if !matches!(url.scheme(), "http" | "https") || url.host_str().is_none() {
         return Err(CodexxError::Config(
-            "base_url 必须是有效的 http:// 或 https:// 地址".to_string(),
+            "base_url must be a valid http:// or https:// URL".to_string(),
         ));
     }
 
     let segments = url
         .path_segments()
-        .ok_or_else(|| CodexxError::Config("base_url 格式不正确".to_string()))?
+        .ok_or_else(|| CodexxError::Config("base_url format is invalid".to_string()))?
         .filter(|segment| !segment.is_empty())
         .collect::<Vec<_>>();
     let already_models = segments.len() >= 2
@@ -80,7 +80,7 @@ fn provider_models_url(base_url: &str) -> Result<reqwest::Url> {
     {
         let mut path = url
             .path_segments_mut()
-            .map_err(|_| CodexxError::Config("base_url 格式不正确".to_string()))?;
+            .map_err(|_| CodexxError::Config("base_url format is invalid".to_string()))?;
         path.pop_if_empty();
         if !already_models {
             if !already_v1 {
@@ -157,7 +157,7 @@ fn natural_model_id_cmp(left: &str, right: &str) -> Ordering {
 
 fn parse_models(body: &str) -> Result<Vec<ProviderModel>> {
     let payload: ModelsPayload = serde_json::from_str(body)
-        .map_err(|_| CodexxError::Config("模型列表返回格式不正确".to_string()))?;
+        .map_err(|_| CodexxError::Config("Model list response format is invalid".to_string()))?;
     let mut models = Vec::<ProviderModel>::new();
     let mut indexes = HashMap::<String, usize>::new();
 
@@ -219,7 +219,7 @@ fn request_provider_models_with_client(
 
     let body = response
         .text()
-        .map_err(|_| CodexxError::Config("模型列表读取失败".to_string()))?;
+        .map_err(|_| CodexxError::Config("Failed to read model list".to_string()))?;
     Ok(ProviderModelsAttempt::Success(ProviderModelsResult {
         models: parse_models(&body)?,
         status,
@@ -239,7 +239,7 @@ pub(crate) fn provider_status_result(status: u16, duration_ms: u128) -> Provider
         message: if (200..300).contains(&status) {
             format!("{duration_ms} ms")
         } else if status == 401 || status == 403 {
-            format!("HTTP {status} · {duration_ms} ms（认证失败或无权限）")
+            format!("HTTP {status} · {duration_ms} ms (auth failed or unauthorized)")
         } else {
             format!("HTTP {status} · {duration_ms} ms")
         },
@@ -270,9 +270,9 @@ pub(crate) fn fetch_provider_models_inner(
         ProviderModelsAttempt::Success(result) => Ok(result),
         ProviderModelsAttempt::HttpError { status, .. } => {
             Err(CodexxError::Config(if matches!(status, 401 | 403) {
-                format!("获取模型列表失败（HTTP {status}，请检查 API Key）")
+                format!("Failed to fetch model list (HTTP {status}; check API key)")
             } else {
-                format!("获取模型列表失败（HTTP {status}）")
+                format!("Failed to fetch model list (HTTP {status})")
             }))
         }
     }

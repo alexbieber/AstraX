@@ -93,68 +93,7 @@ export type PromptsPageProps = {
 };
 
 function getCopy(lang: Lang) {
-  return lang === "zh"
-    ? {
-        eyebrow: "PROMPT INJECTION",
-        title: "一键管理指令提示词",
-        description: "选择启用方式，再管理内置、在线或自定义的 Markdown 提示词。",
-        sync: "同步 GitHub 模板",
-        syncing: "同步中...",
-        importMd: "导入 md",
-        importing: "导入中...",
-        add: "添加提示词",
-        manageCategories: "分类管理",
-        emptyCategory: "该分类下暂无提示词",
-        currentStatus: "当前状态",
-        noActive: "未启用提示词",
-        keepExisting: "保留原提示词",
-        replaceExisting: "替换原提示词",
-        appendMode: "追加到 AGENTS.md",
-        replaceMode: "替换指令文件",
-        appendDetail: "当前模板写入 AGENTS.md，同时保留已有指令文件。",
-        replaceDetail: "当前模板通过 model_instructions_file 独立加载。",
-        inactiveDetail: "先选择启用方式，再打开下方任一模板。",
-        enableMethod: "启用方式",
-        helpLabel: "查看启用方式说明",
-        appendHelp: "只在 AGENTS.md 中增加 AstraX 管理区块，不改动原有 model_instructions_file，适合叠加使用。",
-        replaceHelp: "当前模板会成为唯一生效的指令入口，原有 model_instructions_file 将被替换。",
-        pendingMode: (mode: string) => `当前模式不变，下次启用将使用“${mode}”。`,
-        modeHint: "点击模板开关时，使用这里选择的方式。",
-        keepTitle: "写入 AGENTS.md，并保留现有 model_instructions_file",
-        replaceTitle: "使用 model_instructions_file 替换现有指令文件",
-        enable: "启用",
-        disable: "关闭",
-        disableExternal: "禁用外部提示词",
-        current: "当前",
-        onlineRemoved: "在线已移除",
-        removedDescription: "该模板已从在线目录移除，当前配置仍在使用。",
-        customDescription: "自定义指令提示词",
-        preservedDescription: "用户原有提示词，追加模式下继续生效。",
-        existingPrompt: "用户原有指令提示词",
-        edit: "编辑",
-        editBuiltin: "查看/编辑本地模板",
-        remove: "删除",
-        formEyebrow: "CUSTOM PROMPT",
-        addFormTitle: "添加提示词",
-        editFormTitle: "编辑提示词",
-        formDescription: "保存为 Markdown 文件，之后可在列表中单独启用。",
-        builtinFormEyebrow: "LOCAL TEMPLATE",
-        builtinFormTitle: "查看与编辑本地模板",
-        builtinFormDescription: "名称和文件名跟随模板目录；内容修改在下次启用时生效，之后 GitHub 同步将永久跳过这份模板。",
-        locallyModified: "本地已修改",
-        saveLocalChanges: "保存本地修改",
-        back: "返回",
-        promptDetails: "提示词详情",
-        promptName: "提示词名称",
-        promptNamePlaceholder: "例如：通用编程助手、代码审查专家",
-        filename: "文件名",
-        filenamePlaceholder: "my-prompt.md",
-        content: "提示词内容",
-        contentHint: "Markdown",
-        contentPlaceholder: "在此输入提示词内容...",
-        save: "保存",
-      }
-    : {
+  return {
         eyebrow: "PROMPT INJECTION",
         title: "Manage instruction prompts",
         description: "Choose an activation method, then manage bundled, online, or custom Markdown prompts.",
@@ -629,7 +568,7 @@ export function PromptsPage({
       </div>
 
       <PageTransition pageKey={`prompts-category:${promptCategories.activeCategoryId}`}>
-        <section className="cx-prompts-list-panel" aria-label={lang === "zh" ? "提示词模板" : "Prompt templates"}>
+        <section className="cx-prompts-list-panel" aria-label={"Prompt templates"}>
           <div className="cx-prompts-list">
           {visiblePromptCount === 0 && (
             <div className="cx-prompt-category-list-empty"><FileText size={22} aria-hidden="true" />{copy.emptyCategory}</div>

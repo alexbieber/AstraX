@@ -303,26 +303,24 @@ function ContextWindowControl({
     <div className="cx-providers-context-control">
       <Checkbox
         className="cx-providers-checkbox cx-providers-context-checkbox"
-        label={lang === "zh" ? "开启 1M 上下文窗口" : "Enable 1M context window"}
+        label={"Enable 1M context window"}
         checked={Boolean(settings?.enabled)}
         onCheckedChange={(enabled) => void toggle(enabled)}
         disabled={disabled || changing || !settings || settings.configText !== configText}
       />
       {error ? (
         <span className="cx-providers-context-error" role="status" title={error}>
-          {lang === "zh" ? "请先修正 config.toml 的格式或上下文字段" : "Check the TOML syntax and context settings first"}
+          {"Check the TOML syntax and context settings first"}
         </span>
       ) : settings?.enabled && settings.configText === configText ? (
         <span className="cx-providers-context-hint">
           {settings.compactTokenLimit !== null
-            ? lang === "zh"
-              ? `自动压缩阈值：${settings.compactTokenLimit.toLocaleString("zh-CN")} tokens`
-              : `Auto-compact at ${settings.compactTokenLimit.toLocaleString("en-US")} tokens`
-            : lang === "zh" ? "自动压缩使用 Codex 默认值" : "Codex determines the compaction limit"}
+            ? `Auto-compact at ${settings.compactTokenLimit.toLocaleString("en-US")} tokens`
+            : "Codex determines the compaction limit"}
         </span>
       ) : (
         <span className="cx-providers-context-hint">
-          {lang === "zh" ? "保存后生效，需模型支持" : "Applies on save; requires model support"}
+          {"Applies on save; requires model support"}
         </span>
       )}
     </div>
@@ -335,11 +333,11 @@ function ProviderPresetSection({ lang, creatingProvider, selectedPresetId, selec
   const variant = getProviderPresetVariant(selectedPresetId, selectedPresetVariantId);
   return <ProviderPresetPicker lang={lang} presets={PROVIDER_PRESETS} selectedId={selectedPresetId} onSelect={onPresetSelect} disabled={disabled}>
     {variant && <div className="cx-preset-variant-panel">
-      {preset && preset.variants.length > 1 && <div className="cx-preset-variants" role="group" aria-label={lang === "zh" ? "接入方式" : "API service"}>
-        <span>{lang === "zh" ? "接入方式" : "API service"}</span>
-        {preset.variants.map((item) => <button key={item.id} type="button" aria-pressed={item.id === variant.id} disabled={disabled} onClick={() => onPresetVariantSelect(item.id)}>{lang === "zh" ? item.label : item.labelEn}</button>)}
+      {preset && preset.variants.length > 1 && <div className="cx-preset-variants" role="group" aria-label={"API service"}>
+        <span>{"API service"}</span>
+        {preset.variants.map((item) => <button key={item.id} type="button" aria-pressed={item.id === variant.id} disabled={disabled} onClick={() => onPresetVariantSelect(item.id)}>{item.labelEn}</button>)}
       </div>}
-      <p>{lang === "zh" ? variant.note : variant.noteEn}</p>
+      <p>{variant.noteEn}</p>
     </div>}
   </ProviderPresetPicker>;
 }
@@ -492,10 +490,10 @@ function ListPage({
                   <ActionIconButton
                     icon={Gauge}
                     label={row.canQueryQuota
-                      ? (lang === "zh" ? "查看额度" : "View quota")
+                      ? "View quota"
                       : row.hasAuth
-                        ? (lang === "zh" ? "查看额度：此认证不支持订阅额度查询" : "View quota: these credentials do not support subscription quota queries")
-                        : (lang === "zh" ? "查看额度：请先登录官方 Codex" : "View quota: sign in to official Codex first")}
+                        ? "View quota: these credentials do not support subscription quota queries"
+                        : "View quota: sign in to official Codex first"}
                     onClick={() => setQuotaSelection({ id: row.id, configDir, email: row.email ?? null })}
                     disabled={providerActionsBusy || !row.canQueryQuota}
                   />
@@ -517,7 +515,7 @@ function ListPage({
                 {(row.deletable || isProtectedOfficial) && (
                   <ActionIconButton
                     icon={Trash2}
-                    label={isProtectedOfficial ? (lang === "zh" ? "默认官方配置不可删除" : "The default official profile cannot be deleted") : copy.removeLabel}
+                    label={isProtectedOfficial ? "The default official profile cannot be deleted" : copy.removeLabel}
                     onClick={() => { if (!isProtectedOfficial) setProviderToDelete(row); }}
                     disabled={providerActionsBusy || isProtectedOfficial}
                     danger={!isProtectedOfficial}
@@ -620,9 +618,7 @@ function OfficialForm({
   const loadingCurrent = actionBusy === "loadCurrentOfficial";
   const formBusy = loading || actionBusy === "loadOfficialDraft" || loadingCcSwitch || loadingCurrent || contextWindowBusy;
   const showDefaultActions = officialProfileIsDefault && !creatingProvider;
-  const profileHint = lang === "zh"
-    ? "认证内容可留空；保存并启用后，在 Codex 中完成登录。复制官方供应商会保留原认证，并可修改名称。"
-    : "Authentication may be left empty. Save and enable this provider, then sign in through Codex. A copied official provider keeps its authentication and can be renamed.";
+  const profileHint = "Authentication may be left empty. Save and enable this provider, then sign in through Codex. A copied official provider keeps its authentication and can be renamed.";
 
   const confirmReset = () => {
     if (!showDefaultActions || formBusy) return;
@@ -681,7 +677,7 @@ function OfficialForm({
           {loadingCurrent
             ? <Loader2 size={15} className="cx-providers-spin" aria-hidden="true" />
             : <Download size={15} aria-hidden="true" />}
-          {lang === "zh" ? "读取当前官方登录" : "Load current official login"}
+          {"Load current official login"}
         </button>
         <button type="button" className="cx-providers-button cx-providers-button--secondary" onClick={onLoadCcSwitchOfficial} disabled={formBusy}>
           {loadingCcSwitch
@@ -876,7 +872,7 @@ function ProviderForm({
       </section>
 
       <div className="cx-providers-form-actions cx-providers-form-actions--save">
-        {!mappingsValid && <span className="cx-provider-mappings-save-hint">{lang === "zh" ? "请先修正模型映射中的错误。" : "Correct the model mapping errors before saving."}</span>}
+        {!mappingsValid && <span className="cx-provider-mappings-save-hint">{"Correct the model mapping errors before saving."}</span>}
         <button type="button" className="cx-providers-button cx-providers-button--primary" onClick={onSaveProvider} disabled={formBusy || !mappingsValid}>
           {loading ? <Loader2 size={15} className="cx-providers-spin" aria-hidden="true" /> : <CheckCircle2 size={15} aria-hidden="true" />}
           {loading ? copy.savingLabel : copy.saveLabel}

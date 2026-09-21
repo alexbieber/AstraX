@@ -20,7 +20,7 @@ pub(crate) fn acquire_live_config_lock(codex_dir: &Path) -> Result<LiveConfigLoc
     let path = tmp_dir.join("codex-x-live-config.lock");
     if path.is_dir() {
         return Err(CodexxError::Config(format!(
-            "Codex live 配置锁被同名目录占用: {}",
+            "Codex live config lock is blocked by a same-named directory: {}",
             path.display()
         )));
     }
@@ -33,7 +33,7 @@ pub(crate) fn acquire_live_config_lock(codex_dir: &Path) -> Result<LiveConfigLoc
         .map_err(|error| io_err(&path, error))?;
     file.try_lock().map_err(|_| {
         CodexxError::Config(format!(
-            "另一个 Astra 正在修改 Codex live 配置，请稍后重试: {}",
+            "Another Astra instance is modifying Codex live config; try again later: {}",
             path.display()
         ))
     })?;
@@ -53,7 +53,7 @@ pub(crate) fn read_file_snapshot(path: &Path) -> Result<Option<Vec<u8>>> {
 
 pub(crate) fn text_from_snapshot(path: &Path, snapshot: Option<&[u8]>) -> Result<String> {
     String::from_utf8(snapshot.unwrap_or_default().to_vec())
-        .map_err(|_| CodexxError::Config(format!("{} 不是有效的 UTF-8 文本", path.display())))
+        .map_err(|_| CodexxError::Config(format!("{} is not valid UTF-8 text", path.display())))
 }
 
 pub(crate) fn ensure_file_snapshot_unchanged(path: &Path, expected: Option<&[u8]>) -> Result<()> {
@@ -61,7 +61,7 @@ pub(crate) fn ensure_file_snapshot_unchanged(path: &Path, expected: Option<&[u8]
         return Ok(());
     }
     Err(CodexxError::Config(format!(
-        "{} 已被其他程序修改，本次写入已取消，请刷新后重试",
+        "{} was modified by another program; write cancelled. Refresh and try again",
         path.display()
     )))
 }
@@ -161,7 +161,7 @@ pub(crate) fn fail_with_file_rollback<T>(
     match rollback_file_changes(changes) {
         Ok(()) => Err(error),
         Err(rollback_error) => Err(CodexxError::Config(format!(
-            "{error}；文件回滚失败：{rollback_error}"
+            "{error}; file rollback failed: {rollback_error}"
         ))),
     }
 }
@@ -190,7 +190,7 @@ mod tests {
         let error = acquire_live_config_lock(&dir)
             .err()
             .expect("second lock must fail");
-        assert!(error.to_string().contains("另一个 Astra"));
+        assert!(error.to_string().contains("Another Astra instance"));
         drop(first);
         acquire_live_config_lock(&dir).expect("lock is released on drop");
         fs::remove_dir_all(dir).expect("remove test directory");

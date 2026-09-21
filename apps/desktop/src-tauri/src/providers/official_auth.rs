@@ -73,7 +73,7 @@ pub(crate) fn official_snapshot_path_for_profile(
     profile_id: &str,
 ) -> Result<PathBuf> {
     if profile_id.trim().is_empty() {
-        return Err(CodexxError::Config("官方配置 ID 不能为空".to_string()));
+        return Err(CodexxError::Config("Official profile ID cannot be empty".to_string()));
     }
     let identity = canonical_identity(codex_dir);
     let digest = Sha256::digest(identity.as_bytes());
@@ -279,7 +279,7 @@ pub(crate) fn validate_official_config_text(
         .is_some_and(|value| !value.trim().is_empty());
     if !document_is_official(&doc) || has_legacy_proxy_endpoint {
         return Err(CodexxError::Config(
-            "官方 config.toml 必须使用 OpenAI 官方路由，不能包含第三方 base_url".to_string(),
+            "Official config.toml must use the OpenAI official route and must not include a third-party base_url".to_string(),
         ));
     }
     remove_bearer_tokens(&mut doc);
@@ -367,7 +367,7 @@ pub(crate) fn write_official_profile_snapshot(
         .is_some_and(|auth| !auth.is_object() || !auth_value_has_material(auth))
     {
         return Err(CodexxError::Config(
-            "官方 auth.json 没有可用认证信息，请先完成官方登录".to_string(),
+            "Official auth.json has no usable credentials; complete official login first".to_string(),
         ));
     }
     let path = official_snapshot_path_for_profile(codex_dir, profile_id)?;
@@ -383,7 +383,7 @@ pub(crate) fn write_official_profile_snapshot(
         auth,
     };
     let value = serde_json::to_value(snapshot)
-        .map_err(|error| CodexxError::Config(format!("序列化官方配置快照失败: {error}")))?;
+        .map_err(|error| CodexxError::Config(format!("Failed to serialize official profile snapshot: {error}")))?;
     write_private_json(&path, &value)
 }
 
@@ -541,11 +541,11 @@ fn snapshot_state(
     ) || snapshot.codex_dir != canonical_identity(codex_dir)
     {
         return Err(CodexxError::Config(format!(
-            "官方配置快照与当前 CODEX_HOME 不匹配: {}",
+            "Official profile snapshot does not match current CODEX_HOME: {}",
             path.display()
         )));
     }
-    let source = "Astra 官方配置快照".to_string();
+    let source = "Astra official profile snapshot".to_string();
     let Some(auth) = snapshot.auth else {
         return Ok(SnapshotState::Reset(OfficialConfigCandidate {
             auth: None,
@@ -556,7 +556,7 @@ fn snapshot_state(
     };
     if !auth.is_object() || !auth_value_has_material(&auth) {
         return Err(CodexxError::Config(format!(
-            "官方配置快照不包含可用认证: {}",
+            "Official profile snapshot has no usable credentials: {}",
             path.display()
         )));
     }
@@ -648,7 +648,7 @@ fn latest_official_backup(codex_dir: &Path) -> Result<Option<OfficialConfigCandi
                 auth: Some(auth),
                 config_text,
                 model,
-                source: format!("Astra 历史备份 {created_at}"),
+                source: format!("Astra history backup {created_at}"),
             },
         ))
 }
@@ -682,7 +682,7 @@ fn live_auth_candidate(
         auth: Some(auth),
         config_text,
         model,
-        source: "当前 OpenAI 官方认证".to_string(),
+        source: "Current OpenAI official credentials".to_string(),
     }))
 }
 
@@ -849,7 +849,7 @@ pub(crate) fn get_official_config_draft_inner(
                 auth: None,
                 config_text: Some(config_text),
                 model,
-                source: "根据当前 config.toml 生成".to_string(),
+                source: "Generated from current config.toml".to_string(),
             }
         }
     };
@@ -863,7 +863,7 @@ fn official_config_draft(candidate: OfficialConfigCandidate) -> Result<OfficialC
         .as_ref()
         .map(serde_json::to_string_pretty)
         .transpose()
-        .map_err(|error| CodexxError::Config(format!("格式化官方配置快照失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to format official profile snapshot: {error}")))?
         .unwrap_or_default();
     Ok(OfficialConfigDraft {
         auth_json,

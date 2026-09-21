@@ -92,7 +92,7 @@ fn windows_file_link_codex_home_is_followed_again_after_target_switch() {
     symlink_file(root.join("missing-target"), &link).expect("create broken file link");
     let missing_error = resolve_codex_dir(Some(link.display().to_string()))
         .expect_err("reject missing file-link target");
-    assert!(missing_error.to_string().contains("目标不存在"));
+    assert!(missing_error.to_string().contains("Target does not exist"));
     assert!(fs::symlink_metadata(&link).is_ok());
     fs::remove_file(&link).expect("remove broken file link");
 
@@ -101,7 +101,7 @@ fn windows_file_link_codex_home_is_followed_again_after_target_switch() {
     symlink_file(&file_target, &link).expect("create file link to file");
     let file_error = resolve_codex_dir(Some(link.display().to_string()))
         .expect_err("reject non-directory file-link target");
-    assert!(file_error.to_string().contains("不是文件夹"));
+    assert!(file_error.to_string().contains("Not a folder"));
     assert_eq!(
         fs::read_to_string(&file_target).expect("read file target"),
         "keep"
@@ -114,7 +114,7 @@ fn windows_file_link_codex_home_is_followed_again_after_target_switch() {
     symlink_file(&loop_a, &loop_b).expect("create second loop link");
     let loop_error =
         resolve_codex_dir(Some(loop_a.display().to_string())).expect_err("reject file-link loop");
-    assert!(loop_error.to_string().contains("形成了循环"));
+    assert!(loop_error.to_string().contains("Forms a loop"));
     fs::remove_file(loop_a).expect("remove first loop link");
     fs::remove_file(loop_b).expect("remove second loop link");
 
@@ -672,7 +672,7 @@ fn skills_and_mcp_order_does_not_depend_on_enabled_state() {
 #[test]
 fn managed_agents_block_preserves_user_content_and_replaces_only_managed_block() {
     let codex_dir = temp_codex_dir("managed-agents");
-    let original = "# 我自己的规则\n使用 pnpm。\n";
+    let original = "# My own rules\nUse pnpm.\n";
     write_text(&agents_path(&codex_dir), original).expect("write original agents");
 
     install_managed_agents_block(
@@ -772,7 +772,7 @@ fn jsdelivr_catalog_keeps_only_direct_markdown_files() {
     let catalog = jsdelivr_prompt_catalog_from_entries(vec![
         "/examples/new prompt.md".to_string(),
         "/examples/NEW PROMPT.MD".to_string(),
-        "/examples/海鸥模板.md".to_string(),
+        "/examples/seagull-template.md".to_string(),
         "/examples/nested/ignored.md".to_string(),
         "/examples/notes.txt".to_string(),
         "/docs/ignored.md".to_string(),
@@ -785,7 +785,7 @@ fn jsdelivr_catalog_keeps_only_direct_markdown_files() {
         .any(|(_, filename)| filename == "new prompt.md"));
     assert!(catalog
         .iter()
-        .any(|(_, filename)| filename == "海鸥模板.md"));
+        .any(|(_, filename)| filename == "seagull-template.md"));
 }
 
 #[test]
@@ -800,7 +800,7 @@ fn jsdelivr_catalog_rejects_an_empty_markdown_listing() {
 
 #[test]
 fn prompt_download_sources_are_cdn_first_and_encode_the_filename() {
-    let sources = prompt_content_source_urls("模板 1#%.md");
+    let sources = prompt_content_source_urls("template 1#%.md");
     let encoded = "%E6%A8%A1%E6%9D%BF%201%23%25%2Emd";
 
     assert_eq!(sources.len(), 2);
@@ -834,10 +834,10 @@ fn empty_cache_fallback_uses_only_bundled_prompts() {
         .find(|status| status.filename == "gpt-5.6-sol-unrestricted.md")
         .expect("gpt-5.6 SOL is bundled");
     assert_eq!(sol.id, "github-gpt-5-6-sol-unrestricted-33b86c71");
-    assert_eq!(sol.subtitle, "gpt5.6-sol 破甲提示词");
+    assert_eq!(sol.subtitle, "gpt5.6-sol jailbreak prompt");
     let seagull = statuses
         .iter()
-        .find(|status| status.filename == "海鸥3.0破甲.md")
+        .find(|status| status.filename == "seagull-3.0.md")
         .expect("Seagull 3.0 is bundled");
     assert_eq!(seagull.id, "github-3-0-b459e1e8");
     assert_eq!(
@@ -890,7 +890,7 @@ fn cache_fallback_is_unique_and_keeps_remote_templates_offline() {
             "github-gpt-5-6-sol-unrestricted-33b86c71",
             "gpt-5.6-sol-unrestricted.md",
         ),
-        cache("github-3-0-b459e1e8", "海鸥3.0破甲.md"),
+        cache("github-3-0-b459e1e8", "seagull-3.0.md"),
         cache("github-new", "new.md"),
         cache("legacy-new", "new.md"),
     ]);
@@ -980,7 +980,7 @@ wire_api = "responses"
 
 #[test]
 fn append_mode_preserves_external_prompt_and_disable_removes_only_managed_agents() {
-    let codex_dir = temp_codex_dir("追加-prompt");
+    let codex_dir = temp_codex_dir("append-prompt");
     write_text(
         &config_path(&codex_dir),
         "model = \"gpt-5.5\"\nmodel_instructions_file = \"./user-original.md\"\n",
@@ -1038,7 +1038,7 @@ fn append_mode_preserves_external_prompt_and_disable_removes_only_managed_agents
 
 #[test]
 fn replace_mode_keeps_unrelated_agents_content() {
-    let codex_dir = temp_codex_dir("替换-prompt");
+    let codex_dir = temp_codex_dir("replace-prompt");
     write_text(&agents_path(&codex_dir), "# User AGENTS\nkeep this\n").expect("write agents");
 
     let enabled = enable_prompt_content_inner(
@@ -1234,7 +1234,7 @@ fn restore_backup_rejects_path_traversal_ids() {
         "../outside".to_string(),
     )
     .expect_err("path traversal backup id must fail");
-    assert!(error.to_string().contains("备份 ID 无效"));
+    assert!(error.to_string().contains("Invalid backup ID"));
     let _ = fs::remove_dir_all(codex_dir);
 }
 
@@ -1272,7 +1272,7 @@ fn restore_backup_rejects_a_backup_from_another_codex_home() {
     let error = restore_backup_inner(Some(target.display().to_string()), backup_id)
         .expect_err("cross-CODEX_HOME restore must fail");
 
-    assert!(error.to_string().contains("其他 CODEX_HOME"));
+    assert!(error.to_string().contains("Other CODEX_HOME"));
     assert_eq!(fs::read(config_path(&target)).unwrap(), config_before);
     assert_eq!(fs::read(auth_path(&target)).unwrap(), auth_before);
     assert_eq!(fs::read(agents_path(&target)).unwrap(), agents_before);
@@ -1297,7 +1297,7 @@ fn restore_backup_rejects_missing_metadata_without_touching_live_files() {
     let error = restore_backup_inner(Some(codex_dir.display().to_string()), backup_id)
         .expect_err("missing metadata must fail");
 
-    assert!(error.to_string().contains("缺少元数据"));
+    assert!(error.to_string().contains("Missing metadata"));
     assert_eq!(fs::read(config_path(&codex_dir)).unwrap(), config_before);
     let _ = fs::remove_dir_all(codex_dir);
 }
@@ -1364,7 +1364,7 @@ fn restore_backup_rejects_a_declared_symlink_file_before_live_changes() {
     let error = restore_backup_inner(Some(codex_dir.display().to_string()), backup_id)
         .expect_err("declared symlink backup file must fail");
 
-    assert!(error.to_string().contains("不是普通文件"));
+    assert!(error.to_string().contains("Not a regular file"));
     assert_eq!(fs::read(config_path(&codex_dir)).unwrap(), config_before);
     let _ = fs::remove_dir_all(codex_dir);
 }
@@ -1397,7 +1397,7 @@ fn restore_backup_rejects_extra_payload_files_when_presence_flags_are_false() {
         let error = restore_backup_inner(Some(codex_dir.display().to_string()), backup_id.clone())
             .expect_err("undeclared backup payload must fail");
 
-        assert!(error.to_string().contains("多余文件"));
+        assert!(error.to_string().contains("Extra files"));
         assert!(error.to_string().contains(filename));
         assert_eq!(fs::read(config_path(&codex_dir)).unwrap(), config_before);
         assert_eq!(fs::read(auth_path(&codex_dir)).unwrap(), auth_before);
@@ -1458,7 +1458,7 @@ fn restore_backup_rejects_metadata_id_mismatch_without_touching_live_files() {
     let error = restore_backup_inner(Some(codex_dir.display().to_string()), backup_id)
         .expect_err("mismatched metadata id must fail");
 
-    assert!(error.to_string().contains("ID 与请求不一致"));
+    assert!(error.to_string().contains("ID does not match request"));
     assert_eq!(fs::read(config_path(&codex_dir)).unwrap(), config_before);
     assert_eq!(fs::read(auth_path(&codex_dir)).unwrap(), auth_before);
     assert_eq!(fs::read(agents_path(&codex_dir)).unwrap(), agents_before);
@@ -1569,7 +1569,7 @@ fn switch_provider_round_trip_replaces_live_auth_and_restores_official_snapshot(
     };
     let result = switch_to_magic().expect("switch provider");
 
-    assert_eq!(result.message, "已切换到 MagicAI");
+    assert_eq!(result.message, "Switched to MagicAI");
     assert_eq!(result.state.model_provider.as_deref(), Some("custom"));
     assert_eq!(result.state.model.as_deref(), Some("gpt-5.5"));
 
@@ -1594,7 +1594,7 @@ fn switch_provider_round_trip_replaces_live_auth_and_restores_official_snapshot(
 
     let official = switch_official_provider_inner(Some(codex_dir.display().to_string()))
         .expect("switch back to official");
-    assert_eq!(official.message, "已切换到 OpenAI Official");
+    assert_eq!(official.message, "Switched to OpenAI Official");
     assert_eq!(official.state.model_provider.as_deref(), Some("custom"));
     assert!(official.state.is_official_provider);
     let restored_auth: Value = serde_json::from_str(
@@ -1604,7 +1604,7 @@ fn switch_provider_round_trip_replaces_live_auth_and_restores_official_snapshot(
     assert_eq!(restored_auth, official_auth);
 
     let switched_again = switch_to_magic().expect("switch back to provider after official");
-    assert_eq!(switched_again.message, "已切换到 MagicAI");
+    assert_eq!(switched_again.message, "Switched to MagicAI");
     assert!(!switched_again.state.is_official_provider);
     assert_eq!(
         switched_again.state.model_provider.as_deref(),
@@ -1862,7 +1862,7 @@ enabled = true
     })
     .expect("switch official to saved provider B");
 
-    assert_eq!(switched.message, "已切换到 Proxy B");
+    assert_eq!(switched.message, "Switched to Proxy B");
     assert!(!switched.state.is_official_provider);
     assert_eq!(switched.state.model.as_deref(), Some("gpt-5.6-sol"));
     assert_eq!(
@@ -3140,7 +3140,7 @@ requires_openai_auth = true
     let result = restore_official_provider_inner(Some(codex_dir.display().to_string()))
         .expect("restore independent official config");
 
-    assert_eq!(result.message, "已还原 OpenAI Official 配置");
+    assert_eq!(result.message, "Restored OpenAI Official profile");
     assert_eq!(result.state.model_provider.as_deref(), Some("custom"));
     assert_eq!(result.state.model.as_deref(), Some("proxy-model"));
     assert!(result.backup_id.is_none());
@@ -3540,7 +3540,7 @@ fn provider_requiring_auth_without_a_key_does_not_destroy_official_login() {
     )
     .expect_err("missing required provider key must reject the switch");
 
-    assert!(error.to_string().contains("需要 API Key"));
+    assert!(error.to_string().contains("API key required"));
     assert_eq!(
         fs::read_to_string(config_path(&codex_dir)).expect("read unchanged official config"),
         official_config
@@ -3616,7 +3616,7 @@ fn invalid_official_auth_does_not_partially_change_live_config() {
     )
     .expect_err("empty auth must be rejected");
 
-    assert!(error.to_string().contains("有效认证信息"));
+    assert!(error.to_string().contains("Valid credentials"));
     assert_eq!(
         fs::read_to_string(config_path(&codex_dir)).expect("read unchanged config"),
         original_config
@@ -3755,7 +3755,7 @@ requires_openai_auth = false
     .expect("save provider toml");
 
     assert!(result.ok);
-    assert_eq!(result.message, "已切换到 Proxy");
+    assert_eq!(result.message, "Switched to Proxy");
     let config_text = fs::read_to_string(config_path(&codex_dir)).expect("read config");
     assert!(config_text.contains("model_provider = \"custom\""));
     assert!(config_text.contains("[model_providers.custom]"));
@@ -3809,7 +3809,7 @@ requires_openai_auth = false
     })
     .expect_err("placeholder TOML must be rejected");
 
-    assert!(error.to_string().contains("示例占位值"));
+    assert!(error.to_string().contains("Example placeholder"));
     assert_eq!(
         fs::read_to_string(config_path(&codex_dir)).expect("read unchanged config"),
         original
@@ -3844,7 +3844,7 @@ requires_openai_auth = true
     })
     .expect_err("missing required provider key must reject TOML activation");
 
-    assert!(error.to_string().contains("需要 API Key"));
+    assert!(error.to_string().contains("API key required"));
     assert_eq!(
         fs::read_to_string(config_path(&codex_dir)).expect("read unchanged official config"),
         official_config
@@ -4371,7 +4371,7 @@ fn rollback_refuses_to_overwrite_a_file_changed_after_apply() {
     let mutation = "Codex appended different content after sync\n";
     write_text(&rollout, mutation).expect("mutate applied rollout");
     let error = restore_session_changes(&applied).expect_err("rollback must refuse mutation");
-    assert!(error.to_string().contains("有 1 个会话文件无法安全回滚"));
+    assert!(error.to_string().contains("1 session file could not be rolled back safely"));
     assert_eq!(
         fs::read_to_string(&rollout).expect("read preserved mutation"),
         mutation
@@ -4954,7 +4954,7 @@ fn local_session_delete_rejects_rollout_outside_codex_session_roots() {
 
     let error = hard_delete_sessions_locally(&codex_dir, &[id.to_string()])
         .expect_err("reject external rollout path");
-    assert!(error.to_string().contains("超出 Codex 会话目录"));
+    assert!(error.to_string().contains("Outside Codex sessions directory"));
     assert!(outside.exists());
     assert_eq!(sqlite_count(&current, "SELECT COUNT(*) FROM threads"), 1);
 

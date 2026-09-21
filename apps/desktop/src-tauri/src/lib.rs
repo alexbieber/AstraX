@@ -152,7 +152,7 @@ impl PromptInjectionMode {
         {
             "replace" | "model" => Ok(Self::Replace),
             "append" | "agents" => Ok(Self::Append),
-            other => Err(CodexxError::Config(format!("未知提示词注入模式: {other}"))),
+            other => Err(CodexxError::Config(format!("Unknown prompt injection mode: {other}"))),
         }
     }
 }
@@ -284,7 +284,7 @@ fn resolve_windows_linked_directory(path: PathBuf) -> Result<PathBuf> {
     for _ in 0..16 {
         if !visited.insert(current.clone()) {
             return Err(CodexxError::Config(format!(
-                "当前 Codex 目录链接形成了循环：{}",
+                "Current Codex directory symlink forms a loop: {}",
                 original.display()
             )));
         }
@@ -295,7 +295,7 @@ fn resolve_windows_linked_directory(path: PathBuf) -> Result<PathBuf> {
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 return Err(CodexxError::Config(format!(
-                    "当前 Codex 目录链接的目标不存在：{}",
+                    "Current Codex directory symlink target does not exist: {}",
                     original.display()
                 )));
             }
@@ -319,13 +319,13 @@ fn resolve_windows_linked_directory(path: PathBuf) -> Result<PathBuf> {
             continue;
         }
         return Err(CodexxError::Config(format!(
-            "当前 CODEX_HOME 不是文件夹：{}",
+            "Current CODEX_HOME is not a folder: {}",
             original.display()
         )));
     }
 
     Err(CodexxError::Config(format!(
-        "当前 Codex 目录链接层级过多：{}",
+        "Current Codex directory symlink nesting is too deep: {}",
         original.display()
     )))
 }
@@ -366,9 +366,9 @@ fn diagnostic_item(
         "missing"
     };
     let message = match status {
-        "ok" => "检测通过",
-        "manual" => "需要手动选择",
-        _ => "未找到",
+        "ok" => "Checks passed",
+        "manual" => "Manual selection required",
+        _ => "Not found",
     };
     DiagnosticItem {
         key: key.to_string(),
@@ -413,19 +413,19 @@ fn startup_diagnostics_inner(config_dir: Option<String>) -> Result<StartupDiagno
     ));
     items.push(DiagnosticItem {
         key: "sqlite".to_string(),
-        label: "SQLite 会话库".to_string(),
+        label: "SQLite session database".to_string(),
         path: sqlite_paths.first().map(|p| {
             if sqlite_paths.len() > 1 {
-                format!("{} 等 {} 个", p.display(), sqlite_paths.len())
+                format!("{} and {} more", p.display(), sqlite_paths.len())
             } else {
                 p.display().to_string()
             }
         }),
         status: if sqlite_ok { "ok" } else { "missing" }.to_string(),
         message: if sqlite_ok {
-            "检测通过"
+            "Checks passed"
         } else {
-            "未找到"
+            "Not found"
         }
         .to_string(),
     });
@@ -433,12 +433,12 @@ fn startup_diagnostics_inner(config_dir: Option<String>) -> Result<StartupDiagno
     let ok_count = items.iter().filter(|item| item.status == "ok").count();
     let needs_manual_select = !codex_dir_ok;
     let summary = if ok_count == items.len() {
-        "Codex 环境检测通过".to_string()
+        "Codex environment checks passed".to_string()
     } else if needs_manual_select {
-        "未找到 CODEX_HOME，需要手动选择 Codex 配置目录".to_string()
+        "CODEX_HOME not found; please select the Codex config directory manually".to_string()
     } else {
         format!(
-            "已检测到 {ok_count}/{} 项，缺失项不影响部分功能使用",
+            "Detected {ok_count}/{} items; missing items do not block all features",
             items.len()
         )
     };
@@ -455,21 +455,21 @@ fn startup_diagnostics_inner(config_dir: Option<String>) -> Result<StartupDiagno
 async fn get_skills_mcp_state(config_dir: Option<String>) -> Result<SkillsMcpState> {
     tauri::async_runtime::spawn_blocking(move || build_skills_mcp_state_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("读取 Skills/MCP 失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read Skills/MCP: {e}")))?
 }
 
 #[tauri::command]
 async fn import_existing_skills_mcp(config_dir: Option<String>) -> Result<SkillsMcpActionResult> {
     tauri::async_runtime::spawn_blocking(move || import_existing_skills_mcp_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("导入已有 Skills/MCP 失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to import existing Skills/MCP: {e}")))?
 }
 
 #[tauri::command]
 async fn preview_existing_skills_mcp(config_dir: Option<String>) -> Result<SkillsMcpImportPreview> {
     tauri::async_runtime::spawn_blocking(move || preview_existing_skills_mcp_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("预览已有 Skills/MCP 失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to preview existing Skills/MCP: {e}")))?
 }
 
 #[tauri::command]
@@ -480,7 +480,7 @@ async fn toggle_codex_skill(
 ) -> Result<SkillsMcpState> {
     tauri::async_runtime::spawn_blocking(move || toggle_codex_skill_inner(config_dir, id, enabled))
         .await
-        .map_err(|e| CodexxError::Config(format!("切换 Skill 失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to toggle Skill: {e}")))?
 }
 
 #[tauri::command]
@@ -491,7 +491,7 @@ async fn toggle_codex_mcp(
 ) -> Result<SkillsMcpState> {
     tauri::async_runtime::spawn_blocking(move || toggle_codex_mcp_inner(config_dir, id, enabled))
         .await
-        .map_err(|e| CodexxError::Config(format!("切换 MCP 失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to toggle MCP: {e}")))?
 }
 
 #[tauri::command]
@@ -505,7 +505,7 @@ async fn save_skills_mcp_note(
         save_skills_mcp_note_inner(config_dir, item_kind, id, note)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("保存 Skills/MCP 备注失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to save Skills/MCP notes: {e}")))?
 }
 
 #[tauri::command]
@@ -518,21 +518,21 @@ async fn install_skill_zip(
         install_skill_zip_inner(config_dir, file_name, bytes)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("ZIP 安装 Skill 失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to install Skill from ZIP: {e}")))?
 }
 
 #[tauri::command]
 async fn check_skill_updates(config_dir: Option<String>) -> Result<SkillsMcpState> {
     tauri::async_runtime::spawn_blocking(move || check_skill_updates_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("检查 Skill 更新失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to check Skill updates: {e}")))?
 }
 
 #[tauri::command]
 async fn get_startup_diagnostics(config_dir: Option<String>) -> Result<StartupDiagnostics> {
     tauri::async_runtime::spawn_blocking(move || startup_diagnostics_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("启动检测失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Startup checks failed: {e}")))?
 }
 
 #[tauri::command]
@@ -543,7 +543,7 @@ async fn check_codex_config(
         config_health::check_codex_config_inner(config_dir)
     })
     .await
-    .map_err(|_| CodexxError::Config("检查配置失败，请稍后重试。".to_string()))?
+    .map_err(|_| CodexxError::Config("Failed to check configuration; please try again later.".to_string()))?
 }
 
 #[tauri::command]
@@ -555,7 +555,7 @@ async fn repair_codex_config(
         config_health::repair_codex_config_inner(config_dir, expected_fingerprint)
     })
     .await
-    .map_err(|_| CodexxError::Config("修复配置失败，请稍后重试。".to_string()))?
+    .map_err(|_| CodexxError::Config("Failed to repair configuration; please try again later.".to_string()))?
 }
 
 #[tauri::command]
@@ -564,7 +564,7 @@ async fn open_codex_config_file(config_dir: Option<String>) -> Result<()> {
         config_health::open_codex_config_file_inner(config_dir)
     })
     .await
-    .map_err(|_| CodexxError::Config("打开配置文件失败，请稍后重试。".to_string()))?
+    .map_err(|_| CodexxError::Config("Failed to open config file; please try again later.".to_string()))?
 }
 
 #[tauri::command]
@@ -576,7 +576,7 @@ async fn get_session_sync_status(
         session_sync_status_inner(config_dir, target_provider)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("读取会话状态失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to read session state: {e}")))?
 }
 
 #[tauri::command]
@@ -588,14 +588,14 @@ async fn sync_sessions_provider(
         sync_sessions_provider_inner(config_dir, target_provider)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("同步会话失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to sync sessions: {e}")))?
 }
 
 #[tauri::command]
 async fn delete_codex_sessions(input: SessionDeleteInput) -> Result<SessionDeleteResult> {
     tauri::async_runtime::spawn_blocking(move || delete_codex_sessions_inner(input))
         .await
-        .map_err(|e| CodexxError::Config(format!("永久删除会话失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to permanently delete session: {e}")))?
 }
 
 #[tauri::command]
@@ -604,7 +604,7 @@ async fn read_ccswitch_official_auth(
 ) -> Result<Option<OfficialAuthCandidate>> {
     tauri::async_runtime::spawn_blocking(move || read_ccswitch_official_auth_inner(db_path))
         .await
-        .map_err(|e| CodexxError::Config(format!("读取 cc-switch 官方 Auth 失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read cc-switch official auth: {e}")))?
 }
 
 #[tauri::command]
@@ -612,12 +612,12 @@ async fn import_ccswitch_codex_providers(db_path: Option<String>) -> Result<Impo
     tauri::async_runtime::spawn_blocking(move || {
         let result = import_ccswitch_codex_providers_inner(db_path)?;
         failover::refresh_saved_routes().map_err(|error| {
-            CodexxError::Config(format!("供应商已导入，但自动切换状态更新失败：{error}"))
+            CodexxError::Config(format!("Provider imported, but auto-failover status update failed: {error}"))
         })?;
         Ok(result)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("导入 cc-switch Provider 失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to import cc-switch provider: {e}")))?
 }
 
 fn get_about_info_inner(config_dir: Option<String>) -> Result<AboutInfo> {
@@ -648,7 +648,7 @@ fn get_about_info_inner(config_dir: Option<String>) -> Result<AboutInfo> {
 async fn get_about_info(config_dir: Option<String>) -> Result<AboutInfo> {
     tauri::async_runtime::spawn_blocking(move || get_about_info_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("读取关于信息失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read about info: {e}")))?
 }
 
 #[tauri::command]
@@ -656,7 +656,7 @@ async fn restart_codex_desktop() -> std::result::Result<CodexDesktopRestartResul
     let (app_name, was_running) =
         tauri::async_runtime::spawn_blocking(platform::restart_codex_desktop)
             .await
-            .map_err(|error| format!("重启 Codex 桌面客户端失败: {error}"))??;
+            .map_err(|error| format!("Failed to restart Codex desktop client: {error}"))??;
     Ok(CodexDesktopRestartResult {
         app_name,
         was_running,
@@ -667,21 +667,21 @@ async fn restart_codex_desktop() -> std::result::Result<CodexDesktopRestartResul
 async fn list_saved_prompts() -> Result<Vec<SavedPrompt>> {
     tauri::async_runtime::spawn_blocking(list_saved_prompts_inner)
         .await
-        .map_err(|e| CodexxError::Config(format!("读取提示词列表失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read prompt list: {e}")))?
 }
 
 #[tauri::command]
 async fn get_builtin_prompt_status() -> Result<Vec<BuiltinPromptStatus>> {
     tauri::async_runtime::spawn_blocking(builtin_prompt_status_inner)
         .await
-        .map_err(|e| CodexxError::Config(format!("读取内置提示词状态失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read built-in prompt status: {e}")))?
 }
 
 #[tauri::command]
 async fn get_builtin_prompt_detail(template_id: String) -> Result<BuiltinPromptDetail> {
     tauri::async_runtime::spawn_blocking(move || builtin_prompt_detail_inner(&template_id))
         .await
-        .map_err(|e| CodexxError::Config(format!("读取内置提示词失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read built-in prompt: {e}")))?
 }
 
 #[tauri::command]
@@ -701,14 +701,14 @@ async fn save_builtin_prompt_override(
         builtin_prompt_detail_inner(id)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("保存内置提示词修改失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to save built-in prompt edits: {e}")))?
 }
 
 #[tauri::command]
 async fn refresh_builtin_prompts(config_dir: Option<String>) -> Result<Vec<BuiltinPromptStatus>> {
     tauri::async_runtime::spawn_blocking(move || refresh_builtin_prompts_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("提示词后台更新失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Background prompt update failed: {e}")))?
 }
 
 #[tauri::command]
@@ -718,17 +718,17 @@ async fn remember_current_instruction(config_dir: Option<String>) -> Result<Opti
         remember_current_instruction_prompt(&codex_dir)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("保存当前外部提示词失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to save current external prompt: {e}")))?
 }
 
 fn save_prompt_command_inner(prompt: SavedPrompt) -> Result<SavedPrompt> {
     let title = prompt.title.trim().to_string();
     if title.is_empty() {
-        return Err(CodexxError::Config("提示词名称不能为空".to_string()));
+        return Err(CodexxError::Config("Prompt name cannot be empty".to_string()));
     }
     let content = prompt.content.trim().to_string();
     if content.is_empty() {
-        return Err(CodexxError::Config("提示词内容不能为空".to_string()));
+        return Err(CodexxError::Config("Prompt content cannot be empty".to_string()));
     }
     let id = if prompt.id.trim().is_empty() {
         sanitize_id(&title)
@@ -748,14 +748,14 @@ fn save_prompt_command_inner(prompt: SavedPrompt) -> Result<SavedPrompt> {
 async fn save_prompt(prompt: SavedPrompt) -> Result<SavedPrompt> {
     tauri::async_runtime::spawn_blocking(move || save_prompt_command_inner(prompt))
         .await
-        .map_err(|e| CodexxError::Config(format!("保存提示词失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to save prompt: {e}")))?
 }
 
 #[tauri::command]
 async fn delete_saved_prompt(id: String) -> Result<()> {
     tauri::async_runtime::spawn_blocking(move || delete_prompt_inner(id.trim()))
         .await
-        .map_err(|e| CodexxError::Config(format!("删除提示词失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to delete prompt: {e}")))?
 }
 
 fn managed_model_instruction_path(codex_dir: &Path, doc: &DocumentMut) -> Result<Option<PathBuf>> {
@@ -801,10 +801,10 @@ fn enable_prompt_content_inner(
         || filename.contains('/')
         || filename.contains('\\')
     {
-        return Err(CodexxError::Config("提示词文件名无效".to_string()));
+        return Err(CodexxError::Config("Invalid prompt filename".to_string()));
     }
     if template_key.trim().is_empty() || template_key.contains("-->") {
-        return Err(CodexxError::Config("提示词模板标识无效".to_string()));
+        return Err(CodexxError::Config("Invalid prompt template id".to_string()));
     }
 
     let codex_dir = resolve_codex_dir(config_dir)?;
@@ -887,11 +887,11 @@ fn enable_prompt_content_inner(
         codex_dir,
         &changes,
         format!(
-            "已用{}模式启用 {title}（来源：{content_source}）",
+            "Enabled {title} in {} mode (source: {content_source})",
             if injection_mode == PromptInjectionMode::Append {
-                "追加"
+                "Append"
             } else {
-                "替换"
+                "Replace"
             }
         ),
         backup_id,
@@ -911,7 +911,7 @@ fn enable_saved_prompt_inner(
         &prompt.content,
         &format!("saved:{}", prompt.id),
         &prompt.title,
-        "本地自定义",
+        "Local custom",
         mode,
         "enable-custom-prompt",
     )
@@ -927,14 +927,14 @@ async fn enable_saved_prompt(
         enable_saved_prompt_inner(config_dir, id, injection_mode)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("启用自定义提示词失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to enable custom prompt: {e}")))?
 }
 
 #[tauri::command]
 async fn list_saved_providers() -> Result<Vec<SavedProvider>> {
     tauri::async_runtime::spawn_blocking(list_saved_providers_inner)
         .await
-        .map_err(|e| CodexxError::Config(format!("读取供应商列表失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read provider list: {e}")))?
 }
 
 enum ActiveProviderSelectionUpdate {
@@ -979,7 +979,7 @@ fn finish_provider_selection(
         Err(error) => {
             result
                 .message
-                .push_str(&format!("；当前供应商状态记录失败：{error}"));
+                .push_str(&format!("; failed to record current provider status: {error}"));
         }
     }
     result
@@ -991,7 +991,7 @@ async fn get_provider_config_base(config_dir: Option<String>) -> Result<String> 
         providers::get_provider_config_base_inner(config_dir)
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("读取供应商通用配置失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to read provider common settings: {error}")))?
 }
 
 #[tauri::command]
@@ -1008,13 +1008,13 @@ async fn build_provider_toml_draft(
         }
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("生成供应商 TOML 失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to generate provider TOML: {e}")))?
 }
 
 fn save_provider_command_inner(provider: SavedProvider) -> Result<SavedProvider> {
     let saved = save_provider_inner(provider)?;
     failover::refresh_saved_routes().map_err(|error| {
-        CodexxError::Config(format!("供应商已保存，但自动切换状态更新失败：{error}"))
+        CodexxError::Config(format!("Provider saved, but auto-failover status update failed: {error}"))
     })?;
     Ok(saved)
 }
@@ -1023,7 +1023,7 @@ fn save_provider_command_inner(provider: SavedProvider) -> Result<SavedProvider>
 async fn save_provider(provider: SavedProvider) -> Result<SavedProvider> {
     tauri::async_runtime::spawn_blocking(move || save_provider_command_inner(provider))
         .await
-        .map_err(|e| CodexxError::Config(format!("保存供应商失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to save provider: {e}")))?
 }
 
 #[tauri::command]
@@ -1036,7 +1036,7 @@ async fn duplicate_provider(
         providers::duplicate_provider_inner(config_dir, provider_id, provider_name)
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("复制供应商失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to copy provider: {error}")))?
 }
 
 #[tauri::command]
@@ -1059,14 +1059,14 @@ async fn get_usage_statistics(
         usage::get_usage_statistics_inner(config_dir, range, model, force_refresh)
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("读取用量统计失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to read usage stats: {error}")))?
 }
 
 #[tauri::command]
 async fn get_provider_failover(config_dir: Option<String>) -> Result<failover::FailoverStatus> {
     tauri::async_runtime::spawn_blocking(move || failover::get_status(config_dir))
         .await
-        .map_err(|error| CodexxError::Config(format!("读取自动切换设置失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to read auto-failover settings: {error}")))?
 }
 
 #[tauri::command]
@@ -1076,7 +1076,7 @@ async fn save_provider_failover(
 ) -> Result<failover::FailoverStatus> {
     tauri::async_runtime::spawn_blocking(move || failover::save_settings(config_dir, settings))
         .await
-        .map_err(|error| CodexxError::Config(format!("保存自动切换设置失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to save auto-failover settings: {error}")))?
 }
 
 #[tauri::command]
@@ -1086,7 +1086,7 @@ async fn reset_provider_failover_health(
 ) -> Result<failover::FailoverStatus> {
     tauri::async_runtime::spawn_blocking(move || failover::reset_health(config_dir, provider_id))
         .await
-        .map_err(|error| CodexxError::Config(format!("重置供应商健康状态失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to reset provider health status: {error}")))?
 }
 
 #[tauri::command]
@@ -1104,7 +1104,7 @@ async fn activate_saved_provider(
         })
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("启用供应商失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to enable provider: {error}")))?
 }
 
 #[tauri::command]
@@ -1127,12 +1127,12 @@ async fn save_active_provider(
             ))
         })?;
         failover::refresh_saved_routes().map_err(|error| {
-            CodexxError::Config(format!("供应商已保存，但自动切换状态更新失败：{error}"))
+            CodexxError::Config(format!("Provider saved, but auto-failover status update failed: {error}"))
         })?;
         Ok(result)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("保存活动供应商失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to save active provider: {e}")))?
 }
 
 #[tauri::command]
@@ -1140,18 +1140,18 @@ async fn delete_saved_provider(id: String, config_dir: Option<String>) -> Result
     tauri::async_runtime::spawn_blocking(move || {
         delete_saved_provider_inner(id.trim(), config_dir)?;
         failover::refresh_saved_routes().map_err(|error| {
-            CodexxError::Config(format!("供应商已删除，但自动切换状态更新失败：{error}"))
+            CodexxError::Config(format!("Provider deleted, but auto-failover status update failed: {error}"))
         })
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("删除供应商失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to delete provider: {e}")))?
 }
 
 #[tauri::command]
 async fn get_codex_state(config_dir: Option<String>) -> Result<CodexState> {
     tauri::async_runtime::spawn_blocking(move || get_codex_state_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("读取 Codex 状态失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read Codex status: {e}")))?
 }
 
 fn get_codex_state_inner(config_dir: Option<String>) -> Result<CodexState> {
@@ -1174,14 +1174,14 @@ async fn switch_official_provider(config_dir: Option<String>) -> Result<ActionRe
         })
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("切换官方配置失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to switch official profile: {e}")))?
 }
 
 #[tauri::command]
 async fn list_official_profiles(config_dir: Option<String>) -> Result<Vec<OfficialProfileSummary>> {
     tauri::async_runtime::spawn_blocking(move || list_official_profiles_inner(config_dir))
         .await
-        .map_err(|error| CodexxError::Config(format!("读取官方配置列表失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to read official profile list: {error}")))?
 }
 
 #[tauri::command]
@@ -1193,7 +1193,7 @@ async fn get_official_profile_quota(
         providers::quota::get_official_profile_quota_inner(config_dir, profile_id)
     })
     .await
-    .map_err(|_| CodexxError::Config("读取官方账号额度失败，请重试".to_string()))?
+    .map_err(|_| CodexxError::Config("Failed to read official account quota; please try again".to_string()))?
 }
 
 #[tauri::command]
@@ -1205,7 +1205,7 @@ async fn get_official_profile_reset_credits(
         providers::quota::get_official_profile_reset_credits_inner(config_dir, profile_id)
     })
     .await
-    .map_err(|_| CodexxError::Config("读取官方账号重置次数失败，请重试".to_string()))?
+    .map_err(|_| CodexxError::Config("Failed to read official account reset count; please try again".to_string()))?
 }
 
 #[tauri::command]
@@ -1215,7 +1215,7 @@ async fn get_official_profile(
 ) -> Result<OfficialProfileDetail> {
     tauri::async_runtime::spawn_blocking(move || get_official_profile_inner(config_dir, profile_id))
         .await
-        .map_err(|error| CodexxError::Config(format!("读取官方配置失败: {error}")))?
+        .map_err(|error| CodexxError::Config(format!("Failed to read official profile: {error}")))?
 }
 
 #[tauri::command]
@@ -1239,7 +1239,7 @@ async fn save_official_profile(input: OfficialProfileInput) -> Result<OfficialPr
         }
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("保存官方配置失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to save official profile: {error}")))?
 }
 
 #[tauri::command]
@@ -1252,7 +1252,7 @@ async fn duplicate_official_profile(
         duplicate_official_profile_inner(config_dir, profile_id, provider_name)
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("复制官方配置失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to copy official profile: {error}")))?
 }
 
 #[tauri::command]
@@ -1266,7 +1266,7 @@ async fn switch_official_profile(
         })
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("切换官方配置失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to switch official profile: {error}")))?
 }
 
 #[tauri::command]
@@ -1275,7 +1275,7 @@ async fn delete_official_profile(config_dir: Option<String>, profile_id: String)
         delete_official_profile_inner(config_dir, profile_id)
     })
     .await
-    .map_err(|error| CodexxError::Config(format!("删除官方配置失败: {error}")))?
+    .map_err(|error| CodexxError::Config(format!("Failed to delete official profile: {error}")))?
 }
 
 #[tauri::command]
@@ -1290,7 +1290,7 @@ async fn reset_official_provider(input: OfficialConfigInput) -> Result<ActionRes
         })
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("新建官方配置失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to create official profile: {e}")))?
 }
 
 #[tauri::command]
@@ -1310,7 +1310,7 @@ async fn save_official_config(input: OfficialConfigInput) -> Result<ActionResult
         })
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("保存官方配置失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to save official profile: {e}")))?
 }
 
 fn enable_instruction_inner(
@@ -1346,7 +1346,7 @@ async fn enable_instruction(
         enable_instruction_inner(config_dir, "gpt5.5-unrestricted", injection_mode)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("启用指令提示词失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to enable instruction prompt: {e}")))?
 }
 
 #[tauri::command]
@@ -1359,7 +1359,7 @@ async fn enable_instruction_template(
         enable_instruction_inner(config_dir, &template_id, injection_mode)
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("启用指令提示词失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to enable instruction prompt: {e}")))?
 }
 
 fn disable_instruction_inner(
@@ -1420,11 +1420,11 @@ fn disable_instruction_inner(
         codex_dir,
         &changes,
         if removed {
-            "已禁用指令提示词".to_string()
+            "Instruction prompt disabled".to_string()
         } else if current.is_some() {
-            "当前使用的是用户自己的提示词，Astra 未做修改".to_string()
+            "Currently using your own prompt; Astra made no changes".to_string()
         } else {
-            "当前没有启用 Astra 提示词".to_string()
+            "No Astra prompt is currently enabled".to_string()
         },
         backup_id,
     )
@@ -1437,7 +1437,7 @@ async fn disable_instruction(
 ) -> Result<ActionResult> {
     tauri::async_runtime::spawn_blocking(move || disable_instruction_inner(config_dir, delete_file))
         .await
-        .map_err(|e| CodexxError::Config(format!("禁用指令提示词失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to disable instruction prompt: {e}")))?
 }
 
 fn disable_external_instruction_inner(config_dir: Option<String>) -> Result<ActionResult> {
@@ -1453,7 +1453,7 @@ fn disable_external_instruction_inner(config_dir: Option<String>) -> Result<Acti
     if let Some(value) = current.as_deref() {
         if prompt_template_key_for_instruction(value)?.is_some() {
             return Err(CodexxError::Config(
-                "当前是 Astra 管理的提示词，请使用普通禁用按钮".to_string(),
+                "This is an Astra-managed prompt; use the normal disable button".to_string(),
             ));
         }
     }
@@ -1471,9 +1471,9 @@ fn disable_external_instruction_inner(config_dir: Option<String>) -> Result<Acti
         codex_dir,
         &changes,
         if current.is_some() {
-            "已禁用用户外部提示词，原 md 文件已保留".to_string()
+            "External user prompt disabled; original markdown file kept".to_string()
         } else {
-            "当前没有外部提示词".to_string()
+            "No external prompt is currently active".to_string()
         },
         backup_id,
     )
@@ -1483,7 +1483,7 @@ fn disable_external_instruction_inner(config_dir: Option<String>) -> Result<Acti
 async fn disable_external_instruction(config_dir: Option<String>) -> Result<ActionResult> {
     tauri::async_runtime::spawn_blocking(move || disable_external_instruction_inner(config_dir))
         .await
-        .map_err(|e| CodexxError::Config(format!("禁用外部提示词失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to disable external prompt: {e}")))?
 }
 
 fn direct_provider_toml_input(mut input: ProviderTomlInput) -> Result<ProviderTomlInput> {
@@ -1524,7 +1524,7 @@ async fn save_provider_toml_config(
         })
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("保存供应商 TOML 失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to save provider TOML: {e}")))?
 }
 
 #[tauri::command]
@@ -1534,7 +1534,7 @@ async fn test_provider_connection(
 ) -> Result<ProviderConnectionResult> {
     tauri::async_runtime::spawn_blocking(move || test_provider_connection_inner(base_url, api_key))
         .await
-        .map_err(|e| CodexxError::Config(format!("测试连接失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Connection test failed: {e}")))?
 }
 
 #[tauri::command]
@@ -1544,7 +1544,7 @@ async fn fetch_provider_models(
 ) -> Result<ProviderModelsResult> {
     tauri::async_runtime::spawn_blocking(move || fetch_provider_models_inner(base_url, api_key))
         .await
-        .map_err(|e| CodexxError::Config(format!("获取模型列表失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to fetch model list: {e}")))?
 }
 
 #[tauri::command]
@@ -1563,14 +1563,14 @@ async fn switch_provider(input: ProviderInput) -> Result<ActionResult> {
         })
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("切换供应商失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to switch provider: {e}")))?
 }
 
 #[tauri::command]
 async fn list_backups() -> Result<Vec<BackupEntry>> {
     tauri::async_runtime::spawn_blocking(backups)
         .await
-        .map_err(|e| CodexxError::Config(format!("读取备份列表失败: {e}")))?
+        .map_err(|e| CodexxError::Config(format!("Failed to read backup list: {e}")))?
 }
 
 fn read_backup_file_snapshot(path: &Path) -> Result<Option<Vec<u8>>> {
@@ -1581,7 +1581,7 @@ fn read_backup_file_snapshot(path: &Path) -> Result<Option<Vec<u8>>> {
     };
     if metadata.file_type().is_symlink() || !metadata.is_file() {
         return Err(CodexxError::Config(format!(
-            "备份文件不是普通文件: {}",
+            "Backup file is not a regular file: {}",
             path.display()
         )));
     }
@@ -1592,12 +1592,12 @@ fn declared_backup_file_snapshot(path: &Path, declared_present: bool) -> Result<
     match (declared_present, read_backup_file_snapshot(path)?) {
         (true, Some(bytes)) => Ok(Some(bytes)),
         (true, None) => Err(CodexxError::Config(format!(
-            "备份元数据声明文件存在，但备份文件缺失: {}",
+            "Backup metadata lists a file that is missing: {}",
             path.display()
         ))),
         (false, None) => Ok(None),
         (false, Some(_)) => Err(CodexxError::Config(format!(
-            "备份元数据声明文件不存在，但目录中出现了多余文件: {}",
+            "Backup directory has extra files not listed in metadata: {}",
             path.display()
         ))),
     }
@@ -1612,7 +1612,7 @@ fn restore_backup_inner(config_dir: Option<String>, backup_id: String) -> Result
         Some(std::path::Component::Normal(_))
     ) || backup_components.next().is_some()
     {
-        return Err(CodexxError::Config("备份 ID 无效".to_string()));
+        return Err(CodexxError::Config("Invalid backup ID".to_string()));
     }
     let dir = action_backup_root(&codex_dir)?.join(&backup_id);
     let dir_metadata = fs::symlink_metadata(&dir).ok();
@@ -1620,13 +1620,13 @@ fn restore_backup_inner(config_dir: Option<String>, backup_id: String) -> Result
         .as_ref()
         .is_some_and(|metadata| metadata.is_dir() && !metadata.file_type().is_symlink())
     {
-        return Err(CodexxError::Config(format!("备份不存在: {backup_id}")));
+        return Err(CodexxError::Config(format!("Backup does not exist: {backup_id}")));
     }
 
     let backup_meta_path = dir.join("meta.json");
     let backup_meta_bytes = read_backup_file_snapshot(&backup_meta_path)?.ok_or_else(|| {
         CodexxError::Config(format!(
-            "备份缺少元数据文件: {}",
+            "Backup is missing metadata file: {}",
             backup_meta_path.display()
         ))
     })?;
@@ -1634,7 +1634,7 @@ fn restore_backup_inner(config_dir: Option<String>, backup_id: String) -> Result
         .map_err(|error| file_io::json_err(&backup_meta_path, error))?;
     if backup_meta.id != backup_id {
         return Err(CodexxError::Config(format!(
-            "备份元数据 ID 与请求不一致：元数据为 {}，请求为 {backup_id}",
+            "Backup metadata ID does not match request: metadata is {}, request is {backup_id}",
             backup_meta.id
         )));
     }
@@ -1690,7 +1690,7 @@ fn restore_backup_inner(config_dir: Option<String>, backup_id: String) -> Result
     finish_file_action(
         codex_dir,
         &changes,
-        format!("已恢复备份 {backup_id}"),
+        format!("Restored backup {backup_id}"),
         restore_marker,
     )
 }
@@ -1706,14 +1706,14 @@ async fn restore_backup(config_dir: Option<String>, backup_id: String) -> Result
         })
     })
     .await
-    .map_err(|e| CodexxError::Config(format!("恢复备份失败: {e}")))?
+    .map_err(|e| CodexxError::Config(format!("Failed to restore backup: {e}")))?
 }
 
 #[tauri::command]
 fn open_url(url: String) -> std::result::Result<(), String> {
     let trimmed = url.trim().to_string();
     if trimmed.is_empty() {
-        return Err("URL 为空".to_string());
+        return Err("URL is empty".to_string());
     }
 
     // Do not wait for the browser process. On Windows, waiting for `cmd /C start` can
@@ -1759,7 +1759,7 @@ pub fn run() {
             if let Err(error) = failover::initialize() {
                 desktop_lifecycle::report_failover_lifecycle_error(
                     app.handle(),
-                    "自动切换暂时无法启动",
+                    "Auto-failover cannot start right now",
                     &error.to_string(),
                 );
             }

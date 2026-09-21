@@ -55,49 +55,7 @@ type NoteTarget = {
 type SkillsMcpCopy = ReturnType<typeof getCopy>;
 
 function getCopy(lang: Lang) {
-  return lang === "zh"
-    ? {
-        eyebrow: "SKILLS / MCP",
-        title: "技能和MCP",
-        description: "管理 Codex 当前可用的 Skills 与 MCP，导入已有内容、安装技能包并控制启用状态。",
-        refresh: "刷新",
-        importExisting: "导入已有",
-        installZip: "从 ZIP 导入",
-        exportZip: "导出 ZIP",
-        exportHint: "导出当前标签页的全部内容，可通过 ZIP 再次导入；MCP 包可能包含连接密钥，请妥善保存。",
-        checkUpdates: "检查更新",
-        loading: "正在读取本地 Skills / MCP...",
-        mcpHelp: (count: number) => `当前共有 ${count} 个 MCP，启用后会写入 Codex config.toml。`,
-        skillsHelp: (count: number) => `当前共有 ${count} 个 Skills，启用后会放入 Codex skills 目录。`,
-        total: (count: number) => `共 ${count} 个`,
-        noMcp: "还没有发现 MCP，请先导入已有内容。",
-        noSkills: "还没有发现 Skills，请导入已有内容或安装 ZIP 技能包。",
-        enableMcp: "启用 MCP",
-        disableMcp: "关闭 MCP",
-        enableSkill: "启用 Skill",
-        disableSkill: "禁用 Skill",
-        updateStatus: "更新状态",
-        addNote: "添加备注",
-        editNote: "编辑备注",
-        noteTitle: "自定义备注",
-        noteDescription: (name: string) => `为“${name}”添加便于识别的说明。`,
-        noteLabel: "备注内容",
-        notePlaceholder: "例如：用于查询项目文档，依赖本地 Node.js",
-        noteEmptyHint: "留空保存将清除现有备注",
-        noteCount: (count: number) => `${count} / 1000`,
-        saveNote: "保存备注",
-        savingNote: "保存中",
-        importTitle: "确认导入已有内容",
-        importDescription: "以下内容来自本机现有配置。导入后可在此统一启用或禁用。",
-        noImportItems: "没有发现可导入的已有 Skills / MCP。",
-        noImportSkills: "没有可导入的 Skill",
-        noImportMcp: "没有可导入的 MCP",
-        cancel: "取消",
-        importing: "正在导入",
-        confirmImport: "导入",
-        warnings: "需要留意",
-      }
-    : {
+  return {
         eyebrow: "SKILLS / MCP",
         title: "Skills & MCP",
         description: "Manage the Skills and MCP servers available to Codex, import existing items, install packages, and control their state.",
@@ -204,13 +162,13 @@ function SkillRow({
   onEditNote: (target: NoteTarget) => void;
 }) {
   const name = skill.name || skill.directory;
-  const updateTone = skill.updateStatus.includes("失败") || skill.updateStatus.toLowerCase().includes("fail")
+  const updateTone = skill.updateStatus.toLowerCase().includes("fail")
     ? "danger"
-    : skill.updateStatus.includes("新版本") || skill.updateStatus.toLowerCase().includes("update")
+    : skill.updateStatus.toLowerCase().includes("update")
       ? "warning"
       : "neutral";
 
-  const showUpdateStatus = Boolean(skill.updateStatus && skill.updateStatus !== "未检查");
+  const showUpdateStatus = Boolean(skill.updateStatus && !["not checked", "unchecked", "idle"].includes(skill.updateStatus.toLowerCase()));
   const details = [skill.note, skill.description, skill.source].filter(Boolean).join("\n");
 
   return (

@@ -30,61 +30,37 @@ export function formatUsageTokens(value: number): string {
   return Math.round(value).toString();
 }
 
-const exact = (value: number, lang: Language) => value.toLocaleString(lang === "zh" ? "zh-CN" : "en-US");
+const exact = (value: number, lang: Language) => value.toLocaleString("en-US");
 const ratio = (part: number, total: number) => total > 0 ? Math.min(100, Math.max(0, part / total * 100)) : 0;
 const percentage = (value: number) => `${Number(value.toFixed(1))}%`;
 
 function modelLabel(model: string, lang: Language): string {
-  if (model === "unknown") return lang === "zh" ? "未知模型" : "Unknown model";
-  if (model === "multiple") return lang === "zh" ? "多个模型" : "Multiple models";
+  if (model === "unknown") return "Unknown model";
+  if (model === "multiple") return "Multiple models";
   return model;
 }
 
 function sessionTitleLabel(title: string, lang: Language): string {
-  return title && title !== "未命名会话" ? title : lang === "zh" ? "未命名会话" : "Untitled session";
+  return title && title !== "Untitled session" ? title : "Untitled session";
 }
 
 function dateLabel(date: string, lang: Language, includeYear = false): string {
   const value = new Date(date.length === 10 ? `${date}T12:00:00` : date);
   if (Number.isNaN(value.getTime())) return date;
-  return value.toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+  return value.toLocaleDateString("en-US", {
     ...(includeYear ? { year: "numeric" as const } : {}), month: "short", day: "numeric",
   });
 }
 
 function timestampLabel(date: string, lang: Language): string {
   const value = new Date(date);
-  return Number.isNaN(value.getTime()) ? date : value.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", {
+  return Number.isNaN(value.getTime()) ? date : value.toLocaleString("en-US", {
     month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false,
   });
 }
 
 function copyFor(lang: Language) {
-  return lang === "zh" ? {
-    title: "Token 用量统计",
-    description: "查看 Codex 的 Token 使用情况，了解用量趋势与模型分布。",
-    range: "统计范围", ranges: { today: "今天", "7d": "近 7 天", "30d": "近 30 天", all: "全部" },
-    model: "模型", allModels: "全部模型", refresh: "刷新用量", refreshing: "更新中", retry: "重试",
-    total: "总 Token 用量", totalHint: "输入 + 输出", input: "输入 Token", output: "输出 Token",
-    freshInput: "未缓存输入", cache: "缓存输入", cached: "已缓存", cacheRate: "缓存命中率",
-    inputHint: "包含缓存输入", outputHint: "包含推理 Token", reasoning: "推理 Token",
-    sessions: "活跃会话", sessionsHint: "主会话数量，含子代理产生的用量", tokens: "Token",
-    trend: "用量趋势", trendHint: "按日查看输入、缓存和输出的构成", peak: "最高用量日",
-    legendLabel: "Token 构成", chartLabel: "每日 Token 用量；左右方向键切换日期",
-    breakdown: "每日明细", date: "日期", totalColumn: "合计", modelTitle: "模型分布",
-    modelHint: "按 Token 用量排序", modelCount: "个模型", modelFilter: "筛选此模型",
-    recent: "最近会话", recentHint: "展示最近 10 个有用量的主会话；子代理用量合并到所属主会话，总量包含全部符合条件的记录。",
-    session: "会话", lastActive: "最近活动", noData: "这里将记录你的 Codex 用量",
-    noDataDescription: "当前范围内还没有可统计的会话记录。使用 Codex 后点击刷新，或试试更大的日期范围。",
-    showAll: "查看全部时间", loading: "正在整理本地会话用量…",
-    error: "暂时无法读取用量", stale: "刷新失败，下面保留上次读取的结果。",
-    updatingResults: "正在更新用量，保留当前结果。", showingResults: "当前显示",
-    loadingResults: "正在加载", previousResults: "下方暂时显示", failedResults: "未能加载",
-    partial: "部分记录未计入", partialHint: "部分本地记录不完整，当前结果仅包含可读取的用量。",
-    source: "本地会话记录", updated: "更新于", notes: "缓存输入已包含在输入 Token 中，推理 Token 已包含在输出 Token 中。历史记录缺失的用量无法补算。",
-    scanned: "已检查", files: "份记录", filtered: "当前模型", activity: "使用概览",
-    noModels: "暂无模型用量", zeroDay: "当天无用量",
-  } : {
+  return {
     title: "Token usage statistics",
     description: "Explore your Codex usage, daily activity, and model distribution.",
     range: "Date range", ranges: { today: "Today", "7d": "7 days", "30d": "30 days", all: "All time" },
@@ -301,7 +277,7 @@ export function UsageStatisticsPage({ lang, configDir, active = true }: UsageSta
     </div>
     {error && <div className="cx-usage-notice cx-usage-notice--error" role="alert"><AlertCircle size={18} aria-hidden="true" /><div><strong>{copy.error}</strong>{data && <p>{copy.stale}</p>}<p>{error}</p></div><button type="button" onClick={() => void load(true)} disabled={busy}>{copy.retry}</button></div>}
     {!data && !error && <div className="cx-usage-loading" role="status"><Loader2 size={27} className="cx-page-spin" aria-hidden="true" /><p>{copy.loading}</p><div className="cx-usage-loading-cards" aria-hidden="true"><span /><span /><span /></div></div>}
-    {partial && <div className="cx-usage-notice cx-usage-notice--warning" role="status"><AlertCircle size={18} aria-hidden="true" /><div><strong>{copy.partial}</strong><p>{copy.partialHint}</p>{data.coverage.warnings.length > 0 && <details><summary>{lang === "zh" ? "查看详情" : "View details"}</summary><ul>{data.coverage.warnings.map((warning, index) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul></details>}</div></div>}
+    {partial && <div className="cx-usage-notice cx-usage-notice--warning" role="status"><AlertCircle size={18} aria-hidden="true" /><div><strong>{copy.partial}</strong><p>{copy.partialHint}</p>{data.coverage.warnings.length > 0 && <details><summary>{"View details"}</summary><ul>{data.coverage.warnings.map((warning, index) => <li key={`${index}-${warning}`}>{warning}</li>)}</ul></details>}</div></div>}
     {data && !hasUsage && <section className="cx-usage-empty"><div className="cx-usage-empty-visual" aria-hidden="true"><span /><span /><span /><span /><BarChart3 size={23} /></div><h3>{copy.noData}</h3><p>{copy.noDataDescription}</p>{(range !== "all" || model) && <button type="button" className="cx-page-button cx-page-button--secondary" onClick={() => { setRange("all"); setModel(""); }}>{copy.showAll}</button>}</section>}
     {data && hasUsage && <>
       <section className="cx-usage-summary" aria-label={copy.activity}>

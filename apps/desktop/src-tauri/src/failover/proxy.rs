@@ -151,17 +151,17 @@ impl ProxyHandle {
         options.tuning.validate()?;
         crate::remote::ensure_crypto_provider();
         if token.len() < 32 || token.len() > 512 || !token.bytes().all(|c| c.is_ascii_graphic()) {
-            return Err(CodexxError::Config("本地路由凭据无效".into()));
+            return Err(CodexxError::Config("Local routing credentials are invalid".into()));
         }
         let listener = TcpListener::bind(SocketAddr::new(address, port)).map_err(|_| {
-            CodexxError::Config("本地路由无法启动，监听地址无效或端口已被占用".into())
+            CodexxError::Config("Local routing failed to start; listen address is invalid or the port is in use".into())
         })?;
         listener
             .set_nonblocking(true)
-            .map_err(|_| CodexxError::Config("无法初始化本地路由".into()))?;
+            .map_err(|_| CodexxError::Config("Unable to initialize local routing".into()))?;
         let port = listener
             .local_addr()
-            .map_err(|_| CodexxError::Config("无法读取本地路由端口".into()))?
+            .map_err(|_| CodexxError::Config("Unable to read local routing port".into()))?
             .port();
         reject_self_routes(&routes, address, port)?;
         let statistics = Statistics {
@@ -199,7 +199,7 @@ impl ProxyHandle {
                 .is_err()
             {
                 handle.shutdown();
-                return Err(CodexxError::Config("本地路由无法创建请求线程".into()));
+                return Err(CodexxError::Config("Local routing could not create a request thread".into()));
             }
         }
         Ok(handle)
@@ -244,7 +244,7 @@ impl ProxyHandle {
         options.tuning.validate()?;
         reject_self_routes(routes, self.listen_address(), self.port())?;
         if self.shared.stopped.load(Ordering::Acquire) {
-            return Err(CodexxError::Config("本地路由已停止".into()));
+            return Err(CodexxError::Config("Local routing has stopped".into()));
         }
         Ok(())
     }
@@ -373,10 +373,10 @@ impl Drop for ProxyHandle {
 
 fn validate_routes(routes: &[ProxyRoute]) -> Result<()> {
     if routes.len() > MAX_ROUTES {
-        return Err(CodexxError::Config("自动切换最多支持 64 个供应商".into()));
+        return Err(CodexxError::Config("Auto-failover supports at most 64 providers".into()));
     }
     if routes.iter().any(|route| route.official.is_some()) && routes.len() != 1 {
-        return Err(CodexxError::Config("官方登录只能使用独立的账号路由".into()));
+        return Err(CodexxError::Config("Official login can only use dedicated account routing".into()));
     }
     let mut ids = HashSet::new();
     for route in routes {
@@ -384,10 +384,10 @@ fn validate_routes(routes: &[ProxyRoute]) -> Result<()> {
             || route.name.trim().is_empty()
             || !ids.insert(route.id.as_str())
         {
-            return Err(CodexxError::Config("自动切换供应商不能为空或重复".into()));
+            return Err(CodexxError::Config("Auto-failover providers cannot be empty or duplicated".into()));
         }
         let url = reqwest::Url::parse(&route.base_url)
-            .map_err(|_| CodexxError::Config("自动切换供应商地址无效".into()))?;
+            .map_err(|_| CodexxError::Config("Auto-failover provider URL is invalid".into()))?;
         if !matches!(url.scheme(), "http" | "https")
             || url.host_str().is_none()
             || !url.username().is_empty()
@@ -395,7 +395,7 @@ fn validate_routes(routes: &[ProxyRoute]) -> Result<()> {
             || url.fragment().is_some()
         {
             return Err(CodexxError::Config(
-                "自动切换供应商需要有效的 HTTP 或 HTTPS 地址".into(),
+                "Auto-failover providers require a valid HTTP or HTTPS URL".into(),
             ));
         }
         if route
@@ -408,7 +408,7 @@ fn validate_routes(routes: &[ProxyRoute]) -> Result<()> {
             })
         {
             return Err(CodexxError::Config(
-                "自动切换供应商的请求头或凭据无效".into(),
+                "Auto-failover provider headers or credentials are invalid".into(),
             ));
         }
     }
@@ -427,7 +427,7 @@ fn reject_self_routes(routes: &[ProxyRoute], address: IpAddr, port: u16) -> Resu
                             .is_ok_and(|ip| ip.is_loopback() || ip == address)
                 })
         }) {
-            return Err(CodexxError::Config("供应商不能指向自动切换服务自身".into()));
+            return Err(CodexxError::Config("Provider cannot point at the auto-failover service itself".into()));
         }
     }
     Ok(())
@@ -547,7 +547,7 @@ fn parse_request_headers(request: &mut Request) -> std::result::Result<(), (u16,
     let mut bytes = Vec::new();
     loop {
         if request.started.elapsed() > CLIENT_REQUEST_TIMEOUT {
-            return Err((408, "读取请求超时"));
+            return Err((408, "Read request timed out"));
         }
         let line = bounded_line(
             &mut request.reader,
@@ -556,9 +556,9 @@ fn parse_request_headers(request: &mut Request) -> std::result::Result<(), (u16,
         )
         .map_err(|error| {
             if error.kind() == io::ErrorKind::FileTooLarge {
-                (431, "请求头过大")
+                (431, "Request headers too large")
             } else {
-                (400, "HTTP 请求无效")
+                (400, "Invalid HTTP request")
             }
         })?;
         let complete = line == b"\r\n";
@@ -574,12 +574,12 @@ fn parse_request_headers(request: &mut Request) -> std::result::Result<(), (u16,
         .is_ok_and(|status| status.is_complete())
         || !matches!(parsed.version, Some(0 | 1))
     {
-        return Err((400, "HTTP 请求无效"));
+        return Err((400, "Invalid HTTP request"));
     }
-    request.method = parsed.method.ok_or((400, "HTTP 方法无效"))?.into();
-    request.target = parsed.path.ok_or((400, "HTTP 地址无效"))?.into();
+    request.method = parsed.method.ok_or((400, "Invalid HTTP method"))?.into();
+    request.target = parsed.path.ok_or((400, "Invalid HTTP URL"))?.into();
     for header in parsed.headers {
-        let value = std::str::from_utf8(header.value).map_err(|_| (400, "HTTP 请求头无效"))?;
+        let value = std::str::from_utf8(header.value).map_err(|_| (400, "Invalid HTTP headers"))?;
         request
             .headers
             .push((header.name.to_owned(), value.to_owned()));
@@ -614,7 +614,7 @@ fn authorize(
     if !header_values(request, "origin").is_empty()
         || !header_values(request, "sec-fetch-site").is_empty()
     {
-        return Err((403, "此接口不接受浏览器请求"));
+        return Err((403, "This endpoint does not accept browser requests"));
     }
     let hosts = header_values(request, "host");
     let advertised =
@@ -626,10 +626,10 @@ fn authorize(
         .ok()
         .map(|address| address.to_string());
     if hosts.len() != 1 || (hosts[0] != advertised && local.as_deref() != Some(hosts[0])) {
-        return Err((403, "本地请求地址无效"));
+        return Err((403, "Invalid local request URL"));
     }
     if !header_values(request, "upgrade").is_empty() {
-        return Err((400, "此接口使用 HTTP，不支持协议升级"));
+        return Err((400, "This endpoint uses HTTP and does not support protocol upgrades"));
     }
     let authorization = header_values(request, "authorization");
     if let Some(spec) = config
@@ -641,11 +641,11 @@ fn authorize(
         if route_token.len() != 1
             || !fixed_time_equal(route_token[0].as_bytes(), shared.token.as_bytes())
         {
-            return Err((401, "本地路由认证失败"));
+            return Err((401, "Local routing authentication failed"));
         }
         let account_id = header_values(request, "chatgpt-account-id");
         if authorization.len() != 1 || account_id.len() > 1 {
-            return Err((401, "官方账号认证不完整"));
+            return Err((401, "Official account authentication is incomplete"));
         }
         return super::native_official::verify_request(
             spec,
@@ -653,13 +653,13 @@ fn authorize(
             account_id.first().copied(),
         )
         .map(Some)
-        .map_err(|_| (401, "官方账号已变化，请重新登录或重新打开 Codex"));
+        .map_err(|_| (401, "Official account changed; sign in again or reopen Codex"));
     }
     let expected = format!("Bearer {}", shared.token);
     if authorization.len() != 1
         || !fixed_time_equal(authorization[0].as_bytes(), expected.as_bytes())
     {
-        return Err((401, "本地请求认证失败"));
+        return Err((401, "Local request authentication failed"));
     }
     Ok(None)
 }
@@ -705,7 +705,7 @@ fn request_data(request: &mut Request) -> std::result::Result<RequestData, (u16,
             || query.contains('#')
             || query.bytes().any(|byte| byte.is_ascii_control())
     }) {
-        return Err((400, "查询参数无效"));
+        return Err((400, "Invalid query parameters"));
     }
     let query = query.map(str::to_owned);
     let (suffix, is_models) = match (request.method.as_str(), path) {
@@ -713,9 +713,9 @@ fn request_data(request: &mut Request) -> std::result::Result<RequestData, (u16,
         ("POST", "/v1/responses/compact") => ("responses/compact", false),
         ("GET", "/v1/models") => ("models", true),
         (_, "/v1/responses" | "/v1/responses/compact" | "/v1/models") => {
-            return Err((405, "不支持此请求方法"))
+            return Err((405, "Request method not supported"))
         }
-        _ => return Err((404, "未找到此接口")),
+        _ => return Err((404, "Endpoint not found")),
     };
     let encoding = header_values(request, "content-encoding")
         .join(",")
@@ -730,7 +730,7 @@ fn request_data(request: &mut Request) -> std::result::Result<RequestData, (u16,
             .iter()
             .any(|value| !matches!(*value, "gzip" | "x-gzip" | "deflate" | "zstd" | "zst"))
     {
-        return Err((415, "不支持此请求压缩格式"));
+        return Err((415, "Request compression format not supported"));
     }
     if !is_models
         && header_values(request, "content-type").iter().any(|value| {
@@ -742,19 +742,19 @@ fn request_data(request: &mut Request) -> std::result::Result<RequestData, (u16,
                 .eq_ignore_ascii_case("application/json")
         })
     {
-        return Err((415, "请求需要使用 JSON"));
+        return Err((415, "Request must use JSON"));
     }
     let bytes = read_request_body(request, is_models)?;
     let bytes = decode_content_encoding(&encoding, bytes, MAX_BODY_BYTES).map_err(|error| {
         if error.kind() == io::ErrorKind::FileTooLarge {
-            (413, "解压后的请求超过 64 MiB，请减少本次输入")
+            (413, "Decompressed request exceeds 64 MiB; please reduce this input")
         } else {
-            (400, "压缩请求内容损坏或格式无效")
+            (400, "Compressed request body is corrupt or invalid")
         }
     })?;
     if is_models {
         if !bytes.is_empty() {
-            return Err((400, "模型列表查询不能带有请求内容"));
+            return Err((400, "Model list queries must not include a request body"));
         }
         return Ok(RequestData {
             suffix,
@@ -766,15 +766,15 @@ fn request_data(request: &mut Request) -> std::result::Result<RequestData, (u16,
             bytes,
         });
     }
-    let body: Value = serde_json::from_slice(&bytes).map_err(|_| (400, "请求不是有效的 JSON"))?;
+    let body: Value = serde_json::from_slice(&bytes).map_err(|_| (400, "Request is not valid JSON"))?;
     if !body.is_object() {
-        return Err((400, "请求需要使用 JSON 对象"));
+        return Err((400, "Request must be a JSON object"));
     }
     let model = body
         .get("model")
         .and_then(Value::as_str)
         .filter(|model| !model.trim().is_empty() && model.len() <= 1024)
-        .ok_or((400, "请求缺少有效的模型名称"))?
+        .ok_or((400, "Request is missing a valid model name"))?
         .to_owned();
     let streaming = body.get("stream").and_then(Value::as_bool).unwrap_or(false);
     Ok(RequestData {
@@ -794,21 +794,21 @@ fn read_request_part(
     length: usize,
 ) -> std::result::Result<(), (u16, &'static str)> {
     if length > MAX_BODY_BYTES.saturating_sub(bytes.len()) {
-        return Err((413, "请求超过 64 MiB，请减少本次输入"));
+        return Err((413, "Request exceeds 64 MiB; please reduce this input"));
     }
     let mut remaining = length;
     let mut buffer = [0; 16 * 1024];
     while remaining > 0 {
         if request.started.elapsed() >= CLIENT_REQUEST_TIMEOUT {
-            return Err((408, "读取请求超时"));
+            return Err((408, "Read request timed out"));
         }
         let capacity = remaining.min(buffer.len());
         let count = request
             .reader
             .read(&mut buffer[..capacity])
-            .map_err(|_| (408, "请求内容读取超时或中断"))?;
+            .map_err(|_| (408, "Request body read timed out or was interrupted"))?;
         if count == 0 {
-            return Err((400, "请求内容不完整"));
+            return Err((400, "Request body is incomplete"));
         }
         bytes.extend_from_slice(&buffer[..count]);
         remaining -= count;
@@ -826,28 +826,28 @@ fn read_request_body(
         || transfers.len() > 1
         || lengths.windows(2).any(|pair| pair[0] != pair[1])
     {
-        return Err((400, "请求长度不明确"));
+        return Err((400, "Request length is unclear"));
     }
     let length = lengths
         .first()
         .map(|value| {
             if value.is_empty() || !value.bytes().all(|byte| byte.is_ascii_digit()) {
-                return Err((400, "请求长度无效"));
+                return Err((400, "Invalid request length"));
             }
-            value.parse::<usize>().map_err(|_| (413, "请求长度过大"))
+            value.parse::<usize>().map_err(|_| (413, "Request length too large"))
         })
         .transpose()?;
     if length.is_some_and(|length| length > MAX_BODY_BYTES) {
-        return Err((413, "请求超过 64 MiB，请减少本次输入"));
+        return Err((413, "Request exceeds 64 MiB; please reduce this input"));
     }
     let chunked = transfers
         .first()
         .map(|value| value.eq_ignore_ascii_case("chunked"));
     if chunked == Some(false) {
-        return Err((400, "不支持此传输编码"));
+        return Err((400, "Transfer encoding not supported"));
     }
     if length.is_none() && chunked.is_none() && !is_models {
-        return Err((411, "请求需要声明内容长度"));
+        return Err((411, "Request must declare Content-Length"));
     }
     let expectations = header_values(request, "expect");
     if expectations.len() > 1
@@ -855,7 +855,7 @@ fn read_request_body(
             .first()
             .is_some_and(|value| !value.eq_ignore_ascii_case("100-continue"))
     {
-        return Err((417, "不支持此请求条件"));
+        return Err((417, "Request condition not supported"));
     }
     if !expectations.is_empty() {
         request
@@ -863,7 +863,7 @@ fn read_request_body(
             .get_mut()
             .write_all(b"HTTP/1.1 100 Continue\r\n\r\n")
             .and_then(|()| request.reader.get_mut().flush())
-            .map_err(|_| (400, "客户端已断开连接"))?;
+            .map_err(|_| (400, "Client disconnected"))?;
     }
     let mut bytes = Vec::new();
     if chunked.is_none() {
@@ -872,37 +872,37 @@ fn read_request_body(
     }
     loop {
         if request.started.elapsed() >= CLIENT_REQUEST_TIMEOUT {
-            return Err((408, "读取请求超时"));
+            return Err((408, "Read request timed out"));
         }
         let line = bounded_line(
             &mut request.reader,
             256,
             request.started + CLIENT_REQUEST_TIMEOUT,
         )
-        .map_err(|_| (400, "分块请求格式无效"))?;
+        .map_err(|_| (400, "Invalid chunked request format"))?;
         let raw_size = line[..line.len() - 2]
             .split(|byte| *byte == b';')
             .next()
             .unwrap_or_default();
         if raw_size.is_empty() || !raw_size.iter().all(u8::is_ascii_hexdigit) {
-            return Err((400, "分块请求长度无效"));
+            return Err((400, "Invalid chunked request length"));
         }
         let size = std::str::from_utf8(raw_size)
             .ok()
             .and_then(|text| usize::from_str_radix(text, 16).ok())
-            .ok_or((413, "分块请求长度过大"))?;
+            .ok_or((413, "Chunked request length too large"))?;
         if size == 0 {
             let mut trailer_bytes = 0;
             loop {
                 if request.started.elapsed() >= CLIENT_REQUEST_TIMEOUT {
-                    return Err((408, "读取请求超时"));
+                    return Err((408, "Read request timed out"));
                 }
                 let line = bounded_line(
                     &mut request.reader,
                     MAX_HEADERS_BYTES - trailer_bytes,
                     request.started + CLIENT_REQUEST_TIMEOUT,
                 )
-                .map_err(|_| (400, "分块请求结尾无效"))?;
+                .map_err(|_| (400, "Invalid chunked request ending"))?;
                 trailer_bytes += line.len();
                 if line == b"\r\n" {
                     return Ok(bytes);
@@ -916,9 +916,9 @@ fn read_request_body(
         request
             .reader
             .read_exact(&mut ending)
-            .map_err(|_| (400, "分块请求内容不完整"))?;
+            .map_err(|_| (400, "Chunked request body is incomplete"))?;
         if ending != *b"\r\n" {
-            return Err((400, "分块请求结尾无效"));
+            return Err((400, "Invalid chunked request ending"));
         }
     }
 }
@@ -1515,7 +1515,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
             }
             Err(_) => {
                 fail_request(shared);
-                respond_error(request, 502, "官方模型目录暂时无法读取");
+                respond_error(request, 502, "Official model catalog is temporarily unavailable");
             }
         }
         return;
@@ -1532,7 +1532,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
     for (index, route) in config.routes.iter().enumerate() {
         if shared.stopped.load(Ordering::Acquire) {
             fail_request(shared);
-            respond_error(request, 503, "本地路由已停止，请重新发送本次请求");
+            respond_error(request, 503, "Local routing has stopped; please resend this request");
             return;
         }
         if attempted >= max_attempts {
@@ -1554,7 +1554,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
                     route,
                     &mut permit,
                     None,
-                    "供应商连接失败或响应超时",
+                    "Provider connection failed or timed out",
                 );
                 if official {
                     break;
@@ -1570,7 +1570,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
                 route,
                 &mut permit,
                 Some(status),
-                "供应商暂时不可用",
+                "Provider temporarily unavailable",
             );
             last_response = Some(response);
             continue;
@@ -1582,10 +1582,10 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
                 route,
                 &mut permit,
                 Some(status),
-                "供应商返回了不支持的重定向",
+                "Provider returned an unsupported redirect",
             );
             fail_request(shared);
-            respond_error(request, 502, "供应商返回重定向，请检查 API 地址");
+            respond_error(request, 502, "Provider returned a redirect; please check the API URL");
             return;
         }
         if !(200..=299).contains(&status) {
@@ -1597,7 +1597,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
             }
             match buffered_response(response) {
                 Ok(response) => respond_buffered(request, response),
-                Err(_) => respond_error(request, 502, "供应商响应无法读取"),
+                Err(_) => respond_error(request, 502, "Unable to read provider response"),
             };
             return;
         }
@@ -1625,7 +1625,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
                         route,
                         &mut permit,
                         Some(status),
-                        "供应商首包读取失败或超时",
+                        "Failed to read provider first byte or timed out",
                     );
                     if official {
                         break;
@@ -1649,7 +1649,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
                 // Like CC Switch, after the committed first chunk this is a
                 // downstream stream failure, never a fresh provider attempt.
                 let mut stats = lock(&shared.statistics);
-                stats.last_error = Some("响应中断或超过静默时间，请重试本次请求".into());
+                stats.last_error = Some("Response interrupted or idle timeout exceeded; please retry this request".into());
             }
             return;
         }
@@ -1666,7 +1666,7 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
                     route,
                     &mut permit,
                     Some(status),
-                    "供应商完整响应读取失败或超时",
+                    "Failed to read full provider response or timed out",
                 );
                 if official {
                     break;
@@ -1678,12 +1678,12 @@ fn handle_request(mut request: Request, shared: &Arc<Shared>) {
     if let Some(response) = last_response {
         match buffered_response(response) {
             Ok(response) => respond_buffered(request, response),
-            Err(_) => respond_error(request, 502, "暂时无法连接可用供应商，请稍后重试"),
+            Err(_) => respond_error(request, 502, "Unable to reach an available provider right now; please try again later"),
         }
     } else if attempted > 0 {
-        respond_error(request, 502, "暂时无法连接可用供应商，请稍后重试");
+        respond_error(request, 502, "Unable to reach an available provider right now; please try again later");
     } else {
-        respond_error(request, 503, "队列为空或供应商正在熔断恢复，请稍后重试");
+        respond_error(request, 503, "Queue is empty or providers are recovering from circuit break; please try again later");
     }
 }
 
@@ -2522,7 +2522,7 @@ mod tests {
         primary.wait_for_calls(1);
         proxy.shutdown();
         release.send(()).unwrap();
-        assert!(pending.join().unwrap().contains("已停止"));
+        assert!(pending.join().unwrap().contains("Stopped"));
         assert!(backup.observed().is_empty());
     }
 

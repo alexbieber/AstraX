@@ -45,7 +45,6 @@ export function PromptCategoryManager({
   onDeleteCategory,
   onMovePrompt,
 }: PromptCategoryManagerProps) {
-  const isChinese = lang === "zh";
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
@@ -72,27 +71,7 @@ export function PromptCategoryManager({
     return grouped;
   }, [categories, categoryForPrompt, prompts]);
 
-  const copy = isChinese
-    ? {
-        title: "分类管理",
-        deleteTitle: "删除提示词分类",
-        deleteDescription: (name: string) => `“${name}”中的提示词会移到默认分类，提示词本身不会被删除。`,
-        addCategory: "新增分类",
-        namePlaceholder: "输入分类名称",
-        cancel: "取消",
-        save: "保存",
-        add: "添加",
-        confirmDelete: "确认删除",
-        edit: "编辑分类",
-        remove: "删除分类",
-        keepOne: "至少保留一个分类",
-        empty: "该分类下暂无提示词",
-        move: (title: string) => `移动“${title}”到分类`,
-        duplicate: `分类名称不能为空、重复或超过 ${PROMPT_CATEGORY_NAME_MAX_LENGTH} 个字符`,
-        expand: (name: string) => `展开${name}`,
-        collapse: (name: string) => `收起${name}`,
-      }
-    : {
+  const copy = {
         title: "Manage categories",
         deleteTitle: "Delete prompt category",
         deleteDescription: (name: string) => `Prompts in “${name}” will move to the default category. The prompts are not deleted.`,
@@ -174,7 +153,7 @@ export function PromptCategoryManager({
       description={categoryToDelete ? copy.deleteDescription(categoryToDelete.name) : undefined}
       footer={footer}
       size="md"
-      closeLabel={isChinese ? "关闭" : "Close"}
+      closeLabel={"Close"}
       className={cx("cx-prompt-category-modal", categoryToDelete && "cx-prompt-category-modal--confirm")}
       bodyClassName="cx-prompt-category-modal-body"
     >

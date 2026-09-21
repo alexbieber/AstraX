@@ -74,7 +74,7 @@ export function ModalShell({
   closeOnBackdrop = true,
   closeOnEscape = true,
   initialFocusRef,
-  closeLabel = "关闭",
+  closeLabel = "Close",
   showCloseButton = true,
   className,
   bodyClassName,

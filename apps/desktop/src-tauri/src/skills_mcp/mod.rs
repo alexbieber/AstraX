@@ -42,7 +42,7 @@ fn normalized_note_item_kind(item_kind: &str) -> Result<&'static str> {
         "skill" => Ok("skill"),
         "mcp" => Ok("mcp"),
         _ => Err(crate::error::CodexxError::Config(
-            "备注类型必须是 skill 或 mcp".to_string(),
+            "Note type must be skill or mcp".to_string(),
         )),
     }
 }
@@ -109,10 +109,10 @@ pub(crate) fn build_skills_mcp_state_inner(config_dir: Option<String>) -> Result
     let mut skills = Vec::new();
     let mut seen = HashSet::new();
     if let Err(e) = normalize_legacy_zip_skill_dirs(&skills_dir) {
-        warnings.push(format!("修正 ZIP Skill 目录名失败: {e}"));
+        warnings.push(format!("Failed to fix ZIP Skill directory name: {e}"));
     }
     if let Err(e) = normalize_legacy_zip_skill_dirs(&disabled_dir) {
-        warnings.push(format!("修正已禁用 ZIP Skill 目录名失败: {e}"));
+        warnings.push(format!("Failed to fix disabled ZIP Skill directory name: {e}"));
     }
     if let Err(e) = scan_skill_dir(&skills_dir, true, "Codex", &mut skills, &mut seen) {
         warnings.push(e.to_string());
@@ -120,7 +120,7 @@ pub(crate) fn build_skills_mcp_state_inner(config_dir: Option<String>) -> Result
     if let Err(e) = scan_skill_dir(
         &disabled_dir,
         false,
-        "Astra 已禁用",
+        "Disabled by Astra",
         &mut skills,
         &mut seen,
     ) {
@@ -169,14 +169,14 @@ pub(crate) fn save_skills_mcp_note_inner(
     let item_kind = normalized_note_item_kind(&item_kind)?;
     if id.trim().is_empty() {
         return Err(crate::error::CodexxError::Config(
-            "备注对象 ID 不能为空".to_string(),
+            "Note target ID cannot be empty".to_string(),
         ));
     }
     let id = id.as_str();
     let note = note.trim();
     if note.chars().count() > SKILLS_MCP_NOTE_MAX_CHARS {
         return Err(crate::error::CodexxError::Config(format!(
-            "备注不能超过 {SKILLS_MCP_NOTE_MAX_CHARS} 个字符"
+            "Notes cannot exceed {SKILLS_MCP_NOTE_MAX_CHARS} characters"
         )));
     }
 
@@ -190,7 +190,7 @@ pub(crate) fn save_skills_mcp_note_inner(
     };
     if !exists {
         return Err(crate::error::CodexxError::Config(format!(
-            "未找到要备注的 {item_kind}: {id}"
+            "Could not find {item_kind} to annotate: {id}"
         )));
     }
 
@@ -250,7 +250,7 @@ pub(crate) fn import_existing_skills_mcp_inner(
     Ok(SkillsMcpActionResult {
         imported_skills,
         imported_mcp,
-        message: format!("已导入 {imported_skills} 个 Skills，纳管 {imported_mcp} 个 MCP"),
+        message: format!("Imported {imported_skills} Skills and managed {imported_mcp} MCP"),
         state,
     })
 }
@@ -276,7 +276,7 @@ pub(crate) fn preview_existing_skills_mcp_inner(
             .parent()
             .and_then(|p| p.file_name())
             .map(|s| s.to_string_lossy().to_string())
-            .unwrap_or_else(|| "外部目录".to_string());
+            .unwrap_or_else(|| "External directory".to_string());
         let before = skills.len();
         if let Err(e) = scan_skill_dir(&base, false, &source, &mut skills, &mut seen) {
             warnings.push(e.to_string());
@@ -285,15 +285,15 @@ pub(crate) fn preview_existing_skills_mcp_inner(
             if skills_dir.join(&skill.directory).exists()
                 || disabled_dir.join(&skill.directory).exists()
             {
-                skill.update_status = "已存在，将跳过".to_string();
+                skill.update_status = "Already exists; will skip".to_string();
             } else {
-                skill.update_status = "可导入".to_string();
+                skill.update_status = "Importable".to_string();
             }
         }
     }
     let mut candidate_ids = HashSet::new();
     skills.retain(|skill| {
-        skill.update_status != "已存在，将跳过"
+        skill.update_status != "Already exists; will skip"
             && candidate_ids.insert(skill.directory.to_ascii_lowercase())
     });
 
@@ -427,7 +427,7 @@ mod tests {
             config_dir.clone(),
             "skill".to_string(),
             item_id.clone(),
-            "  我的 Skill 备注  ".to_string(),
+            "  My Skill note  ".to_string(),
         )
         .expect("save skill note");
         let state = save_skills_mcp_note_inner(
@@ -443,7 +443,7 @@ mod tests {
                 .iter()
                 .find(|skill| skill.id == item_id)
                 .and_then(|skill| skill.note.as_deref()),
-            Some("我的 Skill 备注")
+            Some("My Skill note")
         );
         assert_eq!(
             state

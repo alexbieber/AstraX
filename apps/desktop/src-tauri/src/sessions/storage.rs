@@ -82,14 +82,14 @@ fn referenced_rollout_paths(
             Ok(metadata) => metadata,
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 failures.push(format!(
-                    "活动 SQLite 引用的会话文件不存在: {}",
+                    "Session file referenced by active SQLite does not exist: {}",
                     path.display()
                 ));
                 continue;
             }
             Err(error) => {
                 failures.push(format!(
-                    "无法检查活动会话文件: {} ({error})",
+                    "Unable to check active session file: {} ({error})",
                     path.display()
                 ));
                 continue;
@@ -97,7 +97,7 @@ fn referenced_rollout_paths(
         };
         if metadata.file_type().is_symlink() || !metadata.is_file() || !is_rollout_file(&path) {
             failures.push(format!(
-                "活动 SQLite 引用了不受支持的会话文件: {}",
+                "Active SQLite references an unsupported session file: {}",
                 path.display()
             ));
             continue;
@@ -106,7 +106,7 @@ fn referenced_rollout_paths(
             Ok(canonical) => canonical,
             Err(error) => {
                 failures.push(format!(
-                    "无法解析活动会话文件路径: {} ({error})",
+                    "Unable to parse active session file path: {} ({error})",
                     path.display()
                 ));
                 continue;
@@ -124,9 +124,9 @@ fn referenced_rollout_paths(
         };
         if !allowed_root {
             let reason = if within_codex_storage {
-                "活动 SQLite 引用了归档会话文件"
+                "Active SQLite references an archived session file"
             } else {
-                "活动 SQLite 引用的会话文件超出 Codex 会话目录"
+                "Active SQLite session file is outside the Codex sessions directory"
             };
             failures.push(format!("{reason}: {}", path.display()));
             continue;
@@ -135,7 +135,7 @@ fn referenced_rollout_paths(
         expected_thread_ids.insert(thread_id.clone());
         if expected_thread_ids.len() > 1 {
             failures.push(format!(
-                "活动 SQLite 的多个线程引用了同一个会话文件: {}",
+                "Multiple threads in active SQLite reference the same session file: {}",
                 canonical.display()
             ));
         }
@@ -148,7 +148,7 @@ fn collect_rollout_paths(root: &Path, out: &mut Vec<PathBuf>, failures: &mut Vec
         Ok(entries) => entries,
         Err(error) => {
             if error.kind() != std::io::ErrorKind::NotFound {
-                failures.push(format!("无法读取会话目录: {} ({error})", root.display()));
+                failures.push(format!("Unable to read sessions directory: {} ({error})", root.display()));
             }
             return;
         }
@@ -157,7 +157,7 @@ fn collect_rollout_paths(root: &Path, out: &mut Vec<PathBuf>, failures: &mut Vec
         let entry = match entry {
             Ok(entry) => entry,
             Err(error) => {
-                failures.push(format!("无法读取会话目录项: {} ({error})", root.display()));
+                failures.push(format!("Unable to read sessions directory entry: {} ({error})", root.display()));
                 continue;
             }
         };
@@ -166,7 +166,7 @@ fn collect_rollout_paths(root: &Path, out: &mut Vec<PathBuf>, failures: &mut Vec
             Ok(file_type) => file_type,
             Err(error) => {
                 failures.push(format!(
-                    "无法读取会话文件类型: {} ({error})",
+                    "Unable to read session file type: {} ({error})",
                     path.display()
                 ));
                 continue;
@@ -313,7 +313,7 @@ fn scan_rollouts_with_thread_filter(
             .is_some_and(|expected| expected.len() != 1 || !expected.contains(identity_id))
         {
             scan.scan_failures.push(format!(
-                "活动 SQLite 引用的会话文件与线程 ID 不一致: {}",
+                "Active SQLite session file does not match thread ID: {}",
                 path.display()
             ));
             continue;
@@ -333,9 +333,9 @@ fn scan_rollouts_with_thread_filter(
             Ok(text) => text,
             Err(error) => {
                 let reason = if is_locked_io_error(&error) {
-                    "会话文件被占用或无权限读取"
+                    "Session file is locked or not readable"
                 } else {
-                    "无法读取会话文件"
+                    "Unable to read session file"
                 };
                 scan.scan_failures
                     .push(format!("{reason}: {} ({error})", path.display()));
@@ -418,13 +418,13 @@ fn scan_rollouts_with_thread_filter(
         }
         if invalid_json_lines > 0 {
             scan.scan_failures.push(format!(
-                "会话文件包含 {invalid_json_lines} 行无法解析的 JSON: {}",
+                "Session file contains {invalid_json_lines} unparsable JSON lines: {}",
                 path.display()
             ));
         }
         if invalid_session_meta > 0 {
             scan.scan_failures.push(format!(
-                "会话文件包含 {invalid_session_meta} 条无法读取的 session_meta: {}",
+                "Session file contains {invalid_session_meta} unreadable session_meta records: {}",
                 path.display()
             ));
         }
@@ -437,7 +437,7 @@ fn scan_rollouts_with_thread_filter(
         if file_session_meta_count == 0 {
             if expected_thread_ids.is_some() {
                 scan.scan_failures.push(format!(
-                    "活动 SQLite 引用的会话文件缺少 session_meta: {}",
+                    "Active SQLite session file is missing session_meta: {}",
                     path.display()
                 ));
             }
@@ -445,7 +445,7 @@ fn scan_rollouts_with_thread_filter(
         }
         let Some(thread_id) = thread_id else {
             scan.scan_failures.push(format!(
-                "会话文件的 session_meta 缺少 id: {}",
+                "session_meta in session file is missing id: {}",
                 path.display()
             ));
             continue;
@@ -453,7 +453,7 @@ fn scan_rollouts_with_thread_filter(
         if let Some(expected_thread_ids) = expected_thread_ids {
             if expected_thread_ids.len() != 1 || !expected_thread_ids.contains(&thread_id) {
                 scan.scan_failures.push(format!(
-                    "活动 SQLite 引用的会话文件与线程 ID 不一致: {}",
+                    "Active SQLite session file does not match thread ID: {}",
                     path.display()
                 ));
                 continue;
@@ -534,7 +534,7 @@ pub(crate) fn apply_session_changes(
                 return match restore_session_changes(&applied) {
                     Ok(()) => Err(original_error),
                     Err(rollback_error) => Err(CodexxError::Config(format!(
-                        "{original_error}；回滚失败：{rollback_error}"
+                        "{original_error}; rollback failed: {rollback_error}"
                     ))),
                 };
             }
@@ -548,7 +548,7 @@ pub(crate) fn apply_session_changes(
                 return match restore_session_changes(&applied) {
                     Ok(()) => Err(error),
                     Err(rollback_error) => Err(CodexxError::Config(format!(
-                        "{error}；回滚失败：{rollback_error}"
+                        "{error}; rollback failed: {rollback_error}"
                     ))),
                 };
             }
@@ -578,7 +578,7 @@ pub(crate) fn restore_session_changes(changes: &[SessionFileChange]) -> Result<(
     }
     if failed > 0 {
         return Err(CodexxError::Config(format!(
-            "有 {failed} 个会话文件无法安全回滚；文件正在使用或已发生变化。"
+            "{failed} session files could not be rolled back safely; files are in use or changed."
         )));
     }
     Ok(())
@@ -803,7 +803,7 @@ pub(super) fn ensure_sqlite_discovery_writable(discovery: &SqliteDiscovery) -> R
         Ok(())
     } else {
         Err(CodexxError::Config(
-            "无法读取会话数据库，请关闭 Codex 后重试。".to_string(),
+            "Unable to read the session database; close Codex and try again.".to_string(),
         ))
     }
 }
@@ -847,7 +847,7 @@ fn discover_sqlite_databases_with_busy_timeout(
             Err(error) => {
                 if root.is_active && error.kind() != std::io::ErrorKind::NotFound {
                     active_scan_failures.push(format!(
-                        "无法读取当前会话数据库目录: {} ({error})",
+                        "Unable to read current session database directory: {} ({error})",
                         root.path.display()
                     ));
                 }
@@ -861,7 +861,7 @@ fn discover_sqlite_databases_with_busy_timeout(
                 Err(error) => {
                     if root.is_active {
                         active_scan_failures.push(format!(
-                            "无法读取当前会话数据库目录项: {} ({error})",
+                            "Unable to read current session database directory entry: {} ({error})",
                             root.path.display()
                         ));
                     }
@@ -874,7 +874,7 @@ fn discover_sqlite_databases_with_busy_timeout(
                 Err(error) => {
                     if root.is_active {
                         active_scan_failures.push(format!(
-                            "无法读取当前会话数据库文件类型: {} ({error})",
+                            "Unable to read current session database file type: {} ({error})",
                             path.display()
                         ));
                     }
@@ -905,7 +905,7 @@ fn discover_sqlite_databases_with_busy_timeout(
                             .map(|error| format!(" ({error})"))
                             .unwrap_or_default();
                         active_scan_failures.push(format!(
-                            "无法读取当前活动会话数据库: {}{detail}",
+                            "Unable to read current active session database: {}{detail}",
                             path.display()
                         ));
                     }
@@ -1340,18 +1340,18 @@ fn rollout_filename_thread_id(path: &Path) -> Option<&str> {
 
 fn read_rollout_identity(path: &Path) -> std::result::Result<RolloutIdentityRecord, String> {
     let file = fs::File::open(path)
-        .map_err(|_| format!("无法读取会话文件来源信息: {}", path.display()))?;
+        .map_err(|_| format!("Unable to read session file origin info: {}", path.display()))?;
     let record = RolloutIdentityRecord::deserialize(&mut serde_json::Deserializer::from_reader(
         BufReader::new(file),
     ))
     .map_err(|_| {
         format!(
-            "会话文件包含无法解析的 JSON 或无法读取会话文件来源信息: {}",
+            "Session file has unparsable JSON or unreadable origin info: {}",
             path.display()
         )
     })?;
     if record.kind != "session_meta" {
-        return Err(format!("会话文件缺少起始 session_meta: {}", path.display()));
+        return Err(format!("Session file is missing leading session_meta: {}", path.display()));
     }
     let Some(id) = record
         .payload
@@ -1360,11 +1360,11 @@ fn read_rollout_identity(path: &Path) -> std::result::Result<RolloutIdentityReco
         .map(str::trim)
         .filter(|id| !id.is_empty())
     else {
-        return Err(format!("会话来源信息缺少线程 ID: {}", path.display()));
+        return Err(format!("Session origin info is missing thread ID: {}", path.display()));
     };
     if rollout_filename_thread_id(path).is_some_and(|filename_id| filename_id != id) {
         return Err(format!(
-            "会话来源信息与文件线程 ID 不一致: {}",
+            "Session origin info does not match file thread ID: {}",
             path.display()
         ));
     }
@@ -1663,7 +1663,7 @@ pub(super) fn scan_sqlite_with_paths(
             Ok(conn) => conn,
             Err(e) => {
                 scan.scan_failures
-                    .push(format!("无法读取当前活动 SQLite: {} ({e})", path.display()));
+                    .push(format!("Unable to read current active SQLite: {} ({e})", path.display()));
                 continue;
             }
         };
@@ -1673,7 +1673,7 @@ pub(super) fn scan_sqlite_with_paths(
         let cols = table_column_set(&conn, "threads")?;
         if !cols.contains("id") || !cols.contains("model_provider") {
             scan.scan_failures.push(format!(
-                "当前活动 SQLite 的 threads 表缺少 id 或 model_provider 字段: {}",
+                "Current active SQLite threads table is missing id or model_provider: {}",
                 path.display()
             ));
             continue;
@@ -1780,7 +1780,7 @@ pub(super) fn list_session_previews_with_paths(
         ) {
             Ok(conn) => conn,
             Err(e) => {
-                warnings.push(format!("无法读取会话数据库: {} ({e})", path.display()));
+                warnings.push(format!("Unable to read session database: {} ({e})", path.display()));
                 continue;
             }
         };
@@ -1835,7 +1835,7 @@ pub(super) fn list_session_previews_with_paths(
                 let archived: i64 = row.get(10)?;
                 let has_user_event: i64 = row.get(11)?;
                 let clean_title = clean_session_title([title, first_message, preview])
-                    .unwrap_or_else(|| format!("会话 {}", id.chars().take(8).collect::<String>()));
+                    .unwrap_or_else(|| format!("Session {}", id.chars().take(8).collect::<String>()));
                 let normalized_provider = model_provider
                     .as_ref()
                     .map(|v| v.trim().to_string())
@@ -2424,11 +2424,11 @@ mod tests {
         let conn = create_title_database(&codex_dir.join("state_10.sqlite"));
         conn.execute_batch(
             "INSERT INTO threads VALUES
-             ('named', '  真实聊天标题  ', 'First message', 'Preview', '/projects/unused'),
-             ('first', '   ', ' 首条用户消息 ', 'Preview', NULL),
-             ('preview', NULL, ' ', '  会话摘要  ', NULL),
+             ('named', '  Real chat title  ', 'First message', 'Preview', '/projects/unused'),
+             ('first', '   ', ' First user message ', 'Preview', NULL),
+             ('preview', NULL, ' ', '  Session summary  ', NULL),
              ('project', NULL, NULL, NULL, 'C:\\work\\Codex-X\\'),
-             ('invalid-title', X'FF', ' 可读取的首条消息 ', NULL, NULL),
+             ('invalid-title', X'FF', ' Readable first message ', NULL, NULL),
              ('invalid-values', 42, 3.14, X'FF', NULL),
              ('root', NULL, NULL, NULL, '/'),
              ('excluded', 'This row was not requested', NULL, NULL, NULL);",
@@ -2447,11 +2447,11 @@ mod tests {
         .map(ToString::to_string);
         let titles = session_titles_by_id(&codex_dir, &ids);
         assert_eq!(titles.len(), 5);
-        assert_eq!(titles["named"], "真实聊天标题");
-        assert_eq!(titles["first"], "首条用户消息");
-        assert_eq!(titles["preview"], "会话摘要");
+        assert_eq!(titles["named"], "Real chat title");
+        assert_eq!(titles["first"], "First user message");
+        assert_eq!(titles["preview"], "Session summary");
         assert_eq!(titles["project"], "Codex-X");
-        assert_eq!(titles["invalid-title"], "可读取的首条消息");
+        assert_eq!(titles["invalid-title"], "Readable first message");
         assert!(!titles.contains_key("excluded"));
         assert!(!titles.contains_key("invalid-values"));
         assert!(!titles.contains_key("root"));
@@ -2758,7 +2758,7 @@ mod tests {
             .expect_err("unreadable sqlite must block mutation");
         assert_eq!(
             error.to_string(),
-            "配置错误: 无法读取会话数据库，请关闭 Codex 后重试。"
+            "Configuration error: unable to read the session database; close Codex and try again."
         );
 
         let _ = fs::remove_dir_all(codex_dir);

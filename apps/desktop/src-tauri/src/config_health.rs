@@ -64,16 +64,16 @@ fn bounded_snapshot(path: &Path) -> Snapshot {
     let metadata = match fs::metadata(path) {
         Ok(metadata) => metadata,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Snapshot::Missing,
-        Err(_) => return Snapshot::Unavailable("无法读取配置文件，请检查文件权限后重试。"),
+        Err(_) => return Snapshot::Unavailable("Unable to read the config file; check permissions and try again."),
     };
     if !metadata.is_file() {
-        return Snapshot::Unavailable("配置文件的位置被其他类型的文件占用，请检查后重试。");
+        return Snapshot::Unavailable("The config path is occupied by a non-file; check and try again.");
     }
     if metadata.len() > MAX_CONFIG_BYTES {
-        return Snapshot::Unavailable("配置文件过大，暂时无法自动检查，请手动检查配置。");
+        return Snapshot::Unavailable("Config file is too large for automatic checks; please inspect it manually.");
     }
     let Ok(file) = fs::File::open(path) else {
-        return Snapshot::Unavailable("无法读取配置文件，请检查文件权限后重试。");
+        return Snapshot::Unavailable("Unable to read the config file; check permissions and try again.");
     };
     let mut bytes = Vec::new();
     if file
@@ -81,10 +81,10 @@ fn bounded_snapshot(path: &Path) -> Snapshot {
         .read_to_end(&mut bytes)
         .is_err()
     {
-        return Snapshot::Unavailable("读取配置文件失败，请稍后重试。");
+        return Snapshot::Unavailable("Failed to read the config file; please try again later.");
     }
     if bytes.len() as u64 > MAX_CONFIG_BYTES {
-        return Snapshot::Unavailable("配置文件过大，暂时无法自动检查，请手动检查配置。");
+        return Snapshot::Unavailable("Config file is too large for automatic checks; please inspect it manually.");
     }
     Snapshot::Bytes(bytes)
 }
@@ -335,8 +335,8 @@ fn check_provider_table(
         add_issue(
             report,
             "provider-table-type",
-            "供应商配置格式不正确",
-            "有一条供应商配置不是有效的配置表，请在供应商页面重新检查配置。",
+            "Provider config format is invalid",
+            "A provider entry is not a valid config table; recheck it on the Providers page.",
             None,
         );
         return;
@@ -354,9 +354,9 @@ fn check_provider_table(
         add_issue(
             report,
             "provider-name-missing",
-            "供应商配置缺少名称",
-            "有一条供应商配置没有填写名称，可使用它现有的标识补齐显示名称。",
-            (!id.trim().is_empty()).then_some("根据供应商标识补齐缺失的显示名称"),
+            "Provider config is missing a name",
+            "A provider entry has no name; its existing id can be used as the display name.",
+            (!id.trim().is_empty()).then_some("Fill missing display names from provider ids"),
         );
     }
     for key in ["name", "base_url"] {
@@ -364,8 +364,8 @@ fn check_provider_table(
             add_issue(
                 report,
                 "provider-text-type",
-                "供应商文字配置格式不正确",
-                "供应商名称或接口地址应为文字，暂时无法自动判断正确内容。",
+                "Provider text settings format is invalid",
+                "Provider name or API URL should be text; cannot auto-correct yet.",
                 None,
             );
         }
@@ -385,16 +385,16 @@ fn check_provider_table(
                 add_issue(
                     report,
                     "provider-boolean-text",
-                    "供应商开关格式不正确",
-                    "有一项开关被写成了文字，可能导致 Codex 无法加载配置。",
-                    Some("将写成文字的开关恢复为正确格式"),
+                    "Provider toggle format is invalid",
+                    "A toggle was written as text, which may prevent Codex from loading the config.",
+                    Some("Restore text-written toggles to the correct format"),
                 );
             } else {
                 add_issue(
                     report,
                     "provider-boolean-type",
-                    "供应商开关无法识别",
-                    "有一项开关不是有效的开启或关闭值，需要手动确认。",
+                    "Provider toggle is unrecognized",
+                    "A toggle is not a valid on/off value and needs manual confirmation.",
                     None,
                 );
             }
@@ -417,9 +417,9 @@ fn check_provider_table(
         add_issue(
             report,
             "deepseek-websocket-unsupported",
-            "DeepSeek 的连接方式需要调整",
-            "DeepSeek 官方接口不支持当前开启的 WebSocket 连接，可能先报错并多次重试，再正常回复。",
-            Some("将 DeepSeek 官方接口改用 HTTP 连接，避免发送消息时反复重试"),
+            "DeepSeek connection mode needs adjustment",
+            "DeepSeek official API does not support the enabled WebSocket mode; it may error and retry before responding.",
+            Some("Switch DeepSeek official API to HTTP to avoid repeated retries when sending messages"),
         );
     }
     if let Some(item) = table.get_mut("wire_api") {
@@ -436,16 +436,16 @@ fn check_provider_table(
             add_issue(
                 report,
                 "provider-protocol-spelling",
-                "供应商接口格式拼写不正确",
-                "接口格式中存在多余空格或大小写错误，可能导致 Codex 无法加载配置。",
-                Some("修正接口格式的空格或大小写"),
+                "Provider API format spelling is incorrect",
+                "API format has extra spaces or wrong casing, which may prevent Codex from loading the config.",
+                Some("Fix spaces or casing in the API format"),
             );
         } else {
             add_issue(
                 report,
                 "provider-protocol-unsupported",
-                "供应商接口格式不受支持",
-                "当前 Codex 需要 Responses 接口。请向供应商确认支持的接口，或使用兼容的转接服务。",
+                "Provider API format is not supported",
+                "Current Codex requires the Responses API. Confirm what your provider supports, or use a compatible gateway.",
                 None,
             );
         }
@@ -459,9 +459,9 @@ fn check_provider_table(
         add_issue(
             report,
             "official-login-auth-disabled",
-            "官方登录的认证设置不完整",
-            "已发现官方登录信息，但这条官方供应商配置没有启用登录认证。",
-            Some("为官方登录补齐认证开关"),
+            "Official login auth settings are incomplete",
+            "Official login info was found, but this official provider config does not enable login auth.",
+            Some("Enable the auth toggle for official login"),
         );
     }
 }
@@ -497,8 +497,8 @@ fn collect_provider_reference(
         add_issue(
             report,
             "provider-selection-type",
-            "选用的供应商设置不正确",
-            "供应商标识应为非空文字，请在供应商页面重新选择后保存。",
+            "Selected provider setting is invalid",
+            "Provider id must be non-empty text; reselect it on the Providers page and save.",
             None,
         );
         return;
@@ -535,7 +535,7 @@ fn analyze(
             add_issue(
                 &mut report,
                 "config-unavailable",
-                "暂时无法检查配置",
+                "Unable to check configuration right now",
                 message,
                 None,
             );
@@ -548,8 +548,8 @@ fn analyze(
         add_issue(
             &mut report,
             "config-encoding",
-            "配置文件的文字编码不正确",
-            "配置文件需要使用 UTF-8 编码，请手动检查后保存。",
+            "Config file text encoding is incorrect",
+            "Config file must use UTF-8; inspect and save it manually.",
             None,
         );
         return (report, None);
@@ -575,13 +575,13 @@ fn analyze(
                         .chars()
                         .count()
                         + 1;
-                    format!("配置文件第 {line} 行、第 {column} 列附近有格式错误，需要手动检查。")
+                    format!("Config file has a format error near line {line}, column {column}; manual inspection required.")
                 })
-                .unwrap_or_else(|| "配置文件中存在格式错误，需要手动检查。".to_string());
+                .unwrap_or_else(|| "Config file has format errors; manual inspection required.".to_string());
             add_issue(
                 &mut report,
                 "config-syntax",
-                "配置文件格式不正确",
+                "Config file format is invalid",
                 &description,
                 None,
             );
@@ -601,8 +601,8 @@ fn analyze(
             add_issue(
                 &mut report,
                 "providers-table-type",
-                "供应商列表格式不正确",
-                "model_providers 应为配置表，暂时无法自动恢复原有供应商。",
+                "Provider list format is invalid",
+                "model_providers should be a config table; cannot auto-restore providers yet.",
                 None,
             );
         }
@@ -646,7 +646,7 @@ fn analyze(
                 .as_table_like()
                 .and_then(|table| table.get("name"))
                 .and_then(Item::as_str)
-                .unwrap_or("当前供应商")
+                .unwrap_or("Current provider")
                 .chars()
                 .filter(|ch| !ch.is_control())
                 .take(60)
@@ -657,11 +657,11 @@ fn analyze(
                 .insert(&missing[0], candidates[0].clone());
             if history_only {
                 let summary =
-                    format!("让受影响的旧会话沿用当前供应商「{source_name}」，并保留原会话");
-                add_issue(&mut report, "session-provider-definition-missing", "旧会话使用的供应商缺少配置", &format!("有些旧会话仍引用已缺失的供应商。修复后，这些会话将沿用当前供应商「{source_name}」，原会话会保留。"), Some(&summary));
+                    format!("Let affected old sessions keep using current provider "{source_name}", and preserve the original sessions");
+                add_issue(&mut report, "session-provider-definition-missing", "Providers used by old sessions are missing config", &format!("Some old sessions still reference missing providers. After repair they will use current provider "{source_name}"; original sessions are kept."), Some(&summary));
             } else {
-                let summary = format!("使用现有供应商「{source_name}」的配置补齐缺失的对应关系");
-                add_issue(&mut report, "provider-definition-missing", "选用的供应商缺少配置", &format!("供应商标识与现有配置不对应。将使用现有供应商「{source_name}」的配置补齐对应关系，并保留原配置。"), Some(&summary));
+                let summary = format!("Fill missing mappings using existing provider "{source_name}" config");
+                add_issue(&mut report, "provider-definition-missing", "Selected provider is missing config", &format!("Provider id does not match existing config. Fill the mapping using existing provider "{source_name}" and keep the original config."), Some(&summary));
             }
             // Keep routing decisions visible in the compact startup notice.
             if let Some(summary) = report.repair_summary.pop() {
@@ -676,11 +676,11 @@ fn analyze(
                     "provider-definition-missing"
                 },
                 if history_only {
-                    "旧会话使用的供应商缺少配置"
+                    "Providers used by old sessions are missing config"
                 } else {
-                    "选用的供应商缺少配置"
+                    "Selected provider is missing config"
                 },
-                "未找到唯一可确认的供应商配置，请在供应商页面重新选择并启用，或手动补齐原配置。",
+                "No uniquely confirmable provider config found; reselect and enable on the Providers page, or restore the original config manually.",
                 None,
             );
         }
@@ -703,8 +703,8 @@ fn analyze(
         add_issue(
             &mut report,
             "config-linked-file",
-            "配置文件由链接指向其他位置",
-            "请打开原配置文件进行修改，以保留已有的文件链接。",
+            "Config file is a symlink to another location",
+            "Edit the original config file to preserve the existing symlink.",
             None,
         );
     }
@@ -739,7 +739,7 @@ fn repair_with_before_write<F: FnOnce()>(
     );
     if report.fingerprint != expected_fingerprint {
         return Err(CodexxError::Config(
-            "配置已发生变化，请重新检查后再修复。".to_string(),
+            "Configuration changed; recheck before repairing.".to_string(),
         ));
     }
     if replacement.is_none() {
@@ -759,7 +759,7 @@ fn repair_with_before_write<F: FnOnce()>(
     );
     if report.fingerprint != expected_fingerprint {
         return Err(CodexxError::Config(
-            "配置已发生变化，请重新检查后再修复。".to_string(),
+            "Configuration changed; recheck before repairing.".to_string(),
         ));
     }
     let (Some(replacement), Snapshot::Bytes(before)) = (replacement, snapshot) else {
@@ -773,7 +773,7 @@ fn repair_with_before_write<F: FnOnce()>(
     if fs::symlink_metadata(config_path(codex_dir)).is_ok_and(|meta| meta.file_type().is_symlink())
     {
         return Err(CodexxError::Config(
-            "配置文件是链接，请先在原文件中检查并修改配置。".to_string(),
+            "Config file is a symlink; inspect and edit the original file first.".to_string(),
         ));
     }
     let backup_id = create_backup(codex_dir, "repair-config")?;
@@ -786,7 +786,7 @@ fn repair_with_before_write<F: FnOnce()>(
     ) != expected_fingerprint
     {
         return Err(CodexxError::Config(
-            "登录状态或会话配置已发生变化，请重新检查后再修复。".to_string(),
+            "Login state or session config changed; recheck before repairing.".to_string(),
         ));
     }
     atomic_write_if_unchanged(
@@ -821,7 +821,7 @@ pub(crate) fn open_codex_config_file_inner(config_dir: Option<String>) -> Result
     let path = config_path(&codex_dir);
     if !fs::metadata(&path).is_ok_and(|metadata| metadata.is_file()) {
         return Err(CodexxError::Config(
-            "未找到可打开的 config.toml 文件，请确认 Codex 配置目录。".to_string(),
+            "No openable config.toml found; confirm the Codex config directory.".to_string(),
         ));
     }
     #[cfg(target_os = "macos")]
@@ -842,7 +842,7 @@ pub(crate) fn open_codex_config_file_inner(config_dir: Option<String>) -> Result
         .spawn()
         .map_err(|_| {
             CodexxError::Config(
-                "无法打开配置文件，请使用文字编辑器手动打开 config.toml。".to_string(),
+                "Unable to open the config file; open config.toml manually in a text editor.".to_string(),
             )
         })?;
     Ok(())
@@ -1161,7 +1161,7 @@ mod tests {
         let report = fixture.check();
         let json = serde_json::to_string(&report).unwrap();
         assert_eq!(report.status, "issues");
-        assert!(json.contains("第 2 行"));
+        assert!(json.contains("Line 2"));
         assert!(!json.contains("super-private-secret"));
         assert!(!json.contains("experimental_bearer_token"));
     }
@@ -1238,7 +1238,7 @@ mod tests {
             fs::write(config_path(&fixture.0), "# external modification\n").unwrap();
         })
         .unwrap_err();
-        assert!(error.to_string().contains("已被其他程序修改"));
+        assert!(error.to_string().contains("modified by another program"));
         assert_eq!(fixture.text(), "# external modification\n");
     }
 
@@ -1250,7 +1250,7 @@ mod tests {
         let report = fixture.check();
         assert_eq!(report.status, "issues");
         assert!(report.can_repair);
-        assert!(report.repair_summary[0].contains("旧会话沿用当前供应商「My API」"));
+        assert!(report.repair_summary[0].contains("Old sessions keep using current provider "My API""));
         assert_eq!(fixture.repair(&report).report.status, "healthy");
         assert_eq!(
             fs::read(fixture.0.join("state_5.sqlite")).unwrap(),
@@ -1320,7 +1320,7 @@ mod tests {
     fn history_routing_change_is_the_first_visible_repair_plan() {
         let fixture = Fixture::new(&format!("{CUSTOM}supports_websockets='false'\n"));
         fixture.sessions(&["my_codex"]);
-        assert!(fixture.check().repair_summary[0].contains("旧会话沿用当前供应商「My API」"));
+        assert!(fixture.check().repair_summary[0].contains("Old sessions keep using current provider "My API""));
     }
 
     #[test]

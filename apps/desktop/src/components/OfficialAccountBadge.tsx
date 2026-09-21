@@ -14,10 +14,10 @@ export type OfficialAccountBadgeProps = {
 export function OfficialAccountBadge({ lang, email, hasAuth, canQueryQuota, planType, className = "" }: OfficialAccountBadgeProps) {
   const signedOut = !hasAuth;
   const label = signedOut
-    ? (lang === "zh" ? "未登录" : "Not signed in")
+    ? "Not signed in"
     : !canQueryQuota
-      ? (lang === "zh" ? "已保存认证" : "Saved credentials")
-      : email || (lang === "zh" ? "已登录" : "Signed in");
+      ? "Saved credentials"
+      : email || "Signed in";
   const Icon = signedOut ? UserRound : !canQueryQuota ? KeyRound : email ? Mail : CheckCircle2;
   const state = signedOut ? "signed-out" : canQueryQuota ? "signed-in" : "saved";
   const plan = hasAuth && canQueryQuota ? getOfficialPlan(planType, lang) : null;
@@ -28,7 +28,7 @@ export function OfficialAccountBadge({ lang, email, hasAuth, canQueryQuota, plan
       <Icon size={14} strokeWidth={1.8} aria-hidden="true" />
       <span>{label}</span>
     </span>
-    {plan && <span className={`cx-official-plan cx-official-plan--${plan.tone}`} title={`${lang === "zh" ? "套餐" : "Plan"}：${plan.label}`}>
+    {plan && <span className={`cx-official-plan cx-official-plan--${plan.tone}`} title={`${"Plan"}：${plan.label}`}>
       {plan.tone !== "free" && plan.tone !== "neutral" && <PlanIcon size={12} aria-hidden="true" />}
       <span>{plan.label}</span>
     </span>}

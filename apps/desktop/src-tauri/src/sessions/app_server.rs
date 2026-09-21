@@ -38,16 +38,16 @@ fn recv_app_server_message(
     loop {
         let remaining = deadline
             .checked_duration_since(Instant::now())
-            .ok_or_else(|| "Codex App Server 响应超时".to_string())?;
+            .ok_or_else(|| "Codex App Server response timed out".to_string())?;
         let line = receiver
             .recv_timeout(remaining)
-            .map_err(|error| format!("Codex App Server 响应失败: {error}"))?
-            .map_err(|error| format!("读取 Codex App Server 输出失败: {error}"))?;
+            .map_err(|error| format!("Codex App Server response failed: {error}"))?
+            .map_err(|error| format!("Failed to read Codex App Server output: {error}"))?;
         if line.trim().is_empty() {
             continue;
         }
         return serde_json::from_str(&line)
-            .map_err(|error| format!("解析 Codex App Server 输出失败: {error}"));
+            .map_err(|error| format!("Failed to parse Codex App Server output: {error}"));
     }
 }
 
@@ -61,7 +61,7 @@ fn app_server_error(value: &Value) -> Option<(i64, String)> {
         error
             .get("message")
             .and_then(Value::as_str)
-            .unwrap_or("Codex App Server 返回未知错误")
+            .unwrap_or("Codex App Server returned an unknown error")
             .to_string(),
     ))
 }
@@ -78,11 +78,11 @@ fn run_app_server_delete_attempt(
 ) -> AppServerDeleteAttempt {
     let Some(mut stdin) = child.stdin.take() else {
         stop_app_server_child(&mut child);
-        return AppServerDeleteAttempt::Unsupported("Codex App Server stdin 不可用".to_string());
+        return AppServerDeleteAttempt::Unsupported("Codex App Server stdin is unavailable".to_string());
     };
     let Some(stdout) = child.stdout.take() else {
         stop_app_server_child(&mut child);
-        return AppServerDeleteAttempt::Unsupported("Codex App Server stdout 不可用".to_string());
+        return AppServerDeleteAttempt::Unsupported("Codex App Server stdout is unavailable".to_string());
     };
     let (sender, receiver) = mpsc::channel();
     let reader = std::thread::spawn(move || {
@@ -128,7 +128,7 @@ fn run_app_server_delete_attempt(
                 .and_then(Value::as_str)
             else {
                 return AppServerDeleteAttempt::Unsupported(
-                    "Codex App Server 未返回 CODEX_HOME".to_string(),
+                    "Codex App Server did not return CODEX_HOME".to_string(),
                 );
             };
             let requested_home = codex_dir
@@ -139,7 +139,7 @@ fn run_app_server_delete_attempt(
                 .unwrap_or_else(|_| PathBuf::from(server_home));
             if requested_home != returned_home {
                 return AppServerDeleteAttempt::Unsupported(format!(
-                    "Codex App Server 使用了不同的 CODEX_HOME: {}",
+                    "Codex App Server used a different CODEX_HOME: {}",
                     returned_home.display()
                 ));
             }
